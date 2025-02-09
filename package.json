@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.7",
+    "node-fetch": "^3.3.2",
+    "readline-sync": "^1.4.10"
+  },
+  "scripts": {
+    "depositinr:stag": "cross-env NODE_ENV=staging.inr node API/deposit.js",
+    "payoutinr:stag": "cross-env NODE_ENV=staging.inr node API/payout.js",
+    "deposit:prod": "cross-env NODE_ENV=production node API/deposit.js",
+    "payout:prod": "cross-env NODE_ENV=production node API/payout.js"
+  } 
+}
