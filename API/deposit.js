@@ -11,7 +11,7 @@ async function sendDeposit() {
 
     const amount = readlineSync.question("Masukkan Amount: ");
     const currency = readlineSync.question("Masukkan Currency (INR/VND): ").toUpperCase();
-    const payoutCode = readlineSync.question("Masukkan Payment Code: ");
+    const depositMethod = readlineSync.question("Masukkan Payment Code: ");
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const transactionCode = `TEST-DEP-${timestamp}`;
@@ -23,7 +23,7 @@ async function sendDeposit() {
         transaction_amount: amount,
         user_id: userID.toString(),
         currency_code: currency,
-        payout_code: payoutCode
+        payout_code: depositMethod
     };
 
     const encryptedPayload = encryptData(payload, SECRET_KEY);
@@ -49,5 +49,4 @@ async function sendDeposit() {
     }
 }
 
-// Jalankan fungsi deposit
 sendDeposit();
