@@ -50,8 +50,6 @@ async function sendDeposit() {
 
         if (!response.ok) {
             console.log(`Response body: ${await response.text()}`);
-            console.log(merchantCode)
-            console.log(secretKey)
             throw new Error(`HTTP error! Status: ${response.status}`);
         }        
 
