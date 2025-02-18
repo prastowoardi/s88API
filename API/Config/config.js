@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 
 // Menentukan environment (default: production)
-const env = process.env.NODE_ENV === "staging.inr" ? ".env.staging" : ".env.production";
+const env = process.env.NODE_ENV === "staging.inr" ? ".env" : ".env.production";
 dotenv.config({ path: env });
 
 export const BASE_URL = process.env.BASE_URL;
