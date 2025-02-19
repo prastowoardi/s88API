@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { SECRET_KEY_INR, SECRET_KEY_VND, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_INR } from "../API/Config/config.js";
 
 export function encryptData(data, secretKey) {
     if (!secretKey) {
@@ -38,10 +39,10 @@ export function decryptData(encryptedData, secretKey) {
     return decrypted;
 }
 
-// const secretKey = 'testdelete1';
-// const data = "merchant_api_key=testdelete1&merchant_code=SKU20220714094803&transaction_code=TEST-DP-1739970804&transaction_timestamp=1739970804&transaction_amount=900&user_id=722&currency_code=INR&payment_code=INRDEMO01D";
-const secretKey = 'dGLgu6d8oOcP1hEC6pjVuLHdAvCcqPvaRdeh2bOgpUk%3D';
-const data = "merchant_api_key=cprwG5zjDJYxzK3sNeFVqQ%3D%3D&merchant_code=SKU20240706101744&transaction_code=TEST-DP-1739972015&transaction_timestamp=1739972015&transaction_amount=51000&user_id=464&currency_code=VND&payment_code=VND01D&random_bank_code=OBT"
+// const secretKey = SECRET_KEY_INR;
+// const data = `merchant_api_key=${MERCHANT_API_KEY_INR}&merchant_code=${MERCHANT_CODE_INR}&transaction_code=TEST-DP-1739970804&transaction_timestamp=1739970804&transaction_amount=900&user_id=722&currency_code=INR&payment_code=INRDEMO01D`;
+const secretKey = SECRET_KEY_VND;
+const data = `merchant_api_key=${MERCHANT_API_KEY_VND}&merchant_code=${MERCHANT_CODE_VND}&transaction_code=TEST-DP-1739972015&transaction_timestamp=1739972015&transaction_amount=51000&user_id=464&currency_code=VND&payment_code=VND01D&random_bank_code=OBT`
 
 const encryptedData = encryptData(data, secretKey);
 console.log('\nEncrypted Data:', encryptedData);
