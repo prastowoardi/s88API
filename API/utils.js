@@ -7,14 +7,16 @@ export function encryptData(data, secretKey) {
 
     const keyBuffer = crypto.createHash('sha256').update(secretKey).digest();
 
-    const iv = crypto.createHash('sha256').update(secretKey, 'utf8').digest('hex').substring(0, 16);
+    const iv = crypto.createHash('sha256').update(secretKey, 'utf8').digest().slice(0, 16);
 
     const cipher = crypto.createCipheriv("aes-256-cbc", keyBuffer, iv);
 
-    let encrypted = cipher.update(JSON.stringify(data), "utf8", "base64");
+    let encrypted = cipher.update(data, "utf8", "base64");
     encrypted += cipher.final("base64");
 
-    return encodeURIComponent(encrypted);
+    encrypted = encrypted.replace(/\+/g, '%2B').replace(/\//g, '%2F').replace(/=/g, '%3D');
+
+    return encrypted;
 }
 
 export function decryptData(encryptedData, secretKey) {
@@ -24,34 +26,25 @@ export function decryptData(encryptedData, secretKey) {
 
     const keyBuffer = crypto.createHash('sha256').update(secretKey).digest();
 
-    const iv = crypto.createHash('sha256').update(secretKey, 'utf8').digest('hex').substring(0, 16);
+    const iv = crypto.createHash('sha256').update(secretKey, 'utf8').digest().slice(0, 16);
 
     const decipher = crypto.createDecipheriv("aes-256-cbc", keyBuffer, iv);
 
-    const decodedData = decodeURIComponent(encryptedData);
+    const decodedData = encryptedData.replace(/%2B/g, '+').replace(/%2F/g, '/').replace(/%3D/g, '=');
 
     let decrypted = decipher.update(decodedData, "base64", "utf8");
     decrypted += decipher.final("utf8");
 
-    return JSON.parse(decrypted);
+    return decrypted;
 }
 
-const secretKey = 'mysecretkey';
-const data = {
-    merchant_api_key: 'testdelete1',
-    merchant_code: 'SKU20220714094803',
-    transaction_code: 'TEST-DP-1739955362',
-    transaction_timestamp: 1739955362,
-    transaction_amount: 900,
-    user_id: 369,
-    currency_code: 'INR',
-    payment_code: 'INRDEMO01D'
-};
+// const secretKey = 'testdelete1';
+// const data = "merchant_api_key=testdelete1&merchant_code=SKU20220714094803&transaction_code=TEST-DP-1739970804&transaction_timestamp=1739970804&transaction_amount=900&user_id=722&currency_code=INR&payment_code=INRDEMO01D";
+const secretKey = 'dGLgu6d8oOcP1hEC6pjVuLHdAvCcqPvaRdeh2bOgpUk%3D';
+const data = "merchant_api_key=cprwG5zjDJYxzK3sNeFVqQ%3D%3D&merchant_code=SKU20240706101744&transaction_code=TEST-DP-1739972015&transaction_timestamp=1739972015&transaction_amount=51000&user_id=464&currency_code=VND&payment_code=VND01D&random_bank_code=OBT"
 
-// Enkripsi data
 const encryptedData = encryptData(data, secretKey);
-console.log('Encrypted Data:', encryptedData);  // Akan menghasilkan URL-encoded base64
+console.log('\nEncrypted Data:', encryptedData);
 
-// Dekripsi data
 const decryptedData = decryptData(encryptedData, secretKey);
-console.log('Decrypted Data:', decryptedData);
+console.log('\nDecrypted Data:', decryptedData);
