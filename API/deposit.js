@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
-import { encryptData, decryptData } from "../API/utils.js";
+import { encryptDecrypt } from "../API/utils.js";
 import { BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND } from "../API/Config/config.js";
 
 const currencyConfig = {
@@ -16,7 +16,7 @@ const currencyConfig = {
         depositMethod: DEPOSIT_METHOD_VND,
         secretKey: SECRET_KEY_VND,
         merchantAPI: MERCHANT_API_KEY_VND,
-        randomBankCode: "OBT"
+        bankCodeOption: ["acbbank", "mbbank", "tpbank", "vietinbank", "vietcombank", "bidv"]
     }
 };
 
@@ -34,19 +34,25 @@ async function sendDeposit() {
         return;
     }
 
-    const { merchantCode, depositMethod, secretKey, merchantAPI, randomBankCode } = config;
+    const { merchantCode, depositMethod, secretKey, merchantAPI, bankCodeOption } = config;
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const transactionCode = `TEST-DP-${timestamp}`;
 
-    let payloadString = `merchant_api_key=${merchantAPI}&merchant_code=${merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${depositMethod}`;
-
-    if (randomBankCode) {
-        payloadString += `&random_bank_code=${randomBankCode}`;
+    let bankCode = "";
+    if (currency === "VND") {
+        bankCode = bankCodeOption[Math.floor(Math.random() * bankCodeOption.length)];
+        console.log(`Selected Bank Code: ${bankCode}`);
     }
 
-    const encryptedPayload = encryptData(payloadString, secretKey);
-    const decryptedPayload = decryptData(encryptedPayload, secretKey);
+    let payloadString = `merchant_api_key=${merchantAPI}&merchant_code=${merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${depositMethod}`;
+
+    if (currency === "VND" && bankCode) {
+        payloadString += `&bank_code=${bankCode}`;
+    }
+
+    const encryptedPayload = encryptDecrypt("encrypt", payloadString, merchantAPI, secretKey);
+    const decryptedPayload = encryptDecrypt("decrypt", encryptedPayload, merchantAPI, secretKey);
 
     try {
         const response = await fetch(`${BASE_URL}/api/${merchantCode}/v3/dopayment`, {
@@ -56,8 +62,7 @@ async function sendDeposit() {
         });
 
         if (!response.ok) {
-            const errorBody = await response.text();
-            console.log(`Response body: ${errorBody}`);
+            console.log(`Response body: ${await response.text()}`);
             console.log(`\nEncrypted Key: ${encryptedPayload}`);
             console.log(`\nDecrypted Key: ${JSON.stringify(decryptedPayload, null, 2)}`);
             throw new Error(`HTTP error! Status: ${response.status}`);
