@@ -38,14 +38,3 @@ export function decryptData(encryptedData, secretKey) {
 
     return decrypted;
 }
-
-// const secretKey = SECRET_KEY_INR;
-// const data = `merchant_api_key=${MERCHANT_API_KEY_INR}&merchant_code=${MERCHANT_CODE_INR}&transaction_code=TEST-DP-1739970804&transaction_timestamp=1739970804&transaction_amount=900&user_id=722&currency_code=INR&payment_code=INRDEMO01D`;
-const secretKey = SECRET_KEY_VND;
-const data = `merchant_api_key=${MERCHANT_API_KEY_VND}&merchant_code=${MERCHANT_CODE_VND}&transaction_code=TEST-DP-1739972015&transaction_timestamp=1739972015&transaction_amount=51000&user_id=464&currency_code=VND&payment_code=VND01D&random_bank_code=OBT`
-
-const encryptedData = encryptData(data, secretKey);
-console.log('\nEncrypted Data:', encryptedData);
-
-const decryptedData = decryptData(encryptedData, secretKey);
-console.log('\nDecrypted Data:', decryptedData);
