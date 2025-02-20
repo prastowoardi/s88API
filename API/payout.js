@@ -1,7 +1,7 @@
 import fetch from "node-fetch"; 
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
-import { encryptData, decryptData } from "../API/utils.js";
+import { encryptDecrypt } from "../API/utils.js";
 import { BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_API_KEY_INR } from "../API/Config/config.js";
 
 async function sendPayout() {
@@ -54,8 +54,8 @@ async function sendPayout() {
         return;
     }
 
-    const encryptedPayload = encryptData(payload, currency === "INR" ? SECRET_KEY_INR : SECRET_KEY_VND);
-    const decryptedPayload = decryptData(encryptedPayload, secretKey);
+    const encryptedPayload = encryptDecrypt("encrypt", JSON.stringify(payload), merchantCode, secretKey);
+    const decryptedPayload = JSON.parse(encryptDecrypt("decrypt", encryptedPayload, merchantCode, secretKey));
 
     try {
         const response = await fetch(`${BASE_URL}/api/v1/payout/${merchantCode}`, {
@@ -67,7 +67,7 @@ async function sendPayout() {
         if (!response.ok) {
             const errorText = await response.text();
             console.log(`\nEncrypted Key: ${encryptedPayload}`);
-            console.log(`\nDecrypted Key: ${JSON.stringify(decryptedPayload, null, 2)}`);
+            console.log(`\nDecrypted Key:`, decryptedPayload);
             console.error(`\nError response body: ${errorText}`);
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
