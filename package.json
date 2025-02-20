@@ -12,5 +12,5 @@
     "payout:stag": "cross-env NODE_ENV=staging node API/payout.js",
     "deposit:prod": "cross-env NODE_ENV=production node API/deposit.js",
     "payout:prod": "cross-env NODE_ENV=production node API/payout.js"
-  } 
+  }
 }
