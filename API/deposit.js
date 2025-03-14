@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../API/utils.js";
-import { BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND } from "../API/Config/config.js";
+import { BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT } from "../API/Config/config.js";
 
 const currencyConfig = {
     INR: {
@@ -16,7 +16,15 @@ const currencyConfig = {
         depositMethod: DEPOSIT_METHOD_VND,
         secretKey: SECRET_KEY_VND,
         merchantAPI: MERCHANT_API_KEY_VND,
-        bankCodeOption: ["acbbank", "mbbank", "tpbank", "vietinbank", "vietcombank", "bidv"]
+        bankCodeVND: ["acbbank", "mbbank", "tpbank", "vietinbank", "vietcombank", "bidv"]
+    },
+    BDT: {
+        merchantCode: MERCHANT_CODE_BDT,
+        depositMethod: DEPOSIT_METHOD_BDT,
+        secretKey: SECRET_KEY_BDT,
+        merchantAPI: MERCHANT_API_KEY_BDT,
+        bankCodeBDT: ["1002", "1001", "1004", "1003"],
+        phoneNumber: '01758293819'
     }
 };
 
@@ -24,7 +32,7 @@ async function sendDeposit() {
     console.log("\n=== DEPOSIT REQUEST ===");
 
     const userID = randomInt(100, 999);
-    const currency = readlineSync.question("Masukkan Currency (INR/VND): ").toUpperCase();
+    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT): ").toUpperCase();
     const amount = readlineSync.question("Masukkan Amount: ");
 
     const config = currencyConfig[currency];
@@ -34,21 +42,28 @@ async function sendDeposit() {
         return;
     }
 
-    const { merchantCode, depositMethod, secretKey, merchantAPI, bankCodeOption } = config;
+    const { merchantCode, depositMethod, secretKey, merchantAPI, bankCodeVND, bankCodeBDT, phoneNumber } = config;
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const transactionCode = `TEST-DP-${timestamp}`;
 
     let bankCode = "";
-    if (currency === "VND") {
-        bankCode = bankCodeOption[Math.floor(Math.random() * bankCodeOption.length)];
-        console.log(`Selected Bank Code: ${bankCode}`);
+    switch (currency) {
+        case "VND":
+            bankCode = bankCodeVND[Math.floor(Math.random() * bankCodeVND.length)];
+            break;
+        case "BDT":
+            bankCode = bankCodeBDT[Math.floor(Math.random() * bankCodeBDT.length)];
+            break;
     }
-
+    
     let payloadString = `merchant_api_key=${merchantAPI}&merchant_code=${merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${depositMethod}`;
 
-    if (currency === "VND" && bankCode) {
+    if (currency === "VND" || currency === "BDT" && bankCode) {
         payloadString += `&bank_code=${bankCode}`;
+    }
+    if (currency === "BDT") {
+        payloadString += `&phone=${phoneNumber}`
     }
 
     const encryptedPayload = encryptDecrypt("encrypt", payloadString, merchantAPI, secretKey);
