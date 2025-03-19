@@ -8,9 +8,11 @@
     "readline-sync": "^1.4.10"
   },
   "scripts": {
-    "deposit:stag": "cross-env NODE_ENV=staging node API/deposit.js",
-    "payout:stag": "cross-env NODE_ENV=staging node API/payout.js",
     "deposit:prod": "cross-env NODE_ENV=production node API/deposit.js",
-    "payout:prod": "cross-env NODE_ENV=production node API/payout.js"
+    "deposit:stag": "cross-env NODE_ENV=staging node API/deposit.js",
+    "deposit:dev": "cross-env NODE_ENV=dev node API/deposit.js",
+    "payout:prod": "cross-env NODE_ENV=production node API/payout.js",
+    "payout:stag": "cross-env NODE_ENV=staging node API/payout.js",
+    "payout:dev": "cross-env NODE_ENV=dev node API/payout.js"
   }
 }
