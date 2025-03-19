@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 const ifscDataPath = path.resolve(__dirname, 'src/banks.json');
 
-async function getRandomIFSC() {
+async function getRandomIFSC(currency) {
     try {
         await fs.access(ifscDataPath);
         
@@ -31,8 +31,10 @@ async function getRandomIFSC() {
             throw new Error(`Bank ${randomBankCode} tidak memiliki IFSC yang valid.`);
         }
 
-        console.log(`✅ Bank: ${randomBankCode}`);
-        console.log(`✅ IFSC Code: ${selectedBank.ifsc}`);
+        if (currency === "INR") {
+            console.log(`✅ Bank: ${randomBankCode}`);
+            console.log(`✅ IFSC Code: ${selectedBank.ifsc}`);
+        }
 
         return selectedBank.ifsc;
     } catch (error) {
@@ -48,7 +50,7 @@ async function sendPayout() {
     const currency = readlineSync.question("Masukkan Currency (INR/VND): ").toUpperCase();
     const amount = readlineSync.question("Masukkan Amount: ");
 
-    const ifscCode = await getRandomIFSC();
+    const ifscCode = await getRandomIFSC(currency);
     if (!ifscCode) {
         console.error("❌ IFSC code tidak ditemukan! Payout dibatalkan.");
         return;
