@@ -7,8 +7,8 @@ import { BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, DEPOSIT_METHO
 function randomPhoneNumber() {
     const prefixes = ['017', '018', '019', '016', '015'];
     const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const randomNumber = Math.floor(Math.random() * 1000000000);
-    return randomPrefix + randomNumber.toString().padStart(7, '0');
+    const randomNumber = Math.floor(Math.random() * 100000000);
+    return randomPrefix + randomNumber.toString().padStart(6, '0');
 }
 const phoneNumber = randomPhoneNumber();
 
