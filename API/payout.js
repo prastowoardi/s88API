@@ -55,9 +55,12 @@ async function sendPayout() {
         console.error("Currency not supported!");
         return;
     }
-
+    console.log(`${BASE_URL}/api/v1/payout/${merchantCode}`)
+    
     const encryptedPayload = encryptDecryptPayout("encrypt", payload, apiKey, secretKey);
-    console.log("Request Key:", JSON.stringify(payload));
+    console.log(`\nKey:`, encryptedPayload);
+    console.log("\nRequest Key:", JSON.stringify(payload));
+    
     try {
         const response = await fetch(`${BASE_URL}/api/v1/payout/${merchantCode}`, {
             method: "POST",
@@ -70,8 +73,6 @@ async function sendPayout() {
             console.log(`\nEncrypted Key: ${encryptedPayload}`);
             console.error(`\nError response body: ${errorText}`);
             throw new Error(`HTTP error! Status: ${response.status}`);
-        } else {
-            console.log(`\nEncrypted Key:`, encryptedPayload);
         }
 
         const result = await response.json();
