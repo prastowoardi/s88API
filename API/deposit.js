@@ -74,7 +74,7 @@ async function sendDeposit() {
         payloadString += `&phone=${phoneNumber}`
     }
 
-    console.log(`\n🔗 Base URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
+    console.log(`\n🔗 Base URL: ${BASE_URL}/api/${merchantCode}/v3/dopayment`);
 
     const encryptedPayload = encryptDecrypt("encrypt", payloadString, merchantAPI, secretKey);
     const decryptedPayload = encryptDecrypt("decrypt", encryptedPayload, merchantAPI, secretKey);
