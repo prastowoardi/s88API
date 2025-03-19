@@ -4,6 +4,14 @@ import { randomInt } from "crypto";
 import { encryptDecrypt } from "../API/utils.js";
 import { BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT } from "../API/Config/config.js";
 
+function randomPhoneNumber() {
+    const prefixes = ['017', '018', '019', '016', '015'];
+    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const randomNumber = Math.floor(Math.random() * 1000000000);
+    return randomPrefix + randomNumber.toString().padStart(7, '0');
+}
+const phoneNumber = randomPhoneNumber();
+
 const currencyConfig = {
     INR: {
         merchantCode: MERCHANT_CODE_INR,
@@ -24,7 +32,7 @@ const currencyConfig = {
         secretKey: SECRET_KEY_BDT,
         merchantAPI: MERCHANT_API_KEY_BDT,
         bankCodeBDT: ["1002", "1001", "1004", "1003"],
-        phoneNumber: '01758293819'
+        phoneNumber: phoneNumber
     }
 };
 
@@ -80,13 +88,13 @@ async function sendDeposit() {
             console.log(`Response body: ${await response.text()}`);
             console.log(`\nEncrypted Key: ${encryptedPayload}`);
             console.log(`\nDecrypted Key: ${JSON.stringify(decryptedPayload, null, 2)}`);
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            throw new Error(`❌ HTTP error! Status: ${response.status}`);
         }
 
         const result = await response.json();
         console.log("\nDeposit Response:", result);
     } catch (error) {
-        console.error("\nDeposit Error:", error);
+        console.error("\n❌ Deposit Error:", error);
         if (error instanceof SyntaxError) {
             console.error("Received data is not valid JSON. Response body may be HTML.");
         }
