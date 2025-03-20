@@ -43,12 +43,25 @@ async function getRandomIFSC(currency) {
     }
 }
 
+async function getRandomName() {
+    try {
+        const response = await fetch('https://randomuser.me/api/');
+        const data = await response.json();
+        return `${data.results[0].name.first} ${data.results[0].name.last}`;
+    } catch (error) {
+        console.error("❌ Gagal mengambil data:", error);
+        return null;
+    }
+}
+
 async function sendPayout() {
     console.log("\n=== PAYOUT REQUEST ===");
 
     const userID = randomInt(100, 999);
     const currency = readlineSync.question("Masukkan Currency (INR/VND): ").toUpperCase();
     const amount = readlineSync.question("Masukkan Amount: ");
+    
+    const name = await getRandomName();
 
     const ifscCode = await getRandomIFSC(currency);
     if (!ifscCode) {
@@ -75,7 +88,7 @@ async function sendPayout() {
             currency_code: currency,
             bank_account_number: "11133322",
             ifsc_code: ifscCode,
-            account_name: "Johny",
+            account_name: name,
             payout_code: payoutMethod,
         };
     } else if (currency === "VND") {
@@ -92,7 +105,7 @@ async function sendPayout() {
             currency_code: currency,
             bank_account_number: "2206491508",
             bank_code: "970418",
-            account_name: "BOI THUI HIA",
+            account_name: name,
             payout_code: payoutMethod,
         };
     } else {
