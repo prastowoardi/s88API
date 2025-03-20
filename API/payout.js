@@ -19,24 +19,28 @@ async function getRandomIFSC(currency) {
         const data = await fs.readFile(ifscDataPath, 'utf8');
         const ifscData = JSON.parse(data);
 
-        const bankCodes = Object.keys(ifscData);
-        if (bankCodes.length === 0) {
+        if (!ifscData.NTDRESP || !Array.isArray(ifscData.NTDRESP.BANKLIST)) {
+            throw new Error("Format data banks.json tidak valid!");
+        }
+
+        const bankList = ifscData.NTDRESP.BANKLIST;
+
+        if (bankList.length === 0) {
             throw new Error("Data bank kosong!");
         }
 
-        const randomBankCode = bankCodes[Math.floor(Math.random() * bankCodes.length)];
-        const selectedBank = ifscData[randomBankCode];
+        const randomBank = bankList[Math.floor(Math.random() * bankList.length)];
 
-        if (!selectedBank.ifsc) {
-            throw new Error(`Bank ${randomBankCode} tidak memiliki IFSC yang valid.`);
+        if (!randomBank.MIFSCCODE) {
+            throw new Error(`Bank ${randomBank.BANKNAME} tidak memiliki IFSC yang valid.`);
         }
 
         if (currency === "INR") {
-            console.log(`✅ Bank: ${randomBankCode}`);
-            console.log(`✅ IFSC Code: ${selectedBank.ifsc}`);
+            console.log(`✅ Bank: ${randomBank.BANKNAME} (${randomBank.BANKCODE})`);
+            console.log(`✅ IFSC Code: ${randomBank.MIFSCCODE}`);
         }
 
-        return selectedBank.ifsc;
+        return randomBank.MIFSCCODE;
     } catch (error) {
         console.error(`❌ Error saat membaca IFSC data: ${error.message}`);
         return null;
