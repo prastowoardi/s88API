@@ -36,6 +36,51 @@ const currencyConfig = {
     }
 };
 
+async function submitUTR(currency, transactionCode) {
+    console.log("\n=== SUBMIT UTR REQUEST ===");
+
+    if (!["INR", "BDT"].includes(currency)) {
+        console.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
+        return;
+    }
+
+    const utr = readlineSync.question("Masukkan UTR: ");
+
+    if (currency === "INR" && !/^\d{12}$/.test(utr)) {
+        console.error("❌ UTR untuk INR harus berupa 12 digit angka.");
+        return;
+    }
+
+    const config = currency === "INR"
+        ? { merchantCode: MERCHANT_CODE_INR, secretKey: SECRET_KEY_INR, merchantAPI: MERCHANT_API_KEY_INR }
+        : { merchantCode: MERCHANT_CODE_BDT, secretKey: SECRET_KEY_BDT, merchantAPI: MERCHANT_API_KEY_BDT };
+
+    const { merchantCode, secretKey, merchantAPI } = config;
+
+    const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
+    const encryptedPayload = encryptDecrypt("encrypt", payloadString, merchantAPI, secretKey);
+
+    console.log(`\n🔗 Base URL: ${BASE_URL}/api/${merchantCode}/v3/submit-utr`);
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/${merchantCode}/v3/submit-utr`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: encryptedPayload })
+        });
+
+        if (!response.ok) {
+            console.log(`Response body: ${await response.text()}`);
+            throw new Error(`❌ HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("\n✅ Submit UTR Response:", result);
+    } catch (error) {
+        console.error("\n❌ Submit UTR Error:", error);
+    }
+}
+
 async function sendDeposit() {
     console.log("\n=== DEPOSIT REQUEST ===");
 
@@ -95,6 +140,11 @@ async function sendDeposit() {
 
         const result = await response.json();
         console.log("\nDeposit Response:", result);
+
+        if (currency === "INR" || currency === "BDT") {
+            await submitUTR(currency, transactionCode);
+        }
+        
     } catch (error) {
         console.error("\n❌ Deposit Error:", error);
         if (error instanceof SyntaxError) {
