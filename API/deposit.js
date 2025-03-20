@@ -60,8 +60,6 @@ async function submitUTR(currency, transactionCode) {
     const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
     const encryptedPayload = encryptDecrypt("encrypt", payloadString, merchantAPI, secretKey);
 
-    console.log(`\n🔗 Base URL: ${BASE_URL}/api/${merchantCode}/v3/submit-utr`);
-
     try {
         const response = await fetch(`${BASE_URL}/api/${merchantCode}/v3/submit-utr`, {
             method: "POST",
@@ -119,7 +117,7 @@ async function sendDeposit() {
         payloadString += `&phone=${phoneNumber}`
     }
 
-    console.log(`\n🔗 Base URL: ${BASE_URL}/api/${merchantCode}/v3/dopayment`);
+    console.log(`\n🔗 URL: ${BASE_URL}/api/${merchantCode}/v3/dopayment`);
 
     const encryptedPayload = encryptDecrypt("encrypt", payloadString, merchantAPI, secretKey);
     const decryptedPayload = encryptDecrypt("decrypt", encryptedPayload, merchantAPI, secretKey);
@@ -152,7 +150,5 @@ async function sendDeposit() {
         }
     }
 }
-
-export { sendDeposit };
 
 sendDeposit();

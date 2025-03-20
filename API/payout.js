@@ -117,7 +117,7 @@ async function sendPayout() {
         return;
     }
 
-    console.log(`\n🔗 Base URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
+    console.log(`\n🔗 URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
 
     const encryptedPayload = encryptDecryptPayout("encrypt", payload, apiKey, secretKey);
     console.log(`\n🔑 Key:`, encryptedPayload);
