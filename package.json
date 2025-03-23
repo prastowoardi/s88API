@@ -8,6 +8,7 @@
     "readline-sync": "^1.4.10"
   },
   "scripts": {
+    "start": "node server.js",
     "deposit:prod": "cross-env NODE_ENV=production node API/deposit.js",
     "deposit:stag": "cross-env NODE_ENV=staging node API/deposit.js",
     "deposit:dev": "cross-env NODE_ENV=dev node API/deposit.js",
