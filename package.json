@@ -4,12 +4,10 @@
     "cross-env": "^7.0.3",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
     "node-fetch": "^3.3.2",
     "readline-sync": "^1.4.10"
   },
   "scripts": {
-    "start": "node server.js",
     "deposit:prod": "cross-env NODE_ENV=production node API/deposit.js",
     "deposit:stag": "cross-env NODE_ENV=staging node API/deposit.js",
     "deposit:dev": "cross-env NODE_ENV=dev node API/deposit.js",
