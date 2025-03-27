@@ -47,6 +47,18 @@ async function getRandomIFSC(currency) {
     }
 }
 
+async function getValidIFSC(currency, maxRetries = 3) {
+    let attempts = 0;
+    while (attempts < maxRetries) {
+        const ifscCode = await getRandomIFSC(currency);
+        if (ifscCode) return ifscCode;
+        console.warn(`⚠️ Percobaan ${attempts + 1} gagal mendapatkan IFSC. Mencoba lagi...`);
+        attempts++;
+    }
+    console.error("❌ Gagal mendapatkan IFSC setelah beberapa percobaan.");
+    return null;
+}
+
 async function getRandomName() {
     try {
         const response = await fetch('https://randomuser.me/api/');
@@ -67,7 +79,7 @@ async function sendPayout() {
     
     const name = await getRandomName();
 
-    const ifscCode = await getRandomIFSC(currency);
+    const ifscCode = await getValidIFSC(currency);
     if (!ifscCode) {
         console.error("❌ IFSC code tidak ditemukan! Payout dibatalkan.");
         return;
