@@ -73,7 +73,7 @@ const currencyConfig = {
         depositMethod: DEPOSIT_METHOD_VND,
         secretKey: SECRET_KEY_VND,
         merchantAPI: MERCHANT_API_KEY_VND,
-        bankCodeVND: ["acbbank", "mbbank", "tpbank", "vietinbank", "vietcombank", "bidv"]
+        bankCodeVND: true
     },
     BDT: {
         merchantCode: MERCHANT_CODE_BDT,
@@ -107,24 +107,28 @@ async function sendDeposit() {
         return;
     }
 
-    const { merchantCode, depositMethod, secretKey, merchantAPI, bankCodeVND, bankCodeBDT, phoneNumber, invoiceID, callbackURL } = config;
+    const { merchantCode, depositMethod, secretKey, merchantAPI, phoneNumber, bankCodeBDT, bankCodeVND } = config;
 
     const transactionCode = `TEST-DP-${timestamp}`;
 
     let bankCode = "";
-    if (currency === "VND") {
-        bankCode = bankCodeVND[Math.floor(Math.random() * bankCodeVND.length)];
-    } else if (currency === "BDT") {
+    if (currency === "VND" && bankCodeVND) {
+        bankCode = readlineSync.question("Masukkan Bank Code: ").toLowerCase();
+        if (!/^[a-z0-9]+$/.test(bankCode)) {
+            console.error("❌ Bank Code harus berupa huruf dan angka saja.");
+            return;
+        }
+    } else if (currency === "BDT" && bankCodeBDT) {
         bankCode = bankCodeBDT[Math.floor(Math.random() * bankCodeBDT.length)];
     }
 
     if (currency === "PMI") {
         const payload = {
-            invoice_id: invoiceID,
+            invoice_id: `TEST-DP-${timestamp}`,
             amount: amount,
             currency: "INR",
             payment_method: depositMethod,
-            callback_url: callbackURL
+            callback_url: config.callbackURL
         };
 
         const paymentURL = `https://dev.octo88.co/transaction/deposit`;
@@ -163,19 +167,20 @@ async function sendDeposit() {
         let payloadString = `merchant_api_key=${merchantAPI}&merchant_code=${merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${depositMethod}`;
 
         if (currency === "VND" || currency === "BDT") {
-            let bankCode = currency === "VND" ? bankCodeVND[Math.floor(Math.random() * bankCodeVND.length)] : bankCodeBDT[Math.floor(Math.random() * bankCodeBDT.length)];
             payloadString += `&bank_code=${bankCode}`;
         }
         if (currency === "BDT") {
-            payloadString += `&phone=${phoneNumber}`
+            payloadString += `&phone=${phoneNumber}`;
         }
 
         const paymentURL = `${BASE_URL}/api/${merchantCode}/v3/dopayment`;
 
         const encryptedPayload = encryptDecrypt("encrypt", payloadString, merchantAPI, secretKey);
         const decryptedPayload = encryptDecrypt("decrypt", encryptedPayload, merchantAPI, secretKey);
+        
+        console.log(`\n🔗 URL: ${BASE_URL}/api/${merchantCode}/v3/dopayment`);
+        console.log("\n🔗 Request Payload:", payloadString);
 
-        console.log(`\n🔗 URL: ${BASE_URL}/api/${merchantCode}/v3/submit-utr`);
         try {
             const response = await fetch(paymentURL, {
                 method: "POST",
@@ -190,17 +195,20 @@ async function sendDeposit() {
 
             if (!response.ok) {
                 console.log(`Response body: ${responseBody}`);
+                console.log(`\nEncrypted Payload: ${encryptedPayload}`);
+                console.log(`\nDecrypted Payload: ${decryptedPayload}`);
                 throw new Error(`❌ HTTP error! Status: ${response.status}`);
             }
-
-            console.log("\n✅ Deposit Response:", JSON.stringify(parseResponse, null, 2));
+            
+            const resultDP = await response.json();
+            console.log("\nDeposit Response:", resultDP);
 
             if (currency === "INR" || currency === "BDT") {
                 await submitUTR(currency, transactionCode);
             }
 
         } catch (error) {
-            console.error("\n❌ Deposit Error:", error);
+            // console.error("\n❌ Deposit Error:", error);
             if (error instanceof SyntaxError) {
                 console.error("Received data is not valid JSON. Response body may be HTML.");
             }
