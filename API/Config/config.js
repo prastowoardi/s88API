@@ -33,6 +33,12 @@ export const DEPOSIT_METHOD_BDT = process.env.DEPOSIT_METHOD_BDT;
 export const PAYOUT_METHOD_BDT = process.env.PAYOUT_METHOD_BDT;
 export const MERCHANT_API_KEY_BDT = process.env.MERCHANT_API_KEY_BDT;
 
+export const MERCHANT_CODE_PMI = process.env.MERCHANT_CODE_PMI;
+export const SECRET_KEY_PMI = process.env.SECRET_KEY_PMI;
+export const DEPOSIT_METHOD_PMI = process.env.DEPOSIT_METHOD_PMI;
+export const PAYOUT_METHOD_PMI = process.env.PAYOUT_METHOD_PMI;
+export const MERCHANT_API_KEY_PMI = process.env.MERCHANT_API_KEY_PMI;
+
 if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT) {
     throw new Error("SECRET_KEY is required and cannot be empty.");
 }
