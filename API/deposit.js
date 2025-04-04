@@ -188,11 +188,6 @@ async function sendDeposit() {
                 body: JSON.stringify({ key: encryptedPayload })
             });
 
-            let responseBody = await response.text();
-            responseBody = responseBody.replace(/\\"/g, '"');
-
-            const parseResponse = JSON.parse(responseBody);
-
             if (!response.ok) {
                 console.log(`Response body: ${responseBody}`);
                 console.log(`\nEncrypted Payload: ${encryptedPayload}`);
