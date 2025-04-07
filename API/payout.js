@@ -3,10 +3,10 @@ import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../API/utils.js";
 import {
-  BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, 
-  PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI,
-  MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_PMI,
-  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_PMI  
+  BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
+  PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
+  MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
+  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_MMK  
 } from "../API/Config/config.js";
 
 import fs from 'fs/promises';
@@ -186,15 +186,39 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
       account_name: name,
       payout_code: payoutMethod,
     };
+  } else if (currency === "MMK") {
+    const bankCode = readlineSync.question("Masukkan Bank Code: ").toUpperCase();
+  
+    merchantCode = MERCHANT_CODE_MMK;
+    payoutMethod = PAYOUT_METHOD_MMK;
+    apiKey = MERCHANT_API_KEY_MMK;
+    secretKey = SECRET_KEY_MMK;
+  
+    payload = {
+        merchant_code: merchantCode,
+        transaction_code: transactionCode,
+        transaction_timestamp: timestamp,
+        transaction_amount: amount,
+        user_id: userID.toString(),
+        currency_code: currency,
+        bank_account_number: "11133311",
+        bank_code: bankCode,
+        bank_name: "bankName",
+        account_name: name,
+        payout_code: payoutMethod,
+    };
   } else {
     console.error("❌ Unsupported currency for payout.");
     return;
   }
 
   const encryptedPayload = encryptDecryptPayout("encrypt", payload, apiKey, secretKey);
+  const decryptedPayload = encryptDecryptPayout("decrypt", encryptedPayload, apiKey, secretKey);
 
   console.log(`\n🔗 URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
   console.log("\n📜 Request Payload:", JSON.stringify(payload, null, 2));
+  console.log("\n�� Encrypted Payload:", encryptedPayload);
+//   console.log("\n�� Decrypted Payload:", decryptedPayload);
 
   try {
     const response = await fetch(`${BASE_URL}/api/v1/payout/${merchantCode}`, {
@@ -218,7 +242,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
 async function sendPayout() {
   console.log("\n=== PAYOUT REQUEST ===");
   const userID = randomInt(100, 999);
-  const currency = readlineSync.question("Masukkan Currency (INR/VND/PMI): ").toUpperCase();
+  const currency = readlineSync.question("Masukkan Currency (INR/VND/MMK/PMI): ").toUpperCase();
   const amount = readlineSync.question("Masukkan Amount: ");
   const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
 

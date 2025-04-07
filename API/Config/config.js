@@ -33,13 +33,19 @@ export const DEPOSIT_METHOD_BDT = process.env.DEPOSIT_METHOD_BDT;
 export const PAYOUT_METHOD_BDT = process.env.PAYOUT_METHOD_BDT;
 export const MERCHANT_API_KEY_BDT = process.env.MERCHANT_API_KEY_BDT;
 
+export const MERCHANT_CODE_MMK = process.env.MERCHANT_CODE_MMK;
+export const SECRET_KEY_MMK = process.env.SECRET_KEY_MMK;
+export const DEPOSIT_METHOD_MMK = process.env.DEPOSIT_METHOD_MMK;
+export const PAYOUT_METHOD_MMK = process.env.PAYOUT_METHOD_MMK;
+export const MERCHANT_API_KEY_MMK = process.env.MERCHANT_API_KEY_MMK;
+
 export const MERCHANT_CODE_PMI = process.env.MERCHANT_CODE_PMI;
 export const SECRET_KEY_PMI = process.env.SECRET_KEY_PMI;
 export const DEPOSIT_METHOD_PMI = process.env.DEPOSIT_METHOD_PMI;
 export const PAYOUT_METHOD_PMI = process.env.PAYOUT_METHOD_PMI;
 export const MERCHANT_API_KEY_PMI = process.env.MERCHANT_API_KEY_PMI;
 
-if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT) {
+if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT || !SECRET_KEY_MMK || !SECRET_KEY_PMI) {
     throw new Error("SECRET_KEY is required and cannot be empty.");
 }
 
