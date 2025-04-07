@@ -90,10 +90,10 @@ const name = await getRandomName();
 const ifscCode = await getValidIFSC();
 console.log(`IFSC Code: ${ifscCode}`);
 
-async function sendPmiPayout() {
+async function sendPmiPayout(amount) {
     const payload = {
       invoice_id: `TEST-WD-${timestamp}`,
-      amount: "671.00",
+      amount: amount,
       country: "IN",
       currency: "INR",
       payer: {
@@ -223,7 +223,7 @@ async function sendPayout() {
   const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
 
   if (currency === "PMI") {
-    await sendPmiPayout();
+    await sendPmiPayout(amount);
   } else {
     await handleRegularPayout(userID, currency, amount, transactionCode, name);
   }
