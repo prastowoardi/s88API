@@ -3,10 +3,10 @@ import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../API/utils.js";
 import {
-  BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
+  BASE_URL, PMI_BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
   PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
-  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_MMK  
+  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_PMI, MERCHANT_API_KEY_MMK  
 } from "../API/Config/config.js";
 
 import fs from 'fs/promises';
@@ -130,21 +130,21 @@ async function sendPmiPayout(amount) {
     };
   
     try {
-      const response = await fetch("https://dev.octo88.co/transaction/cashout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Basic Rno4RjdmcE9BdlY4SnlVWTpCNTI2RklidXVITVkxMVdD",
-          "x-api-key": "MERCHANT_API_KEY_PMI"
-        },
-        body: JSON.stringify(payload),
-      });
+        const response = await fetch(PMI_BASE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic Rno4RjdmcE9BdlY4SnlVWTpCNTI2RklidXVITVkxMVdD",
+            "x-api-key": MERCHANT_API_KEY_PMI
+          },
+          body: JSON.stringify(payload),
+        });        
   
-      const result = await response.json();
-      console.log("\n📜 Request Payload:", JSON.stringify(payload, null, 2));
-      console.log("\n📥 PMI Response:", result);
+        const result = await response.json();
+        console.log("\n📜 Request Payload:", JSON.stringify(payload, null, 2));
+        console.log("\n📥 PMI Response:", result);
     } catch (error) {
-      console.error("\n❌ PMI Request Error:", error.message);
+        console.error("\n❌ PMI Request Error:", error.message);
     }
   }
   
