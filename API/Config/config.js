@@ -40,6 +40,7 @@ export const PAYOUT_METHOD_MMK = process.env.PAYOUT_METHOD_MMK;
 export const MERCHANT_API_KEY_MMK = process.env.MERCHANT_API_KEY_MMK;
 
 export const PMI_BASE_URL = process.env.PMI_BASE_URL;
+export const PMI_AUTHORIZATION = process.env.PMI_AUTHORIZATION;
 export const MERCHANT_CODE_PMI = process.env.MERCHANT_CODE_PMI;
 export const SECRET_KEY_PMI = process.env.SECRET_KEY_PMI;
 export const DEPOSIT_METHOD_PMI = process.env.DEPOSIT_METHOD_PMI;

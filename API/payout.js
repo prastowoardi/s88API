@@ -3,7 +3,8 @@ import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../API/utils.js";
 import {
-  BASE_URL, PMI_BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
+  BASE_URL, PMI_BASE_URL, PMI_AUTHORIZATION, 
+  SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
   PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_PMI, MERCHANT_API_KEY_MMK  
@@ -134,7 +135,7 @@ async function sendPmiPayout(amount) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Basic Rno4RjdmcE9BdlY4SnlVWTpCNTI2RklidXVITVkxMVdD",
+            "Authorization": PMI_AUTHORIZATION,
             "x-api-key": MERCHANT_API_KEY_PMI
           },
           body: JSON.stringify(payload),
