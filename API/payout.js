@@ -3,7 +3,7 @@ import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../API/utils.js";
 import {
-  BASE_URL, PMI_BASE_URL, PMI_AUTHORIZATION, 
+  BASE_URL, PMI_WD_URL, PMI_AUTHORIZATION, 
   SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
   PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
@@ -131,7 +131,7 @@ async function sendPmiPayout(amount) {
     };
   
     try {
-        const response = await fetch(PMI_BASE_URL, {
+        const response = await fetch(PMI_WD_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

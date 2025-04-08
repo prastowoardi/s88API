@@ -3,7 +3,8 @@ import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../API/utils.js";
 import {
-    BASE_URL, SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_PMI,
+    BASE_URL, PMI_DP_URL, PMI_AUTHORIZATION, 
+    SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_PMI,
     DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, DEPOSIT_METHOD_MMK, DEPOSIT_METHOD_PMI,
     MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK, MERCHANT_CODE_PMI,
     MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK, MERCHANT_API_KEY_PMI
@@ -146,11 +147,11 @@ async function sendDeposit() {
 
         const headers = {
             "Content-Type": "application/json",
-            "Authorization": "Basic Rno4RjdmcE9BdlY4SnlVWTpCNTI2RklidXVITVkxMVdD"
+            "Authorization": PMI_AUTHORIZATION,
         };
 
         try {
-            const response = await fetch("https://dev.octo88.co/transaction/deposit", {
+            const response = await fetch(PMI_DP_URL, {
                 method: "POST",
                 headers,
                 body: JSON.stringify(payload)
