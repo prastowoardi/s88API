@@ -52,4 +52,12 @@ if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT || !SECRET_KEY_MMK || 
     throw new Error("SECRET_KEY is required and cannot be empty.");
 }
 
+if (!PMI_DP_URL || !PMI_WD_URL ) {
+    throw new Error("PMI BASE_URL is required and cannot be empty.");
+}
+
+if (!PMI_AUTHORIZATION ) {
+    throw new Error("PMI authorization is required and cannot be empty.");
+}
+
 console.log(`Loaded environment: ${envFile}`);
