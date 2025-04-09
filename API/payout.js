@@ -112,9 +112,9 @@ async function sendPmiPayout(amount) {
         }
       },
       bank_account: {
-        bank_account_number: "65465ddd6654sss",
+        bank_account_number: "50200102956056",
         bank_branch: "654sadf65",
-        bank_code: ifscCode,
+        bank_code: "HDFC0011965",
         bank_beneficiary: name,
         card_number: "1234123412341234",
         card_exp_date: "12/25",
