@@ -230,6 +230,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
 
     const result = await response.json();
     console.log("\n📥 Payout Response:", result);
+    console.log("\n⚡️Response Status:", response.status)
 
     if (result.encrypted_data) {
       const decryptedPayload = encryptDecrypt("decrypt", result.encrypted_data, apiKey, secretKey);

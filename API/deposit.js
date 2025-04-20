@@ -194,7 +194,8 @@ async function sendDeposit() {
             }
 
             const resultDP = JSON.parse(responseBody);
-            console.log("\n✅ Deposit Response:", JSON.stringify(resultDP, null, 2));
+            console.log("\n✅ Deposit Response:", resultDP);
+            console.log("\n⚡️Response Status", response.status);
 
             if (["INR", "BDT"].includes(currency)) {
                 await submitUTR(currency, transactionCode);
