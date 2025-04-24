@@ -15,8 +15,8 @@
     "payout:stag": "cross-env NODE_ENV=staging node API/payout.js",
     "payout:dev": "cross-env NODE_ENV=dev node API/payout.js",
     
-    "inr:prod": "cross-env NODE_ENV=dev node API/manualINR.js",
-    "inr:stag": "cross-env NODE_ENV=dev node API/manualINR.js",
+    "inr:prod": "cross-env NODE_ENV=production node API/manualINR.js",
+    "inr:stag": "cross-env NODE_ENV=staging node API/manualINR.js",
     "inr:dev": "cross-env NODE_ENV=dev node API/manualINR.js",
 
     "payoutenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/payoutEncrypt.js",

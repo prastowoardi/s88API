@@ -56,6 +56,7 @@ async function sendPayout() {
 
         const result = await response.json();
         console.log("\nPayout Response:", result);
+        console.log("\n⚡️Response Status: ", response.status)
     } catch (error) {
         console.error("\n❌ Payout Error:", error.message);
     }
