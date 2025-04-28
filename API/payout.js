@@ -69,14 +69,14 @@ async function getValidIFSC(currency, maxRetries = 3) {
 }
 
 async function getRandomName() {
-    try {
-        const response = await fetch('https://randomuser.me/api/');
-        const data = await response.json();
-        return `${data.results[0].name.first} ${data.results[0].name.last}`;
-    } catch (error) {
-        console.error("❌ Gagal mengambil data:", error);
-        return null;
-    }
+  try {
+      const response = await fetch('https://random-data-api.com/api/users/random_user');
+      const data = await response.json();
+      return `${data.first_name} ${data.last_name}`;
+  } catch (error) {
+      console.error("❌ Gagal mengambil random user:", error.message);
+      return null;
+  }
 }
 
 function randomPhoneNumber() {
