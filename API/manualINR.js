@@ -49,13 +49,13 @@ async function sendPayout() {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`\n❌ Error response body: ${errorText}`);
+            const result = await response.json();
+            console.error(`\n❌ Error response body:`, result);
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const result = await response.json();
-        console.log("\nPayout Response:", result);
+        console.log("\n📥 Payout Response:", result);
         console.log("\n⚡️Response Status: ", response.status)
     } catch (error) {
         console.error("\n❌ Payout Error:", error.message);
