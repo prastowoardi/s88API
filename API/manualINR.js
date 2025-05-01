@@ -1,19 +1,27 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout } from "../API/utils.js";
+import { encryptDecryptPayout } from "./helpers/utils.js";
 import { BASE_URL, SECRET_KEY_INR, PAYOUT_METHOD_INR, MERCHANT_CODE_INR, MERCHANT_API_KEY_INR } from "../API/Config/config.js";
+import { getValidIFSC, getRandomName, } from "./helpers/payoutHelper.js";
+
+// const ifscCode = await getValidIFSC();
+// console.log(`IFSC Code: ${ifscCode}`);
 
 async function sendPayout() {
     console.log("\n=== PAYOUT REQUEST ===");
 
     const amount = readlineSync.question("Masukkan Amount: ");
-    const userID = randomInt(100, 999).toString();
-    
+    if (isNaN(amount) || Number(amount) <= 0) {
+        console.error("❌ Amount tidak valid.");
+        return;
+    }
+
+    const userID = readlineSync.question("Masukkan User ID: ");
     const bankAccountNumber = readlineSync.question("Masukkan Nomor Rekening: ");
     const accountName = readlineSync.question("Masukkan Nama Akun: ");
     const ifscCode = readlineSync.question("Masukkan IFSC Code: ");
-    
+
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const transactionCode = `TEST-WD-${timestamp}`;
 
@@ -48,15 +56,9 @@ async function sendPayout() {
             body: JSON.stringify({ key: encryptedPayload }),
         });
 
-        if (!response.ok) {
-            const result = await response.json();
-            console.error(`\n❌ Error response body:`, result);
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
         const result = await response.json();
         console.log("\n📥 Payout Response:", result);
-        console.log("\n⚡️Response Status: ", response.status)
+        console.log("\n⚡️Response Status: ", response.status);
     } catch (error) {
         console.error("\n❌ Payout Error:", error.message);
     }

@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
-import { encryptDecrypt } from "../API/utils.js";
+import { encryptDecrypt } from "./helpers/utils.js";
 import {
     BASE_URL, PMI_DP_URL, PMI_AUTHORIZATION, 
     SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_PMI,
@@ -60,7 +60,7 @@ async function submitUTR(currency, transactionCode) {
     }
 }
 
-async function sendDeposit() {
+async function sendDeposit() { 
     console.log("\n=== DEPOSIT REQUEST ===");
 
     const userID = randomInt(100, 999);
@@ -174,6 +174,8 @@ async function sendDeposit() {
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
         const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);
 
+        console.log(`\n🔗 URL: ${BASE_URL}/api/v3/dopayment`);
+        console.log(`\n Merchant Code: ${config.merchantCode}`)
         console.log("\n🔗 Request Payload:", payload);
         console.log("\n🔐 Encrypted:", encrypted);
         // console.log("\n🔓 Decrypted:", decrypted);
@@ -186,15 +188,15 @@ async function sendDeposit() {
             });
 
             const responseBody = await response.text();
+            const resultDP = JSON.parse(responseBody);
 
             if (!response.ok) {
-                console.log("❌ HTTP Error:", response.status);
-                console.log("Response:", responseBody);
+                console.log("\n📥 Response:", resultDP);
+                console.log("⚡️Response Status:", response.status);
                 return;
             }
 
-            const resultDP = JSON.parse(responseBody);
-            console.log("\n✅ Deposit Response:", resultDP);
+            console.log("\n📥 Deposit Response:", resultDP);
             console.log("\n⚡️Response Status", response.status);
 
             if (["INR", "BDT"].includes(currency)) {
