@@ -177,7 +177,7 @@ async function sendPayout() {
     console.error("❌ Amount harus angka!");
     return;
   }
-  const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
+  const transactionCode = `TEST-WD-${timestamp}`;
 
   if (currency === "PMI") {
     await sendPmiPayout(amount);
