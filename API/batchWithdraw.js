@@ -42,6 +42,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       ifsc_code: ifscCode,
       account_name: name,
       payout_code: payoutMethod,
+      callback_url: CALLBACK_URL,
     };
   } else if (currency === "VND") {
     merchantCode = MERCHANT_CODE_VND;
@@ -60,6 +61,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       bank_code: "970418",
       account_name: name,
       payout_code: payoutMethod,
+      callback_url: CALLBACK_URL,
     };
   } else if (currency === "MMK") {
     const bankCode = readlineSync.question("Masukkan Bank Code: ").toUpperCase();
@@ -81,6 +83,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       bank_name: "bankName",
       account_name: name,
       payout_code: payoutMethod,
+      callback_url: CALLBACK_URL,
     };
   } else {
     console.error("❌ Unsupported currency for withdraw.");
@@ -181,6 +184,7 @@ async function batchPayout() {
         name: userName,
         ifscCode,
         callback_url: CALLBACK_URL,
+        transactionType: 2
       });
     }
   }

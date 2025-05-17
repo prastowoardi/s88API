@@ -3,7 +3,7 @@ import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "./helpers/utils.js";
 import {
-  BASE_URL, PMI_WD_URL, PMI_AUTHORIZATION, 
+  BASE_URL, CALLBACK_URL, PMI_WD_URL, PMI_AUTHORIZATION, 
   SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
   PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
@@ -96,6 +96,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
       ifsc_code: ifscCode,
       account_name: name,
       payout_code: payoutMethod,
+      callback_url: CALLBACK_URL,
     };
   } else if (currency === "VND") {
     merchantCode = MERCHANT_CODE_VND;
@@ -113,6 +114,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
       bank_code: "970418",
       account_name: name,
       payout_code: payoutMethod,
+      callback_url: CALLBACK_URL,
     };
   } else if (currency === "MMK") {
     const bankCode = readlineSync.question("Masukkan Bank Code: ").toUpperCase();
@@ -134,6 +136,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
         bank_name: "bankName",
         account_name: name,
         payout_code: payoutMethod,
+        callback_url: CALLBACK_URL,
     };
   } else {
     console.error("❌ Unsupported currency for payout.");
