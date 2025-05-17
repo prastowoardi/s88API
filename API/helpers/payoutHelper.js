@@ -60,20 +60,20 @@ export async function getRandomName() {
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
       // console.warn("⚠️ Response bukan JSON:", text);
-      return "Test User";
+      return "Anderson Sales";
     }
 
     const data = await response.json();
 
     if (!data.first_name || !data.last_name) {
       // console.warn("⚠️ Data nama tidak lengkap, menggunakan fallback.");
-      return "Test User";
+      return "Cinantya Melki";
     }
 
     return `${data.first_name} ${data.last_name}`;
   } catch (error) {
     console.error("❌ Gagal mengambil random user:", error.message);
-    return "Test User";
+    return "Andre Stainless";
   }
 }
 
