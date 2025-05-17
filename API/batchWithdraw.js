@@ -3,11 +3,11 @@ import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "./helpers/utils.js";
 import {
-  BASE_URL, 
+  BASE_URL, CALLBACK_URL,
   SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
-  PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
+  PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
-  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_PMI, MERCHANT_API_KEY_MMK  
+  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_MMK  
 } from "../API/Config/config.js";
 
 import { getValidIFSC, getRandomName, randomPhoneNumber, generateCustomUTR } from "./helpers/payoutHelper.js";
@@ -127,11 +127,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
   }
   
   async function sendPayoutBatch({ userID, currency, amount, transactionCode, name, ifscCode }) {
-    if (currency === "PMI") {
-      await sendPmiPayout(amount);
-    } else {
-      await payout(userID, currency, amount, transactionCode, name, ifscCode);
-    }
+      await payout(userID, currency, amount, transactionCode, name, ifscCode, callback_url=CALLBACK_URL);
   }
   
   // Fungsi utama batch withdraw
