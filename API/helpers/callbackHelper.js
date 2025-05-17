@@ -11,6 +11,10 @@ export async function sendCallback({
   remark = null,
   note = null,
 }) {
+  if (!process.env.BASE_URL) {
+    throw new Error("Environment variable BASE_URL belum di-set");
+  }
+
   const orderId = transactionNo;
   const sysOrderId = systemOrderId || Date.now().toString().slice(0, 5);
   const closeAt = closeTime || new Date().toISOString();
@@ -18,40 +22,39 @@ export async function sendCallback({
   let payload;
 
   if (transactionType === 1) {
-    // Deposit
     payload = {
       systemOrderId: sysOrderId,
       orderId: orderId,
       amount: Number(amount),
       actualAmount: Number(amount),
-      status: status,
+      status,
       closeTime: closeAt,
-      remark: remark,
-      utr: utr,
+      remark,
+      utr,
     };
   } else if (transactionType === 2) {
-    // Withdraw
     payload = {
       systemOrderId: sysOrderId,
       orderId: orderId,
       amount: Number(amount),
       actualAmount: Number(amount),
-      status: status,
+      status,
       closeTime: closeAt,
       remark: remark || "",
-      utr: status === 0 ? utr : null, // kalau gagal utr null
+      utr: status === 0 ? utr : null,
       note: note || null,
     };
   } else {
     throw new Error(`Unsupported transactionType: ${transactionType}`);
   }
 
-  let callbackUrl;
-  if (transactionType === 1) {
-    callbackUrl = `${process.env.BASE_URL}/api/v2/payxyz/deposit/notification`;
-  } else if (transactionType === 2) {
-    callbackUrl = `${process.env.BASE_URL}/api/v2/payxyz/payout/notification`;
-  }
+  const callbackUrl =
+    transactionType === 1
+      ? `${process.env.BASE_URL}/api/v2/payxyz/deposit/notification`
+      : `${process.env.BASE_URL}/api/v2/payxyz/payout/notification`;
+
+  console.log("➡️ Sending callback to", callbackUrl);
+  console.log("Payload:", payload);
 
   try {
     const response = await fetch(callbackUrl, {
