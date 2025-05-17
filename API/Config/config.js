@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
-
+export const CALLBACK_URL = process.env.CALLBACK_URL;
 export const BASE_URL = process.env.BASE_URL;
 export const SECRET_KEY_INR = process.env.SECRET_KEY_INR;
 export const DEPOSIT_METHOD_INR = process.env.DEPOSIT_METHOD_INR;
