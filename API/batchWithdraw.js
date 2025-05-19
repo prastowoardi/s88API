@@ -100,7 +100,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
     });
 
     const result = await response.json();
-    console.log(`\n✅ [${currency}] Withdraw (${transactionCode}):`, result.message || JSON.stringify(result));
+    console.log(`✅ Withdraw (${transactionCode}):`, result.message || JSON.stringify(result)`\n`);
 
     if (result.encrypted_data) {
       const decryptedPayload = encryptDecryptPayout("decrypt", result.encrypted_data, apiKey, secretKey);
@@ -121,10 +121,10 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
     //   });
     //   console.log(`✅ Callback success for transaction_no ${result.transaction_no}`);
     // } else {
-    //   console.warn(`⚠️ [${currency}] transaction_no tidak ditemukan untuk ${transactionCode}`);
+    //   console.warn(`⚠️ transaction_no tidak ditemukan untuk ${transactionCode}`);
     // }
   } catch (error) {
-    console.error(`❌ [${currency}] Withdraw failed for ${transactionCode}:`, error.message || error);
+    console.error(`❌ Withdraw failed for ${transactionCode}:`, error.message || error);
   }
 }
 

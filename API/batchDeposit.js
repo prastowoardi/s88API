@@ -35,9 +35,9 @@ async function submitUTR(currency, transactionCode) {
 
     const responseText = await response.text();
     const result = JSON.parse(responseText);
-    // console.log(`✅ [${currency}] Submit UTR (${transactionCode}):`, result);
+    // console.log(`✅ Submit UTR (${transactionCode}):`, result);
   } catch (err) {
-    console.error(`❌ [${currency}] Submit UTR Error (${transactionCode}):`, err);
+    console.error(`❌ Submit UTR Error (${transactionCode}):`, err);
   }
 }
 
@@ -112,7 +112,7 @@ async function sendDeposit({ currency, amount, transactionCode }) {
     const resultDP = JSON.parse(responseBody);
 
     if (resultDP.status === "success") {
-        console.log(`✅ [${currency}] Deposit (${transactionCode}):`, resultDP.message);
+        console.log(`✅ Deposit (${transactionCode}):`, resultDP.message);
       
         let utr = generateUTR(currency);
       
@@ -131,18 +131,18 @@ async function sendDeposit({ currency, amount, transactionCode }) {
               status: 0,
               transactionType: 1
             });
-            console.log(`✅ [${currency}] Callback success for transaction_no ${transactionNo}`);
+            console.log(`✅ Callback success for transaction_no ${transactionNo}`);
           } catch (err) {
-            console.error(`❌ [${currency}] Callback failed for ${transactionCode}:`, err.message || err);
+            console.error(`❌ Callback failed for ${transactionCode}:`, err.message || err);
           }
         } else {
-          console.warn(`⚠️ [${currency}] transaction_no tidak ditemukan untuk ${transactionCode}`);
+          console.warn(`⚠️ transaction_no tidak ditemukan untuk ${transactionCode}`);
         }
       } else {
-        console.error(`❌ [${currency}] Deposit failed for ${transactionCode}:`, resultDP);
+        console.error(`❌ Deposit failed for ${transactionCode}:`, resultDP);
       }
   } catch (err) {
-    console.error(`❌ [${currency}] Deposit Error:`, err);
+    console.error(`❌ Deposit Error:`, err);
   }
 }
 

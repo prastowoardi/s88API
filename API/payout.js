@@ -51,7 +51,7 @@ async function sendPmiPayout(amount) {
       description: "test description",
       client_ip: "123.123.123.123",
       url: {
-        callback_url: "https://webhook-test.com/edc022bb3b18610530dc7f70c799af79"
+        callback_url: CALLBACK_URL
       },
       test: 1,
       language: "en"
@@ -76,7 +76,7 @@ async function sendPmiPayout(amount) {
     }
   }
   
-async function handleRegularPayout(userID, currency, amount, transactionCode, name) {
+async function handleRegularPayout(userID, currency, amount, transactionCode, name, CALLBACK_URL) {
   let merchantCode, payoutMethod, payload, apiKey, secretKey;
   if (!ifscCode) return;
 
@@ -185,7 +185,7 @@ async function sendPayout() {
   if (currency === "PMI") {
     await sendPmiPayout(amount);
   } else {
-    await handleRegularPayout(userID, currency, amount, transactionCode, name);
+    await handleRegularPayout(userID, currency, amount, transactionCode, name, CALLBACK_URL);
   }
 }
 
