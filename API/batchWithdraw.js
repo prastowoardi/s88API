@@ -106,23 +106,6 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       const decryptedPayload = encryptDecryptPayout("decrypt", result.encrypted_data, apiKey, secretKey);
       console.log("\n🔓 Decrypted Payload:", decryptedPayload);
     }
-
-    // if (callback_url && result.transaction_no) {
-    //   await sendCallback({
-    //     transactionNo: result.transaction_no,
-    //     amount,
-    //     utr: generateCustomUTR(),
-    //     status: Math.random() < 0.5 ? 0 : 1,  // Simulasi status sukses/gagal
-    //     transactionType: 2,  // Withdraw
-    //     systemOrderId: transactionCode,
-    //     closeTime: new Date().toISOString(),
-    //     remark: "",
-    //     note: null,
-    //   });
-    //   console.log(`✅ Callback success for transaction_no ${result.transaction_no}`);
-    // } else {
-    //   console.warn(`⚠️ transaction_no tidak ditemukan untuk ${transactionCode}`);
-    // }
   } catch (error) {
     console.error(`❌ Withdraw failed for ${transactionCode}:`, error.message || error);
   }
