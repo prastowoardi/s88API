@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { BASE_URL } from "../Config/config.js";
 
 export async function sendCallback({
   transactionNo,
@@ -11,8 +12,8 @@ export async function sendCallback({
   remark = null,
   note = null,
 }) {
-  if (!process.env.BASE_URL) {
-    throw new Error("Environment variable BASE_URL belum di-set");
+  if (!BASE_URL) {
+    throw new Error("BASE_URL belum di-set di config");
   }
 
   const orderId = transactionNo;
@@ -24,7 +25,7 @@ export async function sendCallback({
   if (transactionType === 1) {
     payload = {
       systemOrderId: sysOrderId,
-      orderId: orderId,
+      orderId,
       amount: Number(amount),
       actualAmount: Number(amount),
       status,
@@ -35,7 +36,7 @@ export async function sendCallback({
   } else if (transactionType === 2) {
     payload = {
       systemOrderId: sysOrderId,
-      orderId: orderId,
+      orderId,
       amount: Number(amount),
       actualAmount: Number(amount),
       status,
@@ -50,8 +51,8 @@ export async function sendCallback({
 
   const callbackUrl =
     transactionType === 1
-      ? `${process.env.BASE_URL}/api/v2/payxyz/deposit/notification`
-      : `${process.env.BASE_URL}/api/v2/payxyz/payout/notification`;
+      ? `${BASE_URL}/api/v2/payxyz/deposit/notification`
+      : `${BASE_URL}/api/v2/payxyz/payout/notification`;
 
   console.log("➡️ Sending callback to", callbackUrl);
   console.log("Payload:", payload);
