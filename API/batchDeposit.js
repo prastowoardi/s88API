@@ -128,7 +128,8 @@ async function sendDeposit({ currency, amount, transactionCode }) {
               amount,
               utr,
               status: 0,
-              transactionType: 1
+              transactionType: 1,
+              currency
             });
             console.log(`✅ Callback success for transaction_no ${transactionNo}`);
           } catch (err) {
