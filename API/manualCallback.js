@@ -59,7 +59,7 @@ async function inputAndSendCallbacks() {
       closeTime: new Date().toISOString(),
     })
       .then(response => {
-        console.log(`✅ Callback sukses untuk ${tx.transactionNo}:`, response);
+        console.log(`✅ Callback sent for ${tx.transactionNo}:`, tx.status === 0 ? "SUCCESS" : "FAILED");
       })
       .catch(error => {
         console.error(`❌ Gagal kirim callback untuk ${tx.transactionNo}:`, error.message);
