@@ -10,8 +10,7 @@ import {
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_MMK
 } from "../API/Config/config.js";
 
-import { getValidIFSC, getRandomName, generateCustomUTR } from "./helpers/payoutHelper.js";
-import { sendCallback } from "./helpers/callbackHelper.js";
+import { getValidIFSC, getRandomName } from "./helpers/payoutHelper.js";
 
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
 
@@ -170,7 +169,6 @@ async function batchPayout() {
         name: userName,
         ifscCode,
         callback_url: CALLBACK_URL,
-        transactionType: 2
       });
     }
   }
