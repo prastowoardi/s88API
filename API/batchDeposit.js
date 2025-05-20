@@ -55,7 +55,7 @@ async function sendDeposit({ currency, amount, transactionCode }) {
       depositMethod: DEPOSIT_METHOD_VND,
       secretKey: SECRET_KEY_VND,
       merchantAPI: MERCHANT_API_KEY_VND,
-      requiresBankCode: true
+      bankCodeOptions: ["acbbank", "bidv", "mbbank"]
     },
     BDT: {
       merchantCode: MERCHANT_CODE_BDT,
@@ -85,13 +85,12 @@ async function sendDeposit({ currency, amount, transactionCode }) {
 
     let payload = `callback_url=${callback_url}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=0&currency_code=${currency}&payment_code=${config.depositMethod}`;
 
-    if (config.requiresBankCode) {
-      const bankCode = Math.random().toString(36).substr(2, 6);
-      payload += `&bank_code=${bankCode}`;
+    let bankCode = "";
+    if (config.bankCodeOptions) {
+      bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
     }
 
-    if (config.bankCodeOptions) {
-      const bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
+    if (bankCode) {
       payload += `&bank_code=${bankCode}`;
     }
 
