@@ -27,6 +27,11 @@
     "depositenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/depositEncrypt.js",
 
     "batchdp:stag": "cross-env NODE_ENV=staging node API/batchDeposit.js",
-    "batchwd:stag": "cross-env NODE_ENV=staging node API/batchWithdraw.js"
+    "batchdp:prod": "cross-env NODE_ENV=production node API/batchDeposit.js",
+    "batchwd:stag": "cross-env NODE_ENV=staging node API/batchWithdraw.js",
+    "batchwd:prod": "cross-env NODE_ENV=production node API/batchWithdraw.js",
+
+    "callback:prod": "cross-env NODE_ENV=production node API/manualCallback.js",
+    "callback:stag": "cross-env NODE_ENV=staging node API/manualCallback.js"
   }
 }
