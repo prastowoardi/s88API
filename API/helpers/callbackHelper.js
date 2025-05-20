@@ -11,10 +11,14 @@ export async function sendCallback({
   closeTime = null,
   remark = null,
   note = null,
-  currency = "INR", // default INR
+  currency = null,
 }) {
   if (!BASE_URL) {
     throw new Error("BASE_URL belum di-set di config");
+  }
+
+  if (!currency) {
+    throw new Error("Parameter 'currency' wajib diisi ('INR', 'VND', dll)");
   }
 
   const orderId = transactionNo;
@@ -74,19 +78,19 @@ export async function sendCallback({
       body: JSON.stringify(payload),
     });
 
+    const responseText = await response.text();
+
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Callback failed: ${response.status} ${text}`);
+      throw new Error(`Callback failed: ${response.status} ${responseText}`);
     }
 
-    const text = await response.text();
     try {
-      return JSON.parse(text);
+      return JSON.parse(responseText);
     } catch {
-      return text;
+      return responseText;
     }
   } catch (error) {
-    console.error("❌ Error sending callback:", error);
+    console.error(`❌ Error sending callback for ${transactionNo}:`, error);
     throw error;
   }
 }

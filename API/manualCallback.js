@@ -12,7 +12,20 @@ function getTransactionTypeFromPrefix(transactionNo) {
   return 2;
 }
 
+function inputCurrency() {
+  const supportedCurrencies = ["INR", "VND"];
+  let currency = readlineSync.question("Currency (INR/VND): ").toUpperCase();
+
+  while (!supportedCurrencies.includes(currency)) {
+    console.log("❌ Currency tidak valid. Hanya mendukung:", supportedCurrencies.join(", "));
+    currency = readlineSync.question("Currency (INR/VND): ").toUpperCase();
+  }
+
+  return currency;
+}
+
 async function inputAndSendCallbacks() {
+  const currency = inputCurrency();
   const total = readlineSync.questionInt("Berapa jumlah transaksi yang ingin diinput? ");
 
   const transactions = [];
@@ -25,7 +38,6 @@ async function inputAndSendCallbacks() {
 
     const status = Math.random() < 0.8 ? 0 : 1;
     const transactionType = getTransactionTypeFromPrefix(transactionNo);
-
     const systemOrderId = Math.random().toString(36).substring(2, 10);
 
     transactions.push({
@@ -34,6 +46,7 @@ async function inputAndSendCallbacks() {
       transactionType,
       status,
       systemOrderId,
+      currency,
     });
   }
 
@@ -46,7 +59,7 @@ async function inputAndSendCallbacks() {
       closeTime: new Date().toISOString(),
     })
       .then(response => {
-        console.log(`✅ Callback sukses untuk ${tx.transactionNo}:`, response);
+        console.log(`✅ Callback sent for ${tx.transactionNo}:`, tx.status === 0 ? "SUCCESS" : "FAILED");
       })
       .catch(error => {
         console.error(`❌ Gagal kirim callback untuk ${tx.transactionNo}:`, error.message);
