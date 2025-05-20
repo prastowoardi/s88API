@@ -11,6 +11,7 @@ export async function sendCallback({
   closeTime = null,
   remark = null,
   note = null,
+  currency = "INR", // default INR
 }) {
   if (!BASE_URL) {
     throw new Error("BASE_URL belum di-set di config");
@@ -49,10 +50,19 @@ export async function sendCallback({
     throw new Error(`Unsupported transactionType: ${transactionType}`);
   }
 
+  const pathPrefix = {
+    INR: "payxyz",
+    VND: "paybo-vnd",
+  }[currency.toUpperCase()];
+
+  if (!pathPrefix) {
+    throw new Error(`Unsupported currency: ${currency}`);
+  }
+
   const callbackUrl =
     transactionType === 1
-      ? `${BASE_URL}/api/v2/payxyz/deposit/notification`
-      : `${BASE_URL}/api/v2/payxyz/payout/notification`;
+      ? `${BASE_URL}/api/v2/${pathPrefix}/deposit/notification`
+      : `${BASE_URL}/api/v2/${pathPrefix}/payout/notification`;
 
   console.log("➡️ Sending callback to", callbackUrl);
   console.log("Payload:", payload);
