@@ -5,8 +5,8 @@ import { encryptDecryptPayout } from "./helpers/utils.js";
 import { BASE_URL, SECRET_KEY_INR, PAYOUT_METHOD_INR, MERCHANT_CODE_INR, MERCHANT_API_KEY_INR } from "../API/Config/config.js";
 import { getValidIFSC, getRandomName, } from "./helpers/payoutHelper.js";
 
-// const ifscCode = await getValidIFSC();
-// console.log(`IFSC Code: ${ifscCode}`);
+const ifscCode = await getValidIFSC();
+console.log(`IFSC Code: ${ifscCode}`);
 
 async function sendPayout() {
     console.log("\n=== PAYOUT REQUEST ===");
@@ -17,13 +17,20 @@ async function sendPayout() {
         return;
     }
 
-    const userID = readlineSync.question("Masukkan User ID: ");
-    const bankAccountNumber = readlineSync.question("Masukkan Nomor Rekening: ");
-    const accountName = readlineSync.question("Masukkan Nama Akun: ");
-    const ifscCode = readlineSync.question("Masukkan IFSC Code: ");
-
+    // Input semua data
+    // const userID = readlineSync.question("Masukkan User ID: ");
+    // const bankAccountNumber = readlineSync.question("Masukkan Nomor Rekening: ");
+    // const accountName = readlineSync.question("Masukkan Nama Akun: ");
+    // const ifscCode = readlineSync.question("Masukkan IFSC Code: ");
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    const transactionCode = `TEST-WD-${timestamp}`;
+    // const transactionCode = `TEST-WD-${timestamp}`;
+    
+    // Input transaction code
+    const accountName = await getRandomName();
+    const bankAccountNumber = 111111;
+    const userID = randomInt(100);
+    const transactionCode = readlineSync.question("Masukkan Transaction Code: ")
+
 
     const merchantCode = MERCHANT_CODE_INR;
     const payoutMethod = PAYOUT_METHOD_INR;
