@@ -50,7 +50,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
     apiKey = MERCHANT_API_KEY_VND;
     secretKey = SECRET_KEY_VND;
 
-    const bankCodeVND = ["970400", "970407", "970443", "970422", "970418"];
+    const bankCodeVND = ["970436", "970407", "970416", "970422", "970418"];
     const randomBankCode = bankCodeVND[Math.floor(Math.random() * bankCodeVND.length)];
 
     payload = {
