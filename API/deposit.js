@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "./helpers/utils.js";
+import { generateUTR } from "./helpers/depositHelper.js";
 import {
     BASE_URL, PMI_DP_URL, PMI_AUTHORIZATION, 
     SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_PMI,
@@ -18,19 +19,14 @@ function randomPhoneNumber() {
 }
 
 async function submitUTR(currency, transactionCode) {
-    console.log("\n=== SUBMIT UTR REQUEST ===");
-
     if (!["INR", "BDT"].includes(currency)) {
         console.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
         return;
     }
 
-    const utr = readlineSync.question("Masukkan UTR: ");
-
-    if (currency === "INR" && !/^\d{12}$/.test(utr)) {
-        console.error("❌ UTR untuk INR harus berupa 12 digit angka.");
-        return;
-    }
+    generateUTR(currency);
+    const utr = generateUTR(currency);
+    console.log("\n✅ UTR:", utr);
 
     const config = currency === "INR"
         ? { merchantCode: MERCHANT_CODE_INR, secretKey: SECRET_KEY_INR, merchantAPI: MERCHANT_API_KEY_INR }
