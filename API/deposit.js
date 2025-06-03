@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "./helpers/utils.js";
-import { generateUTR } from "./helpers/depositHelper.js";
+import { generateUTR, randomPhoneNumber } from "./helpers/depositHelper.js";
 import {
     BASE_URL, CALLBACK_URL, PMI_DP_URL, PMI_AUTHORIZATION, 
     SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_PMI,
@@ -10,13 +10,6 @@ import {
     MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK, MERCHANT_CODE_PMI,
     MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK, MERCHANT_API_KEY_PMI
 } from "../API/Config/config.js";
-
-function randomPhoneNumber() {
-    const prefixes = ['017', '018', '019', '016', '015'];
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const number = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-    return prefix + number;
-}
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
