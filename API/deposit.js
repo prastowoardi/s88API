@@ -4,7 +4,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt } from "./helpers/utils.js";
 import { generateUTR } from "./helpers/depositHelper.js";
 import {
-    BASE_URL, PMI_DP_URL, PMI_AUTHORIZATION, 
+    BASE_URL, CALLBACK_URL, PMI_DP_URL, PMI_AUTHORIZATION, 
     SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_PMI,
     DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, DEPOSIT_METHOD_MMK, DEPOSIT_METHOD_PMI,
     MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK, MERCHANT_CODE_PMI,
@@ -110,7 +110,7 @@ async function sendDeposit() {
             depositMethod: DEPOSIT_METHOD_PMI,
             secretKey: SECRET_KEY_PMI,
             merchantAPI: MERCHANT_API_KEY_PMI,
-            callbackURL: "https://webhook-test.com/edc022bb3b18610530dc7f70c799af79"
+            callbackURL: CALLBACK_URL
         }
     };
 
@@ -162,7 +162,7 @@ async function sendDeposit() {
             console.error("\n❌ PMI Deposit Error:", err);
         }
     } else {
-        let payload = `merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}`;
+        let payload = `callback_url=${CALLBACK_URL}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}`;
 
         if (bankCode) payload += `&bank_code=${bankCode}`;
         if (phone) payload += `&phone=${phone}`;
