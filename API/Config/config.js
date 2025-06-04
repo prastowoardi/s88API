@@ -15,6 +15,8 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 export const CALLBACK_URL = process.env.CALLBACK_URL;
 export const BASE_URL = process.env.BASE_URL;
+export const API_NINJAS_KEY = process.env.API_NINJAS_KEY;
+
 export const SECRET_KEY_INR = process.env.SECRET_KEY_INR;
 export const DEPOSIT_METHOD_INR = process.env.DEPOSIT_METHOD_INR;
 export const PAYOUT_METHOD_INR = process.env.PAYOUT_METHOD_INR;
