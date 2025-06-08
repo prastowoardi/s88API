@@ -8,9 +8,9 @@
     "readline-sync": "^1.4.10"
   },
   "scripts": {
-    "deposit:prod": "cross-env NODE_ENV=production node API/deposit.js",
-    "deposit:stag": "cross-env NODE_ENV=staging node API/deposit.js",
-    "deposit:dev": "cross-env NODE_ENV=dev node API/deposit.js",
+    "deposit:prod": "cross-env NODE_ENV=production node API/trx-deposit/deposit.js",
+    "deposit:stag": "cross-env NODE_ENV=staging node API/trx-deposit/deposit.js",
+    "deposit:dev": "cross-env NODE_ENV=dev node API/trx-deposit/deposit.js",
     "payout:prod": "cross-env NODE_ENV=production node API/trx-payout/payout.js",
     "payout:stag": "cross-env NODE_ENV=staging node API/trx-payout/payout.js",
     "payout:dev": "cross-env NODE_ENV=dev node API/trx-payout/payout.js",
@@ -28,8 +28,8 @@
     "depositenc:dev": "cross-env NODE_ENV=dev node API/encrypt_decrypt/depositEncrypt.js",
     "depositenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/depositEncrypt.js",
 
-    "batchdp:stag": "cross-env NODE_ENV=staging node API/batchDeposit.js",
-    "batchdp:prod": "cross-env NODE_ENV=production node API/batchDeposit.js",
+    "batchdp:stag": "cross-env NODE_ENV=staging node API/trx-deposit/batchDeposit.js",
+    "batchdp:prod": "cross-env NODE_ENV=production node API/trx-deposit/batchDeposit.js",
     "batchwd:stag": "cross-env NODE_ENV=staging node API/trx-payout/batchWithdraw.js",
     "batchwd:prod": "cross-env NODE_ENV=production node API/trx-payout/batchWithdraw.js",
 
