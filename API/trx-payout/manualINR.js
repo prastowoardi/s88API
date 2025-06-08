@@ -1,9 +1,9 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout } from "./helpers/utils.js";
-import { BASE_URL, SECRET_KEY_INR, PAYOUT_METHOD_INR, MERCHANT_CODE_INR, MERCHANT_API_KEY_INR } from "../API/Config/config.js";
-import { getValidIFSC, getRandomName, } from "./helpers/payoutHelper.js";
+import { encryptDecryptPayout } from "../helpers/utils.js";
+import { BASE_URL, SECRET_KEY_INR, PAYOUT_METHOD_INR, MERCHANT_CODE_INR, MERCHANT_API_KEY_INR } from "../Config/config.js";
+import { getValidIFSC, getRandomName, } from "../helpers/payoutHelper.js";
 
 const ifscCode = await getValidIFSC();
 console.log(`IFSC Code: ${ifscCode}`);
@@ -23,13 +23,13 @@ async function sendPayout() {
     // const accountName = readlineSync.question("Masukkan Nama Akun: ");
     // const ifscCode = readlineSync.question("Masukkan IFSC Code: ");
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    // const transactionCode = `TEST-WD-${timestamp}`;
+    const transactionCode = `TEST-WD-${timestamp}`;
     
     // Input transaction code
     const accountName = await getRandomName();
     const bankAccountNumber = 111111;
     const userID = randomInt(100);
-    const transactionCode = readlineSync.question("Masukkan Transaction Code: ")
+    // const transactionCode = readlineSync.question("Masukkan Transaction Code: ")
 
 
     const merchantCode = MERCHANT_CODE_INR;

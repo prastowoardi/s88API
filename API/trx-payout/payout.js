@@ -1,16 +1,16 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout } from "./helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout } from "../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL, PMI_WD_URL, PMI_AUTHORIZATION, 
   SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
   PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_PMI, MERCHANT_API_KEY_MMK  
-} from "../API/Config/config.js";
+} from "../Config/config.js";
 
-import { getValidIFSC, getRandomName, randomPhoneNumber } from "./helpers/payoutHelper.js";
+import { getValidIFSC, getRandomName, randomPhoneNumber } from "../helpers/payoutHelper.js";
 
 const phone = randomPhoneNumber();
 const timestamp = Math.floor(Date.now() / 1000);

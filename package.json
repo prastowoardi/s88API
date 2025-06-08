@@ -11,15 +11,15 @@
     "deposit:prod": "cross-env NODE_ENV=production node API/deposit.js",
     "deposit:stag": "cross-env NODE_ENV=staging node API/deposit.js",
     "deposit:dev": "cross-env NODE_ENV=dev node API/deposit.js",
-    "payout:prod": "cross-env NODE_ENV=production node API/payout.js",
-    "payout:stag": "cross-env NODE_ENV=staging node API/payout.js",
-    "payout:dev": "cross-env NODE_ENV=dev node API/payout.js",
+    "payout:prod": "cross-env NODE_ENV=production node API/trx-payout/payout.js",
+    "payout:stag": "cross-env NODE_ENV=staging node API/trx-payout/payout.js",
+    "payout:dev": "cross-env NODE_ENV=dev node API/trx-payout/payout.js",
     
-    "inr:prod": "cross-env NODE_ENV=production node API/manualINR.js",
+    "inr:prod": "cross-env NODE_ENV=production node API/trx-payout/manualINR.js",
     "vnd:prod": "cross-env NODE_ENV=production node API/trx-payout/manualVND.js",
-    "inr:stag": "cross-env NODE_ENV=staging node API/manualINR.js",
+    "inr:stag": "cross-env NODE_ENV=staging node API/trx-payout/manualINR.js",
     "vnd:stag": "cross-env NODE_ENV=staging node API/trx-payout/manualVND.js",
-    "inr:dev": "cross-env NODE_ENV=dev node API/manualINR.js",
+    "inr:dev": "cross-env NODE_ENV=dev node API/trx-payout/manualINR.js",
 
     "payoutenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/payoutEncrypt.js",
     "payoutenc:dev": "cross-env NODE_ENV=dev node API/encrypt_decrypt/payoutEncrypt.js",
@@ -30,8 +30,8 @@
 
     "batchdp:stag": "cross-env NODE_ENV=staging node API/batchDeposit.js",
     "batchdp:prod": "cross-env NODE_ENV=production node API/batchDeposit.js",
-    "batchwd:stag": "cross-env NODE_ENV=staging node API/batchWithdraw.js",
-    "batchwd:prod": "cross-env NODE_ENV=production node API/batchWithdraw.js",
+    "batchwd:stag": "cross-env NODE_ENV=staging node API/trx-payout/batchWithdraw.js",
+    "batchwd:prod": "cross-env NODE_ENV=production node API/trx-payout/batchWithdraw.js",
 
     "callback:prod": "cross-env NODE_ENV=production node API/manualCallback.js",
     "callback:stag": "cross-env NODE_ENV=staging node API/manualCallback.js"
