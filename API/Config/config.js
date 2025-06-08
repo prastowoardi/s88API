@@ -62,4 +62,8 @@ if (!PMI_AUTHORIZATION ) {
     throw new Error("PMI authorization is required and cannot be empty.");
 }
 
+if (!API_NINJAS_KEY) {
+    throw new Error("API Key for get user is empty.");
+}
+
 console.log(`Loaded environment: ${envFile}`);
