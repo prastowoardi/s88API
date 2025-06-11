@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
+import logger from "../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecryptPayout } from "../helpers/utils.js";
 import {
@@ -9,19 +10,17 @@ import {
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_MMK
 } from "../Config/config.js";
-
 import { getValidIFSC, getRandomName } from "../helpers/payoutHelper.js";
 
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
 
 async function payout(userID, currency, amount, transactionCode, name, ifscCode = null, callback_url = null) {
   const timestamp = Math.floor(Date.now() / 1000);
-
   let merchantCode, payoutMethod, payload, apiKey, secretKey;
 
   if (currency === "INR") {
     if (!ifscCode || typeof ifscCode !== "string" || ifscCode.trim() === "") {
-      console.error("❌ IFSC Code kosong atau tidak valid untuk INR.");
+      logger.error("❌ IFSC Code kosong atau tidak valid untuk INR.");
       return;
     }
 
@@ -88,7 +87,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       callback_url: CALLBACK_URL,
     };
   } else {
-    console.error("❌ Unsupported currency for withdraw.");
+    logger.error("❌ Unsupported currency for withdraw.");
     return;
   }
 
@@ -101,15 +100,24 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       body: JSON.stringify({ key: encryptedPayload }),
     });
 
-    const result = await response.json();
-    console.log(`✅ Withdraw (${transactionCode}):`, result.message || JSON.stringify(result)`\n`);
+    const rawResponse = await response.text();
+    let result;
+
+    try {
+      result = JSON.parse(rawResponse);
+    } catch (e) {
+      logger.error(`❌ Gagal parse JSON untuk ${transactionCode}:\n`, rawResponse);
+      return;
+    }
+
+    logger.info(`✅ Withdraw (${transactionCode}): ${result.message || JSON.stringify(result)}`);
 
     if (result.encrypted_data) {
       const decryptedPayload = encryptDecryptPayout("decrypt", result.encrypted_data, apiKey, secretKey);
-      console.log("\n🔓 Decrypted Payload:", decryptedPayload);
+      logger.info("\n🔓 Decrypted Payload:", decryptedPayload);
     }
   } catch (error) {
-    console.error(`❌ Withdraw failed for ${transactionCode}:`, error.message || error);
+    logger.error(`❌ Withdraw failed for ${transactionCode}:`, error.message || error);
   }
 }
 
@@ -117,8 +125,8 @@ async function sendPayoutBatch({ userID, currency, amount, transactionCode, name
   await payout(userID, currency, amount, transactionCode, name, ifscCode, callback_url);
 }
 
-// Fungsi utama batch withdraw
 async function batchPayout() {
+  logger.info("======== Batch Payout Request ========");
   const availableCurrencies = ["INR", "VND", "MMK"];
   const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
 
@@ -129,7 +137,7 @@ async function batchPayout() {
   } else if (availableCurrencies.includes(input)) {
     currenciesToProcess = [input];
   } else {
-    console.error("❌ Currency tidak valid.");
+    logger.error("❌ Currency tidak valid.");
     return;
   }
 
@@ -139,18 +147,18 @@ async function batchPayout() {
   const preloadedIFSCs = [];
 
   if (currenciesToProcess.includes("INR")) {
-    console.log("⏳ Menyiapkan IFSC Codes untuk INR...");
+    logger.info("⏳ Menyiapkan IFSC Codes untuk INR...");
 
     for (let i = 0; i < jumlah; i++) {
       const ifsc = await getValidIFSC();
       if (!ifsc) {
-        console.error(`❌ Gagal mendapatkan IFSC untuk transaksi ke-${i + 1}`);
+        logger.error(`❌ Gagal mendapatkan IFSC untuk transaksi ke-${i + 1}`);
         return;
       }
       preloadedIFSCs.push(ifsc);
     }
 
-    console.log(`✅ ${preloadedIFSCs.length} IFSC Code berhasil disiapkan\n`);
+    logger.info(`✅ ${preloadedIFSCs.length} IFSC Code berhasil disiapkan`);
   }
 
   for (const currency of currenciesToProcess) {
@@ -173,7 +181,7 @@ async function batchPayout() {
     }
   }
 
-  console.log("\n✅ Semua transaksi withdraw telah diproses!");
+  logger.info("======== REQUEST DONE ========\n\n");
 }
 
 batchPayout();

@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
+import logger from "../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../helpers/utils.js";
 import {
@@ -15,8 +16,6 @@ import { getValidIFSC, getRandomName, randomPhoneNumber } from "../helpers/payou
 const phone = randomPhoneNumber();
 const timestamp = Math.floor(Date.now() / 1000);
 const name = await getRandomName();
-const ifscCode = await getValidIFSC();
-console.log(`IFSC Code: ${ifscCode}`);
 
 async function sendPmiPayout(amount) {
     const payload = {
@@ -69,8 +68,8 @@ async function sendPmiPayout(amount) {
         });        
   
         const result = await response.json();
-        console.log("\n📜 Request Payload:", JSON.stringify(payload, null, 2));
-        console.log("\n📥 PMI Response:", result);
+        logger.info("\n📜 Request Payload:", JSON.stringify(payload, null, 2));
+        logger.info("\n📥 PMI Response:", result);
     } catch (error) {
         console.error("\n❌ PMI Request Error:", error.message);
     }
@@ -78,9 +77,11 @@ async function sendPmiPayout(amount) {
   
 async function handleRegularPayout(userID, currency, amount, transactionCode, name, CALLBACK_URL) {
   let merchantCode, payoutMethod, payload, apiKey, secretKey;
-  if (!ifscCode) return;
 
   if (currency === "INR") {
+    const ifscCode = await getValidIFSC();
+    if (!ifscCode) return logger.error("❌ IFSC code tidak ditemukan");
+
     merchantCode = MERCHANT_CODE_INR;
     payoutMethod = PAYOUT_METHOD_INR;
     apiKey = MERCHANT_API_KEY_INR;
@@ -146,10 +147,10 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
   const encryptedPayload = encryptDecryptPayout("encrypt", payload, apiKey, secretKey);
   const decryptedPayload = encryptDecryptPayout("decrypt", encryptedPayload, apiKey, secretKey);
 
-  console.log(`\n🔗 URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
-  console.log("\n📜 Request Payload:", JSON.stringify(payload, null, 2));
-  console.log("\n�� Encrypted Payload:", encryptedPayload);
-//   console.log("\n�� Decrypted Payload:", decryptedPayload);
+  logger.info(`🔗 URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
+  logger.info(`📜 Request Payload : ${JSON.stringify(payload, null, 2)}`);
+  logger.info(`�� Encrypted Payload : ${encryptedPayload}`);
+//   logger.info(`�� Decrypted Payload ${decryptedPayload}`);
 
   try {
     const response = await fetch(`${BASE_URL}/api/v1/payout/${merchantCode}`, {
@@ -158,26 +159,38 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
       body: JSON.stringify({ key: encryptedPayload }),
     });
 
-    const result = await response.json();
-    console.log("\n📥 Payout Response:", result);
-    console.log("\n⚡️Response Status:", response.status)
+    let resultText, result;
+    try {
+        resultText = await response.text();
+        result = JSON.parse(resultText);
+        
+    if (!response.ok) {
+        logger.warn(`⚠️ HTTP Error ${response.status}`);
+    }
+        logger.info(`📥Payout Response ${JSON.stringify(result, null, 2)}`);
+        logger.info(`⚡️Response Status : ${response.status}`);
+    } catch (parseErr) {
+        logger.error("❌ Gagal parsing JSON response");
+        logger.error("Raw response :\n" + resultText);
+        logger.error("Error detail : " + parseErr.message);
+    }
 
     if (result.encrypted_data) {
       const decryptedPayload = encryptDecrypt("decrypt", result.encrypted_data, apiKey, secretKey);
-      console.log("\n🔓 Decrypted Payload:", decryptedPayload);
+      logger.info(`🔓 Decrypted Payload : ${decryptedPayload}`);
     }
   } catch (error) {
-    console.error("\n❌ Payout Error:", error.message);
+    logger.error(`❌ Payout Error : ${error.message}`);
   }
 }
 
 async function sendPayout() {
-  console.log("\n=== PAYOUT REQUEST ===");
+  logger.info("======== PAYOUT REQUEST ========");
   const userID = randomInt(100, 999);
   const currency = readlineSync.question("Masukkan Currency (INR/VND/MMK/PMI): ").toUpperCase();
   const amount = readlineSync.question("Masukkan Amount: ");
   if (isNaN(amount) || Number(amount) <= 0) {
-    console.error("❌ Amount harus angka!");
+    logger.error("❌ Amount harus angka!");
     return;
   }
   const transactionCode = `TEST-WD-${timestamp}`;
@@ -187,6 +200,8 @@ async function sendPayout() {
   } else {
     await handleRegularPayout(userID, currency, amount, transactionCode, name, CALLBACK_URL);
   }
+
+  logger.info("======== REQUEST DONE ========\n\n");
 }
 
 sendPayout();

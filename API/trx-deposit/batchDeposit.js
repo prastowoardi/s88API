@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
+import logger from "../logger.js";
 import { encryptDecrypt } from "../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL,
@@ -15,10 +16,8 @@ import { sendCallback } from "../helpers/callbackHelper.js";
 
 let lastTransactionNumber = 0;
 
-// === Submit UTR ===
 async function submitUTR(currency, transactionCode) {
   const utr = generateUTR(currency);
-
   const config = currency === "INR"
     ? { merchantCode: MERCHANT_CODE_INR, secretKey: SECRET_KEY_INR, merchantAPI: MERCHANT_API_KEY_INR }
     : { merchantCode: MERCHANT_CODE_BDT, secretKey: SECRET_KEY_BDT, merchantAPI: MERCHANT_API_KEY_BDT };
@@ -34,14 +33,17 @@ async function submitUTR(currency, transactionCode) {
     });
 
     const responseText = await response.text();
-    const result = JSON.parse(responseText);
-    // console.log(`✅ Submit UTR (${transactionCode}):`, result);
+    
+    try {
+      JSON.parse(responseText);
+    } catch (e) {
+      logger.warn(`⚠️ Invalid JSON response in submitUTR (${transactionCode}):`, responseText);
+    }  
   } catch (err) {
-    console.error(`❌ Submit UTR Error (${transactionCode}):`, err);
+    logger.error(`❌ Submit UTR Error (${transactionCode}):`, err);
   }
 }
 
-// === Main Deposit ===
 async function sendDeposit({ currency, amount, transactionCode }) {
   const currencyConfig = {
     INR: {
@@ -75,22 +77,16 @@ async function sendDeposit({ currency, amount, transactionCode }) {
 
   const config = currencyConfig[currency];
   if (!config) {
-    console.error("❌ Invalid currency:", currency);
+    logger.error("❌ Invalid currency:", currency);
     return;
   }
 
   try {
     const timestamp = lastTransactionNumber;
-    const callback_url = CALLBACK_URL;
+    let payload = `callback_url=${CALLBACK_URL}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=0&currency_code=${currency}&payment_code=${config.depositMethod}`;
 
-    let payload = `callback_url=${callback_url}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=0&currency_code=${currency}&payment_code=${config.depositMethod}`;
-
-    let bankCode = "";
     if (config.bankCodeOptions) {
-      bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
-    }
-
-    if (bankCode) {
+      const bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
       payload += `&bank_code=${bankCode}`;
     }
 
@@ -111,42 +107,35 @@ async function sendDeposit({ currency, amount, transactionCode }) {
     const resultDP = JSON.parse(responseBody);
 
     if (resultDP.status === "success") {
-        console.log(`✅ Deposit (${transactionCode}):`, resultDP.message);
-      
-        let utr = generateUTR(currency);
-      
-        if (["INR", "BDT"].includes(currency)) {
-          await submitUTR(currency, transactionCode);
-        }
-      
-        const transactionNo = resultDP.transaction_no;
-      
-        if (transactionNo) {
-          try {
-            await sendCallback({
-              transactionNo,
-              amount,
-              utr,
-              status: 0,
-              transactionType: 1,
-              currency
-            });
-            console.log(`✅ Callback success for transaction_no ${transactionNo}`);
-          } catch (err) {
-            console.error(`❌ Callback failed for ${transactionCode}:`, err.message || err);
-          }
-        } else {
-          console.warn(`⚠️ transaction_no tidak ditemukan untuk ${transactionCode}`);
-        }
-      } else {
-        console.error(`❌ Deposit failed for ${transactionCode}:`, resultDP);
+      logger.info(`✅ Deposit (${transactionCode}) : ${resultDP.message}`);
+      const transactionNo = resultDP.transaction_no;
+      const utr = generateUTR(currency);
+
+      if (["INR", "BDT"].includes(currency)) {
+        await submitUTR(currency, transactionCode);
       }
+
+      if (transactionNo) {
+        await sendCallback({
+          transactionNo,
+          amount,
+          utr,
+          status: 0,
+          transactionType: 1,
+          currency
+        });
+        logger.info(`✅ Callback success for transaction_no ${transactionNo}`);
+      } else {
+        logger.warn(`⚠️ transaction_no tidak ditemukan untuk ${transactionCode}`);
+      }
+    } else {
+      logger.error(`❌ Deposit failed for ${transactionCode}:`, resultDP);
+    }
   } catch (err) {
-    console.error(`❌ Deposit Error:`, err);
+    logger.error(`❌ Deposit Error (${transactionCode}):`, err);
   }
 }
 
-// === Generate transaction codes ===
 function generateTransactionCodes(count) {
   if (lastTransactionNumber === 0) {
     lastTransactionNumber = Math.floor(Date.now() / 1000);
@@ -160,8 +149,8 @@ function generateTransactionCodes(count) {
   return codes;
 }
 
-// === Batch Execution parallel ===
 async function batchDeposit() {
+  logger.info("======== Batch Deposit Request ========");
   const availableCurrencies = ["INR", "BDT", "VND", "MMK"];
   const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
 
@@ -172,13 +161,12 @@ async function batchDeposit() {
   } else if (availableCurrencies.includes(input)) {
     currenciesToProcess = [input];
   } else {
-    console.error("❌ Currency tidak valid.");
+    logger.error("❌ Currency tidak valid.");
     return;
   }
 
   const jumlah = readlineSync.questionInt("Berapa Transaksi: ");
   const amount = readlineSync.questionInt("Amount: ");
-
   const tasks = [];
 
   for (const currency of currenciesToProcess) {
@@ -189,8 +177,7 @@ async function batchDeposit() {
   }
 
   await Promise.all(tasks);
-
-  console.log("\n✅ Sukses submit deposit!");
+  logger.info("======== REQUEST DONE ========\n\n");
 }
 
 batchDeposit();

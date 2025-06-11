@@ -75,25 +75,24 @@ async function sendPayout() {
 
         let resultText;
         try {
-        resultText = await response.text();
-        const result = JSON.parse(resultText);
+            resultText = await response.text();
+            const result = JSON.parse(resultText);
 
         if (!response.ok) {
             logger.warn(`⚠️ HTTP Error ${response.status}`);
         }
-
-        logger.info(`📥Payout Response\n${JSON.stringify(result, null, 2)}`);
-        logger.info(`⚡️Response Status: ${response.status}`);
+            logger.info(`📥Payout Response\n${JSON.stringify(result, null, 2)}`);
+            logger.info(`⚡️Response Status: ${response.status}`);
         } catch (parseErr) {
-        logger.error("❌ Gagal parsing JSON response");
-        logger.error("Raw response:\n" + resultText);
-        logger.error("Error detail: " + parseErr.message);
+            logger.error("❌ Gagal parsing JSON response");
+            logger.error("Raw response:\n" + resultText);
+            logger.error("Error detail: " + parseErr.message);
         }
     } catch (error) {
         logger.error("❌ Payout Error: " + error.message);
     }
 
-    logger.info("======== REQUEST DONE ========");
+    logger.info("======== REQUEST DONE ========\n\n");
 }
 
 sendPayout();

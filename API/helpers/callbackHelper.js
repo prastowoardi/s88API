@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import logger from "../logger.js";
 import { BASE_URL } from "../Config/config.js";
 
 export async function sendCallback({
@@ -68,8 +69,8 @@ export async function sendCallback({
       ? `${BASE_URL}/api/v2/${pathPrefix}/deposit/notification`
       : `${BASE_URL}/api/v2/${pathPrefix}/payout/notification`;
 
-  console.log("➡️ Sending callback to", callbackUrl);
-  console.log("Payload:", payload);
+  logger.info(`➡️ Sending callback to ${callbackUrl}`);
+  logger.info(`Payload : ${JSON.stringify(payload, null, 2)}`);
 
   try {
     const response = await fetch(callbackUrl, {

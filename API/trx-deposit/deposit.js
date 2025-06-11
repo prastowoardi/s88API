@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
+import logger from "../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../helpers/utils.js";
 import { generateUTR, randomPhoneNumber } from "../helpers/depositHelper.js";
@@ -13,13 +14,13 @@ import {
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
-        console.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
+        logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
         return;
     }
 
     generateUTR(currency);
     const utr = generateUTR(currency);
-    console.log("\n✅ UTR:", utr);
+    logger.info(`✅ UTR : ${utr}`);
 
     const config = currency === "INR"
         ? { merchantCode: MERCHANT_CODE_INR, secretKey: SECRET_KEY_INR, merchantAPI: MERCHANT_API_KEY_INR }
@@ -37,34 +38,35 @@ async function submitUTR(currency, transactionCode) {
 
         const responseText = await response.text();
         if (!response.ok) {
-            console.error("❌ HTTP Error:", response.status);
-            console.log("Response:", responseText);
+            logger.error("❌ HTTP Error:", response.status);
+            logger.info(`Response : ${responseText}`);
             return;
         }
 
         const result = JSON.parse(responseText);
-        console.log("\n✅ Submit UTR Response:", result);
+        logger.info(`📥 Submit UTR Response : ${JSON.stringify(result, null, 2)}`);        
     } catch (err) {
-        console.error("\n❌ Submit UTR Error:", err);
+        logger.error(`❌ Submit UTR Error : ${err}`);
     }
 }
 
 async function sendDeposit() { 
-    console.log("\n=== DEPOSIT REQUEST ===");
+    logger.info("======== DEPOSIT REQUEST ========");
 
     const userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/PMI): ").toUpperCase();
     const amount = readlineSync.question("Masukkan Amount: ");
+    logger.info(`Amount Input : ${amount}`);
 
     if (!["INR", "VND", "BDT", "MMK", "PMI"].includes(currency)) {
-        console.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, atau PMI.");
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, atau PMI.");
         return;
     }
 
     if (isNaN(amount) || Number(amount) <= 0) {
-        console.error("❌ Amount harus berupa angka lebih dari 0.");
+        logger.error("❌ Amount harus berupa angka lebih dari 0.");
         return;
     }
 
@@ -114,7 +116,7 @@ async function sendDeposit() {
     if (config.requiresBankCode) {
         bankCode = readlineSync.question("Masukkan Bank Code: ").toLowerCase();
         if (!/^[a-z0-9]+$/.test(bankCode)) {
-            console.error("❌ Bank Code harus berupa huruf/angka.");
+            logger.error("❌ Bank Code harus berupa huruf/angka.");
             return;
         }
     } else if (config.bankCodeOptions) {
@@ -149,10 +151,10 @@ async function sendDeposit() {
             const responseText = await response.text();
             const parsed = JSON.parse(responseText.replace(/\\"/g, '"'));
 
-            console.log("Response Status: ", response.status);
-            console.log("\n✅ PMI Deposit Response:", JSON.stringify(parsed, null, 2));
+            logger.info(`Response Status: ${response.status}`);
+            logger.info(`✅ PMI Deposit Response ${JSON.stringify(parsed, null, 2)}`);
         } catch (err) {
-            console.error("\n❌ PMI Deposit Error:", err);
+            logger.error(`❌ PMI Deposit Error : ${err}`);
         }
     } else {
         let payload = `callback_url=${CALLBACK_URL}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}`;
@@ -163,11 +165,11 @@ async function sendDeposit() {
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
         const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);
 
-        console.log(`\n🔗 URL: ${BASE_URL}/api/v3/dopayment`);
-        console.log(`\n Merchant Code: ${config.merchantCode}`)
-        console.log("\n🔗 Request Payload:", payload);
-        console.log("\n🔐 Encrypted:", encrypted);
-        // console.log("\n🔓 Decrypted:", decrypted);
+        logger.info(`🔗 URL : ${BASE_URL}/api/v3/dopayment`);
+        logger.info(` Merchant Code : ${config.merchantCode}`)
+        logger.info(`🔗 Request Payload : ${payload}`);
+        logger.info(`🔐 Encrypted : ${encrypted}`);
+        // logger.info(`🔓 Decrypted : ${decrypted}`);
 
         try {
             const response = await fetch(`${BASE_URL}/api/${config.merchantCode}/v3/dopayment`, {
@@ -177,24 +179,33 @@ async function sendDeposit() {
             });
 
             const responseBody = await response.text();
-            const resultDP = JSON.parse(responseBody);
+            logger.info("📥 Raw Response Body : " + responseBody);
+            
+            let resultDP = JSON.parse(responseBody);
 
+            try {
+                resultDP = JSON.parse(responseBody); // baru coba parse
+            } catch (parseError) {
+                logger.error("❌ Gagal parse JSON:", parseError.message);
+                return;
+            }
             if (!response.ok) {
-                console.log("\n📥 Response:", resultDP);
-                console.log("⚡️Response Status:", response.status);
+                logger.error("❌ Deposit gagal:", resultDP);
                 return;
             }
 
-            console.log("\n📥 Deposit Response:", resultDP);
-            console.log("\n⚡️Response Status", response.status);
+            logger.info("📥 Deposit Response: " + JSON.stringify(resultDP, null, 2));
+            logger.info(`⚡️Response Status ${response.status}`);
 
             if (["INR", "BDT"].includes(currency)) {
                 await submitUTR(currency, transactionCode);
             }
         } catch (err) {
-            console.error("\n❌ Deposit Error:", err);
+            logger.error(`❌ Deposit Error : ${err}`);
         }
     }
+
+    logger.info("======== REQUEST DONE ========\n\n");
 }
 
 sendDeposit();
