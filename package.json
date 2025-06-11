@@ -3,9 +3,11 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "crypto-js": "^4.2.0",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "node-fetch": "^3.3.2",
-    "readline-sync": "^1.4.10"
+    "readline-sync": "^1.4.10",
+    "winston": "^3.17.0"
   },
   "scripts": {
     "deposit:prod": "cross-env NODE_ENV=production node API/trx-deposit/deposit.js",
@@ -14,25 +16,21 @@
     "payout:prod": "cross-env NODE_ENV=production node API/trx-payout/payout.js",
     "payout:stag": "cross-env NODE_ENV=staging node API/trx-payout/payout.js",
     "payout:dev": "cross-env NODE_ENV=dev node API/trx-payout/payout.js",
-    
     "inr:prod": "cross-env NODE_ENV=production node API/trx-payout/manualINR.js",
     "vnd:prod": "cross-env NODE_ENV=production node API/trx-payout/manualVND.js",
     "inr:stag": "cross-env NODE_ENV=staging node API/trx-payout/manualINR.js",
     "vnd:stag": "cross-env NODE_ENV=staging node API/trx-payout/manualVND.js",
     "inr:dev": "cross-env NODE_ENV=dev node API/trx-payout/manualINR.js",
-
     "payoutenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/payoutEncrypt.js",
     "payoutenc:dev": "cross-env NODE_ENV=dev node API/encrypt_decrypt/payoutEncrypt.js",
     "payoutenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/payoutEncrypt.js",
     "depositenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/depositEncrypt.js",
     "depositenc:dev": "cross-env NODE_ENV=dev node API/encrypt_decrypt/depositEncrypt.js",
     "depositenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/depositEncrypt.js",
-
     "batchdp:stag": "cross-env NODE_ENV=staging node API/trx-deposit/batchDeposit.js",
     "batchdp:prod": "cross-env NODE_ENV=production node API/trx-deposit/batchDeposit.js",
     "batchwd:stag": "cross-env NODE_ENV=staging node API/trx-payout/batchWithdraw.js",
     "batchwd:prod": "cross-env NODE_ENV=production node API/trx-payout/batchWithdraw.js",
-
     "callback:prod": "cross-env NODE_ENV=production node API/manualCallback.js",
     "callback:stag": "cross-env NODE_ENV=staging node API/manualCallback.js"
   }
