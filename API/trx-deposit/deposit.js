@@ -3,7 +3,7 @@ import readlineSync from "readline-sync";
 import logger from "../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../helpers/utils.js";
-import { generateUTR, randomPhoneNumber } from "../helpers/depositHelper.js";
+import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber } from "../helpers/depositHelper.js";
 import {
     BASE_URL, CALLBACK_URL, PMI_DP_URL, PMI_AUTHORIZATION, 
     SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_PMI,
@@ -123,6 +123,11 @@ async function sendDeposit() {
         bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
     }
 
+    if (currency === "MMK" && bankCode === "wavepay") {
+        phone = randomMyanmarPhoneNumber();
+        logger.info(`📱 Phone (auto-generated for WavePay): ${phone}`);
+    }
+
     if (currency === "BDT") {
         phone = randomPhoneNumber();
     }
@@ -165,7 +170,7 @@ async function sendDeposit() {
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
         const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);
 
-        logger.info(`🔗 URL : ${BASE_URL}/api/v3/dopayment`);
+        logger.info(`🔗 URL : ${BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
         logger.info(` Merchant Code : ${config.merchantCode}`)
         logger.info(`🔗 Request Payload : ${payload}`);
         logger.info(`🔐 Encrypted : ${encrypted}`);

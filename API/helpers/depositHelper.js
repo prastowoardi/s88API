@@ -13,3 +13,7 @@ export function randomPhoneNumber() {
     const number = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
     return prefix + number;
 }
+
+export function randomMyanmarPhoneNumber() {
+    return '09' + Math.floor(100000000 + Math.random() * 900000000);
+}
