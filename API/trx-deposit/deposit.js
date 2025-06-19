@@ -114,16 +114,22 @@ async function sendDeposit() {
     let phone = "";
 
     if (config.requiresBankCode) {
-        bankCode = readlineSync.question("Masukkan Bank Code: ").toLowerCase();
-        if (!/^[a-z0-9]+$/.test(bankCode)) {
+        bankCode = readlineSync.question("Masukkan Bank Code: ");
+        if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
             logger.error("❌ Bank Code harus berupa huruf/angka.");
             return;
+        }
+
+        if (currency === 'MMK') {
+            bankCode = bankCode.toUpperCase();
+        } else {
+            bankCode = bankCode.toLowerCase();
         }
     } else if (config.bankCodeOptions) {
         bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
     }
 
-    if (currency === "MMK" && bankCode === "wavepay") {
+    if (currency === "MMK" && bankCode === "WAVEPAY") {
         phone = randomMyanmarPhoneNumber();
         logger.info(`📱 Phone (auto-generated for WavePay): ${phone}`);
     }
@@ -189,7 +195,7 @@ async function sendDeposit() {
             let resultDP = JSON.parse(responseBody);
 
             try {
-                resultDP = JSON.parse(responseBody); // baru coba parse
+                resultDP = JSON.parse(responseBody);
             } catch (parseError) {
                 logger.error("❌ Gagal parse JSON:", parseError.message);
                 return;
