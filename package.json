@@ -13,24 +13,33 @@
     "deposit:prod": "cross-env NODE_ENV=production node API/trx-deposit/deposit.js",
     "deposit:stag": "cross-env NODE_ENV=staging node API/trx-deposit/deposit.js",
     "deposit:dev": "cross-env NODE_ENV=dev node API/trx-deposit/deposit.js",
+    "v2:prod": "cross-env NODE_ENV=production node API/trx-deposit/depositV2.js",
+    "v2:stag": "cross-env NODE_ENV=stag node API/trx-deposit/depositV2.js",
+    "v2:dev": "cross-env NODE_ENV=dev node API/trx-deposit/depositV2.js",
+
     "payout:prod": "cross-env NODE_ENV=production node API/trx-payout/payout.js",
     "payout:stag": "cross-env NODE_ENV=staging node API/trx-payout/payout.js",
     "payout:dev": "cross-env NODE_ENV=dev node API/trx-payout/payout.js",
+
     "inr:prod": "cross-env NODE_ENV=production node API/trx-payout/manualINR.js",
     "vnd:prod": "cross-env NODE_ENV=production node API/trx-payout/manualVND.js",
     "inr:stag": "cross-env NODE_ENV=staging node API/trx-payout/manualINR.js",
     "vnd:stag": "cross-env NODE_ENV=staging node API/trx-payout/manualVND.js",
     "inr:dev": "cross-env NODE_ENV=dev node API/trx-payout/manualINR.js",
+
     "payoutenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/payoutEncrypt.js",
     "payoutenc:dev": "cross-env NODE_ENV=dev node API/encrypt_decrypt/payoutEncrypt.js",
     "payoutenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/payoutEncrypt.js",
+
     "depositenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/depositEncrypt.js",
     "depositenc:dev": "cross-env NODE_ENV=dev node API/encrypt_decrypt/depositEncrypt.js",
     "depositenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/depositEncrypt.js",
+
     "batchdp:stag": "cross-env NODE_ENV=staging node API/trx-deposit/batchDeposit.js",
     "batchdp:prod": "cross-env NODE_ENV=production node API/trx-deposit/batchDeposit.js",
     "batchwd:stag": "cross-env NODE_ENV=staging node API/trx-payout/batchWithdraw.js",
     "batchwd:prod": "cross-env NODE_ENV=production node API/trx-payout/batchWithdraw.js",
+
     "callback:prod": "cross-env NODE_ENV=production node API/manualCallback.js",
     "callback:stag": "cross-env NODE_ENV=staging node API/manualCallback.js"
   }
