@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const envFile = {
-    dev: '.env_dev',
     staging: '.env_staging',
     production: '.env_production'
 }[process.env.NODE_ENV] || '.env_staging';
