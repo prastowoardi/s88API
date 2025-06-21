@@ -1,6 +1,5 @@
 node_modules
 .env_staging
 .env_production
-.env_dev
 old_bank.json
 log

@@ -81,15 +81,15 @@ async function depositV2() {
         phone = randomPhoneNumber();
     }
 
-    let payload = `callback_url=${CALLBACK_URL}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}`;
+    let payload = `merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}&callback_url=${CALLBACK_URL}`;
 
     if (bankCode) payload += `&bank_code=${bankCode}`;
     if (phone) payload += `&phone=${phone}`;
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
-    logger.info("======== PayURL ========");
-    // logger.info(`🔗 Request Payload : ${payload}`);
+    logger.info("======== Request ========");
+    logger.info(`🔗 Request Payload : ${payload}\n`);
     // logger.info(`🔐 Encrypted : ${encrypted}`);
     logger.info(`🔗 PayURL : ${BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
     logger.info("================================\n\n");
