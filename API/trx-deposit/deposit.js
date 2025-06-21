@@ -57,14 +57,14 @@ async function sendDeposit() {
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/PMI): ").toUpperCase();
-    const amount = readlineSync.question("Masukkan Amount: ");
-    logger.info(`Amount Input : ${amount}`);
-
     if (!["INR", "VND", "BDT", "MMK", "PMI"].includes(currency)) {
         logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, atau PMI.");
         return;
     }
-
+    
+    const amount = readlineSync.question("Masukkan Amount: ");
+    logger.info(`Amount Input : ${amount}`);
+    
     if (isNaN(amount) || Number(amount) <= 0) {
         logger.error("❌ Amount harus berupa angka lebih dari 0.");
         return;

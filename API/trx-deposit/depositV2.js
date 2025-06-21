@@ -17,15 +17,15 @@ dotenv.config();
 async function depositV2() {
     const userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
+    
     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK): ").toUpperCase();
-    const amount = readlineSync.question("Masukkan Amount: ");
-    logger.info(`Amount Input : ${amount}`);
-
-    const supportedCurrencies = ["INR", "VND", "BDT", "MMK"];
-    if (!supportedCurrencies.includes(currency)) {
-        logger.error("❌ Invalid currency.");
+    if (!["INR", "VND", "BDT", "MMK"].includes(currency)) {
+        logger.error(`"${currency}" Not supported yet!`);
         return;
     }
+
+    const amount = readlineSync.question("Masukkan Amount: ");
+    logger.info(`Amount Input : ${amount}`);
 
     const transactionCode = `TEST-DP-${timestamp}`;
     const currencyConfig = {

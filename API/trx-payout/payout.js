@@ -187,7 +187,13 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
 async function sendPayout() {
   logger.info("======== PAYOUT REQUEST ========");
   const userID = randomInt(100, 999);
-  const currency = readlineSync.question("Masukkan Currency (INR/VND/MMK/PMI): ").toUpperCase();
+  const currency = readlineSync.question("Masukkan Currency").toUpperCase();
+  
+  if (!["INR", "VND", "BDT", "MMK", "MMK"].includes(currency)) {
+        logger.error(`"${currency}" Not supported yet!`);
+        return;
+  }
+
   const amount = readlineSync.question("Masukkan Amount: ");
   if (isNaN(amount) || Number(amount) <= 0) {
     logger.error("❌ Amount harus angka!");
