@@ -5,10 +5,10 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL, PMI_WD_URL, PMI_AUTHORIZATION, 
-  SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
-  PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK,
-  MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
-  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_PMI, MERCHANT_API_KEY_MMK  
+  SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK, SECRET_KEY_BDT,
+  PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_PMI, PAYOUT_METHOD_MMK, PAYOUT_METHOD_BDT,
+  MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK, MERCHANT_CODE_BDT,
+  MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_PMI, MERCHANT_API_KEY_MMK, MERCHANT_API_KEY_BDT  
 } from "../Config/config.js";
 
 import { getValidIFSC, getRandomName, randomPhoneNumber } from "../helpers/payoutHelper.js";
@@ -117,6 +117,28 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
       payout_code: payoutMethod,
       callback_url: CALLBACK_URL,
     };
+  } else if (currency === "BDT") {
+    const bankCode = readlineSync.question("Masukkan Bank Code: ").toUpperCase();
+  
+    merchantCode = MERCHANT_CODE_BDT;
+    payoutMethod = PAYOUT_METHOD_BDT;
+    apiKey = MERCHANT_API_KEY_BDT;
+    secretKey = SECRET_KEY_BDT;
+
+    payload = {
+        merchant_code: merchantCode,
+        transaction_code: transactionCode,
+        transaction_timestamp: timestamp,
+        transaction_amount: amount,
+        user_id: userID.toString(),
+        currency_code: currency,
+        bank_account_number: "11133311",
+        bank_code: bankCode,
+        bank_name: "bankName",
+        account_name: name,
+        payout_code: payoutMethod,
+        callback_url: CALLBACK_URL,
+    };
   } else if (currency === "MMK") {
     const bankCode = readlineSync.question("Masukkan Bank Code: ").toUpperCase();
   
@@ -187,7 +209,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
 async function sendPayout() {
   logger.info("======== PAYOUT REQUEST ========");
   const userID = randomInt(100, 999);
-  const currency = readlineSync.question("Masukkan Currency").toUpperCase();
+  const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK): ").toUpperCase();
   
   if (!["INR", "VND", "BDT", "MMK", "MMK"].includes(currency)) {
         logger.error(`"${currency}" Not supported yet!`);
