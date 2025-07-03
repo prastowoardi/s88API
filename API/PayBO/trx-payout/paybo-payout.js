@@ -29,7 +29,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
       return;
     }
     payload.ifsc_code = ifscCode;
-    payload.bank_account_number = "11133322"; // Bisa diubah sesuai logicmu
+    payload.bank_account_number = "11133322";
   }
 
   if (currency === "VND" && config.requiresBankCode) {
@@ -38,7 +38,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
       return;
     }
     payload.bank_code = bankCode;
-    payload.bank_account_number = "2206491508"; // Bisa diubah sesuai logicmu
+    payload.bank_account_number = "2206491508";
   }
 
   logger.info(`Request Payload : ${JSON.stringify(payload, null, 2)}`);
@@ -74,7 +74,6 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     logger.info(`Payout Response: ${JSON.stringify(result, null, 2)}`);
     logger.info(`Response Status: ${response.status}`);
 
-    // Jika ada encrypted_data di response, decrypt dan tampilkan
     if (result.encrypted_data) {
       const decryptedPayload = encryptDecrypt("decrypt", result.encrypted_data, config.merchantAPI, config.secretKey);
       logger.info(`Decrypted Response Payload : ${decryptedPayload}`);
