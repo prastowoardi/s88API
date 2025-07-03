@@ -51,7 +51,7 @@ async function submitUTR(currency, transactionCode) {
 }
 
 async function sendDeposit() { 
-    logger.info("======== DEPOSIT REQUEST ========");
+    logger.info("======== DEPOSIT V3 REQUEST ========");
 
     const userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();

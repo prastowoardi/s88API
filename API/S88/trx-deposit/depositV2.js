@@ -92,7 +92,7 @@ async function depositV2() {
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
-    logger.info("======== Request ========");
+    logger.info("======== DEPOSIT V2 REQUEST ========");
     logger.info(`🔗 Request Payload : ${payload}\n`);
     // logger.info(`🔐 Encrypted : ${encrypted}`);
     logger.info(`🔗 PayURL : ${BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
