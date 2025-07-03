@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
-import { getCurrencyConfig } from "../../helpers/currencyConfig.js";
+import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 
 dotenv.config();

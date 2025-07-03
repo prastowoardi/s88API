@@ -4,7 +4,7 @@ import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
-import { getCurrencyConfig } from "../../helpers/currencyConfig.js";
+import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 async function sendDeposit() { 
     logger.info("======== DEPOSIT V4 REQUEST ========");
