@@ -1,9 +1,9 @@
+import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
-import dotenv from 'dotenv';
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../../helpers/utils.js";
-import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
+import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import {
     BASE_URL, CALLBACK_URL, 
     SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_BRL, SECRET_KEY_IDR, SECRET_KEY_THB, SECRET_KEY_MXN,
@@ -12,22 +12,28 @@ import {
     MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK, MERCHANT_API_KEY_BRL, MERCHANT_API_KEY_IDR, MERCHANT_API_KEY_THB, MERCHANT_API_KEY_MXN
 } from "../../Config/config.js";
 
-dotenv.config();
+async function sendDeposit() { 
+    logger.info("======== DEPOSIT V4 REQUEST ========");
 
-async function depositV2() {
     const userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    
+
      const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN): ").toUpperCase();
     if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN"].includes(currency)) {
         logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN atau IDR.");
         return;
     }
-
+    
     const amount = readlineSync.question("Masukkan Amount: ");
     logger.info(`Amount Input : ${amount}`);
+    
+    if (isNaN(amount) || Number(amount) <= 0) {
+        logger.error("❌ Amount harus berupa angka lebih dari 0.");
+        return;
+    }
 
     const transactionCode = `TEST-DP-${timestamp}`;
+
     const currencyConfig = {
         INR: {
             merchantCode: MERCHANT_CODE_INR,
@@ -49,12 +55,20 @@ async function depositV2() {
             merchantAPI: MERCHANT_API_KEY_BDT,
             bankCodeOptions: ["1002", "1001", "1004", "1003"]
         },
+        MMK: {
+            merchantCode: MERCHANT_CODE_MMK,
+            depositMethod: DEPOSIT_METHOD_MMK,
+            secretKey: SECRET_KEY_MMK,
+            merchantAPI: MERCHANT_API_KEY_MMK,
+            requiresBankCode: true
+        },
         BRL: {
             merchantCode: MERCHANT_CODE_BRL,
             depositMethod: DEPOSIT_METHOD_BRL,
             secretKey: SECRET_KEY_BRL,
             merchantAPI: MERCHANT_API_KEY_BRL,
-            requiresBankCode: true
+            requiresBankCode: true,
+            callbackURL: CALLBACK_URL
         },
         IDR: {
             merchantCode: MERCHANT_CODE_IDR,
@@ -86,7 +100,7 @@ async function depositV2() {
     const config = currencyConfig[currency];
     let bankCode = "";
     let phone = "";
-    let cardNumber = ""
+    let cardNumber = "";
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {
@@ -98,6 +112,11 @@ async function depositV2() {
         }
     } else if (config.bankCodeOptions) {
         bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
+    }
+
+    if (currency === "MMK" && bankCode === "WAVEPAY") {
+        phone = randomMyanmarPhoneNumber();
+        logger.info(`📱 Phone (auto-generated for WavePay): ${phone}`);
     }
 
     if (currency === "BDT") {
@@ -114,19 +133,63 @@ async function depositV2() {
         logger.info(`OVO Phone Number: ${phone}`);
     }
 
-    let payload = `merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}&callback_url=${CALLBACK_URL}`;
+    const payloadObject = {
+        transaction_amount: parseInt(amount),
+        payment_code: config.depositMethod,
+        user_id: userID.toString(),
+        currency_code: currency,
+        callback_url: CALLBACK_URL,
+        ip_address: "127.0.0.1"
+    };
 
-    if (bankCode) payload += `&bank_code=${bankCode}`;
-    if (phone) payload += `&phone=${phone}`;
-    if (cardNumber) payload += `&card_number=${cardNumber}`;
+    if (bankCode) payloadObject.bank_code = bankCode;
+    if (phone) payloadObject.cust_phone = phone;
+    if (cardNumber) payloadObject.card_number = cardNumber;
+
+    const payload = JSON.stringify(payloadObject);
+    const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
-    logger.info("======== Request ========");
-    logger.info(`🔗 Request Payload : ${payload}\n`);
-    // logger.info(`🔐 Encrypted : ${encrypted}`);
-    logger.info(`🔗 PayURL : ${BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
-    logger.info("================================\n\n");
+    logger.info(`URL : ${BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
+    logger.info(`Merchant Code : ${config.merchantCode}`)
+    logger.info(`Request Payload : ${payload}`);
+    logger.info(`Encrypted : ${encrypted}`);
+    logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "X-Encrypted-Transaction": encryptedTransactionCode
+             },
+            body: payload
+        });
+
+        const responseBody = await response.text();
+        
+        let resultDP = JSON.parse(responseBody);
+
+        try {
+            resultDP = JSON.parse(responseBody);
+        } catch (parseError) {
+            logger.error("❌ Gagal parse JSON:", parseError.message);
+            return;
+        }
+        if (!response.ok) {
+            logger.error("❌ Deposit gagal:", resultDP);
+            return;
+        }
+        
+        logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
+        logger.info(`Response Status ${response.status}`);
+
+    } catch (err) {
+        logger.error(`❌ Deposit Error : ${err}`);
+    }
+
+    logger.info("======== REQUEST DONE ========\n\n");
 }
 
-depositV2();
+sendDeposit();

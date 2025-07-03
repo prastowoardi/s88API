@@ -3,13 +3,13 @@ import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt } from "../../helpers/utils.js";
-import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber } from "../../helpers/depositHelper.js";
+import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import {
     BASE_URL, CALLBACK_URL, 
-    SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_BRL,
-    DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, DEPOSIT_METHOD_MMK, DEPOSIT_METHOD_BRL,
-    MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK, MERCHANT_CODE_BRL,
-    MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK, MERCHANT_API_KEY_BRL
+    SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK, SECRET_KEY_BRL, SECRET_KEY_IDR, SECRET_KEY_THB, SECRET_KEY_MXN,
+    DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, DEPOSIT_METHOD_MMK, DEPOSIT_METHOD_BRL, DEPOSIT_METHOD_IDR, DEPOSIT_METHOD_THB, DEPOSIT_METHOD_MXN,
+    MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK, MERCHANT_CODE_BRL, MERCHANT_CODE_IDR, MERCHANT_CODE_THB, MERCHANT_CODE_MXN,
+    MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK, MERCHANT_API_KEY_BRL, MERCHANT_API_KEY_IDR, MERCHANT_API_KEY_THB, MERCHANT_API_KEY_MXN
 } from "../../Config/config.js";
 
 async function submitUTR(currency, transactionCode) {
@@ -56,9 +56,9 @@ async function sendDeposit() {
     const userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, atau BRL.");
+    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN): ").toUpperCase();
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN atau IDR.");
         return;
     }
     
@@ -107,23 +107,46 @@ async function sendDeposit() {
             merchantAPI: MERCHANT_API_KEY_BRL,
             requiresBankCode: true,
             callbackURL: CALLBACK_URL
+        },
+        IDR: {
+            merchantCode: MERCHANT_CODE_IDR,
+            depositMethod: DEPOSIT_METHOD_IDR,
+            secretKey: SECRET_KEY_IDR,
+            merchantAPI: MERCHANT_API_KEY_IDR,
+            bankCodeOptions: ["BCA", "DANA", "OVO", "GOPAY", "MANDIRI", "BNI"],
+            callbackURL: CALLBACK_URL
+        },
+        THB: {
+            merchantCode: MERCHANT_CODE_THB,
+            depositMethod: DEPOSIT_METHOD_THB,
+            secretKey: SECRET_KEY_THB,
+            merchantAPI: MERCHANT_API_KEY_THB,
+            bankCodeOptions: ["BBL", "GSB", "KTB", "SCBEASY"],
+            cardNumber: true,
+            callbackURL: CALLBACK_URL
+        },
+        MXN: {
+            merchantCode: MERCHANT_CODE_MXN,
+            depositMethod: DEPOSIT_METHOD_MXN,
+            secretKey: SECRET_KEY_MXN,
+            merchantAPI: MERCHANT_API_KEY_MXN,
+            requiresBankCode: true,
+            callbackURL: CALLBACK_URL
         }
     };
 
     const config = currencyConfig[currency];
     let bankCode = "";
     let phone = "";
+    let cardNumber = "";
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {
             bankCode = "PIX";
+        } else if (currency === "MXN") {
+            bankCode = "SPEI";
         } else {
             bankCode = readlineSync.question("Masukkan Bank Code: ");
-            if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
-                logger.error("❌ Bank Code harus berupa huruf/angka.");
-                return;
-            }
-            bankCode = currency === "MMK" ? bankCode.toUpperCase() : bankCode.toLowerCase();
         }
     } else if (config.bankCodeOptions) {
         bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
@@ -138,11 +161,21 @@ async function sendDeposit() {
         phone = randomPhoneNumber();
     }
 
-    
+    if (config.cardNumber) {
+        cardNumber = randomCardNumber();
+        logger.info(`Card Number: ${cardNumber}`);
+    }
+
+    if (currency === "IDR" && bankCode === "OVO") {
+        phone = randomPhoneNumber("idr");
+        logger.info(`OVO Phone Number: ${phone}`);
+    }
+
     let payload = `callback_url=${CALLBACK_URL}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}`;
 
     if (bankCode) payload += `&bank_code=${bankCode}`;
     if (phone) payload += `&phone=${phone}`;
+    if (cardNumber) payload += `&card_number=${cardNumber}`;
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
     const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);
@@ -174,7 +207,7 @@ async function sendDeposit() {
             logger.error("❌ Deposit gagal:", resultDP);
             return;
         }
-        
+
         logger.info("📥 Deposit Response: " + JSON.stringify(resultDP, null, 2));
         logger.info(`⚡️Response Status ${response.status}`);
 
