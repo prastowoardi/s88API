@@ -32,15 +32,16 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     payload.bank_account_number = "11133322";
   }
 
-  if (currency === "VND" && config.requiresBankCode) {
+  if (["IDR", "VND", "BDT", "THB"].includes(currency)) {
     if (!bankCode) {
-      logger.error("❌ Bank Code wajib diisi untuk VND!");
+      logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
       return;
     }
     payload.bank_code = bankCode;
-    payload.bank_account_number = "2206491508";
+    payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
   }
 
+  logger.info(`${config.BASE_URL}/api/v1/payout/${config.merchantCode}`);
   logger.info(`Request Payload : ${JSON.stringify(payload, null, 2)}`);
 
   const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.merchantAPI, config.secretKey);
@@ -87,18 +88,18 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
 async function sendPayout() {
   logger.info("======== PAYOUT REQUEST ========");
   const userID = randomInt(100, 999);
-  const currency = readlineSync.question("Masukkan Currency (INR/VND): ").toUpperCase();
+  const currency = readlineSync.question("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT): ").toUpperCase();
 
-  if (!["INR", "VND"].includes(currency)) {
+  if (!["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT"].includes(currency)) {
     logger.error(`❌ Currency "${currency}" belum didukung untuk payout.`);
     return;
   }
 
   let bankCode = "";
-  if (currency === "VND") {
-    bankCode = readlineSync.question("Masukkan Bank Code: ");
+  if (["IDR", "VND", "BDT", "THB"].includes(currency)) {
+    bankCode = readlineSync.question(`Masukkan Bank Code untuk ${currency}: `);
     if (!bankCode) {
-      logger.error("❌ Bank Code wajib diisi untuk VND!");
+      logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
       return;
     }
   }
