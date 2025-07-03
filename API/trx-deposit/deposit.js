@@ -172,7 +172,9 @@ async function sendDeposit() {
 
         if (bankCode) payload += `&bank_code=${bankCode}`;
         if (phone) payload += `&phone=${phone}`;
-
+        // if (currency === "VND") {
+        //         payload += "&random_bank_code=OBT";
+        // }
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
         const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);
 
@@ -190,7 +192,7 @@ async function sendDeposit() {
             });
 
             const responseBody = await response.text();
-            logger.info("📥 Raw Response Body : " + responseBody);
+            // logger.info("📥 Raw Response Body : " + responseBody);
             
             let resultDP = JSON.parse(responseBody);
 
@@ -205,7 +207,7 @@ async function sendDeposit() {
                 return;
             }
 
-            logger.info("📥 Deposit Response: " + JSON.stringify(resultDP, null, 2));
+            // logger.info("📥 Deposit Response: " + JSON.stringify(resultDP, null, 2));
             logger.info(`⚡️Response Status ${response.status}`);
 
             if (["INR", "BDT"].includes(currency)) {

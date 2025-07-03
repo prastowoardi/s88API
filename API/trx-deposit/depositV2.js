@@ -63,7 +63,7 @@ async function depositV2() {
     let phone = "";
 
     if (config.requiresBankCode) {
-        bankCode = readlineSync.question("Masukkan Bank Code: ").toLowerCase();
+        bankCode = readlineSync.question("Masukkan Bank Code: ")
         if (!/^[a-z0-9]+$/.test(bankCode)) {
             logger.error("❌ Bank Code harus berupa huruf/angka.");
             return;
@@ -85,6 +85,10 @@ async function depositV2() {
 
     if (bankCode) payload += `&bank_code=${bankCode}`;
     if (phone) payload += `&phone=${phone}`;
+
+    // if (currency === "VND") {
+    //     payload += "&random_bank_code=OBT";
+    // }
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
