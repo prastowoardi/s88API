@@ -6,7 +6,7 @@ import { dirname } from 'path';
 const envFile = {
     staging: '.env_staging',
     production: '.env_production',
-    PayBO_staging: '.env_paybo'
+    PayBO_staging: '.paybo_staging'
 }[process.env.NODE_ENV] || '.env_staging';
 
 const __filename = fileURLToPath(import.meta.url);
