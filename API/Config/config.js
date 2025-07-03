@@ -91,3 +91,4 @@ if (!API_NINJAS_KEY) {
 }
 
 console.log(`Loaded environment: ${envFile}`);
+console.log("CALLBACK_URL =", process.env.CALLBACK_URL);
