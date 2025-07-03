@@ -35,6 +35,8 @@
     "batchwd:prod": "cross-env NODE_ENV=production node API/trx-payout/batchWithdraw.js",
 
     "callback:prod": "cross-env NODE_ENV=production node API/manualCallback.js",
-    "callback:stag": "cross-env NODE_ENV=staging node API/manualCallback.js"
+    "callback:stag": "cross-env NODE_ENV=staging node API/manualCallback.js",
+
+    "pbowd:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-payout/paybo-payout.js"
   }
 }
