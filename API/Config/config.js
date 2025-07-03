@@ -41,6 +41,12 @@ export const DEPOSIT_METHOD_MMK = process.env.DEPOSIT_METHOD_MMK;
 export const PAYOUT_METHOD_MMK = process.env.PAYOUT_METHOD_MMK;
 export const MERCHANT_API_KEY_MMK = process.env.MERCHANT_API_KEY_MMK;
 
+export const MERCHANT_CODE_BRL = process.env.MERCHANT_CODE_BRL;
+export const SECRET_KEY_BRL = process.env.SECRET_KEY_BRL;
+export const DEPOSIT_METHOD_BRL = process.env.DEPOSIT_METHOD_BRL;
+export const PAYOUT_METHOD_BRL = process.env.PAYOUT_METHOD_BRL;
+export const MERCHANT_API_KEY_BRL = process.env.MERCHANT_API_KEY_BRL;
+
 export const PMI_WD_URL = process.env.PMI_WD_URL;
 export const PMI_DP_URL = process.env.PMI_DP_URL;
 export const PMI_AUTHORIZATION = process.env.PMI_AUTHORIZATION;

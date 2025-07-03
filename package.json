@@ -37,6 +37,8 @@
     "callback:prod": "cross-env NODE_ENV=production node API/manualCallback.js",
     "callback:stag": "cross-env NODE_ENV=staging node API/manualCallback.js",
 
+    "pbodp:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-deposit/paybo-deposit.js",
+    "pbov2:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-deposit/paybo-depositV2.js",
     "pbowd:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-payout/paybo-payout.js"
   }
 }
