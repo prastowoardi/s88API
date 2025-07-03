@@ -83,12 +83,36 @@ export async function getRandomName() {
   }
 }
 
+export function randomPhoneNumber(currency = "default") {
+  const formats = {
+    bdt: { prefixes: ['017', '018', '019', '016', '015'], digits: 6, pad: 6 },
+    brl: {
+      custom: () => {
+        const ddd = ['11', '21', '31', '41'];
+        const area = ddd[Math.floor(Math.random() * ddd.length)];
+        const number = Math.floor(900000000 + Math.random() * 99999999).toString();
+        return `+55${area}${number}`;
+      }
+    },
+    vnd: { prefixes: ['090', '091', '092', '093'], digits: 7, pad: 7 },
+    thb: { prefixes: ['08'], digits: 8, pad: 7 },
+    idr: { prefixes: ['081', '085', '088'], digits: 9, pad: 9 },
+    default: { prefixes: ['017', '018', '019', '016', '015'], digits: 6, pad: 6 }
+  };
 
-export function randomPhoneNumber() {
-  const prefixes = ['017', '018', '019', '016', '015'];
-  const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  const randomNumber = Math.floor(Math.random() * 100000000);
-  return randomPrefix + randomNumber.toString().padStart(6, '0');
+  const format = formats[currency.toLowerCase()] || formats.default;
+
+  // Custom formatter (ex. BRL)
+  if (typeof format.custom === "function") {
+    return format.custom();
+  }
+
+  const prefix = format.prefixes[Math.floor(Math.random() * format.prefixes.length)];
+  const number = Math.floor(Math.random() * Math.pow(10, format.digits))
+    .toString()
+    .padStart(format.pad, '0');
+
+  return prefix + number;
 }
 
 export function generateCustomUTR() {

@@ -1,10 +1,10 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
-import logger from "../logger.js";
+import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout } from "../helpers/utils.js";
+import { encryptDecryptPayout } from "../../helpers/utils.js";
 import { BASE_URL, SECRET_KEY_INR, PAYOUT_METHOD_INR, MERCHANT_CODE_INR, MERCHANT_API_KEY_INR } from "../Config/config.js";
-import { getValidIFSC, getRandomName } from "../helpers/payoutHelper.js";
+import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
 
 const ifscCode = await getValidIFSC();
 console.log(`IFSC Code: ${ifscCode}`);
