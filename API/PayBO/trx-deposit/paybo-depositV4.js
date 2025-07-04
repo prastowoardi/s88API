@@ -45,7 +45,7 @@ async function sendDeposit() {
 
     if (currency === "MMK" && bankCode === "WAVEPAY") {
         phone = randomMyanmarPhoneNumber();
-        logger.info(`📱 Phone (auto-generated for WavePay): ${phone}`);
+        logger.info(`Phone: ${phone}`);
     }
 
     if (currency === "BDT") {
@@ -57,11 +57,6 @@ async function sendDeposit() {
         logger.info(`Card Number: ${cardNumber}`);
     }
 
-    if (currency === "IDR" && bankCode === "OVO") {
-        phone = randomPhoneNumber("idr");
-        logger.info(`OVO Phone Number: ${phone}`);
-    }
-
     const payloadObject = {
         transaction_amount: parseInt(amount),
         payment_code: config.depositMethod,
@@ -71,8 +66,18 @@ async function sendDeposit() {
         ip_address: "127.0.0.1"
     };
 
+    if (currency === "IDR" && bankCode === "OVO") {
+        phone = randomPhoneNumber("idr");
+        payloadObject.bank_account_number = phone;
+        logger.info(`OVO Phone Number: ${phone}`);
+    }
+
     if (bankCode) payloadObject.bank_code = bankCode;
-    if (phone) payloadObject.cust_phone = phone;
+    
+    if (phone && !(currency === "IDR" && bankCode === "OVO")) {
+        payloadObject.cust_phone = phone;
+    }
+
     if (cardNumber) payloadObject.card_number = cardNumber;
 
     const payload = JSON.stringify(payloadObject);
