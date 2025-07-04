@@ -69,6 +69,7 @@ const internalCurrencies = {
     payoutMethod: PAYOUT_METHOD_MXN,
     secretKey: SECRET_KEY_MXN,
     merchantAPI: MERCHANT_API_KEY_MXN,
+    requiresBankCode: true,
   },
 };
 

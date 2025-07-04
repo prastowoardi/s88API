@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import readlineSync from "readline-sync";
+import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../../helpers/utils.js";
@@ -9,6 +9,14 @@ import { getValidIFSC, getRandomName, randomPhoneNumber } from "../../helpers/pa
 const timestamp = Math.floor(Date.now() / 1000);
 const phone = randomPhoneNumber();
 const name = await getRandomName();
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function ask(question) {
+  return new Promise(resolve => rl.question(question, answer => resolve(answer)));
+}
 
 async function sendPmiPayout(config, amount) {
   const payload = {
@@ -125,32 +133,41 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
 }
 
 async function sendPayout() {
-  logger.info("======== PAYOUT REQUEST ========");
+  try { 
+    logger.info("======== PAYOUT REQUEST ========");
 
-  const userID = randomInt(100, 999);
-  const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/PMI): ").toUpperCase();
+    const userID = randomInt(100, 999);
+    const currencyInput = await ask("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT): ");
+    const currency = currencyInput.toUpperCase();
+    if (!["INR", "VND", "BDT", "MMK", "PMI"].includes(currency)) {
+      logger.error(`❌ Currency '${currency}' tidak didukung.`);
+      return;
+    }
 
-  if (!["INR", "VND", "BDT", "MMK", "PMI"].includes(currency)) {
-    logger.error(`❌ Currency '${currency}' tidak didukung.`);
-    return;
+    const amount = await ask("Masukkan Amount: ");
+    if (isNaN(amount) || Number(amount) <= 0) {
+      logger.error("❌ Amount harus angka lebih besar dari 0!");
+      return;
+    }
+
+    logger.info(`Currency : ${currency}`);
+    logger.info(`Amount : ${amount}`);
+
+    const transactionCode = `TEST-WD-${timestamp}`;
+    const config = getPayoutConfig(currency);
+
+    if (config.isExternal) {
+      await sendPmiPayout(config, amount);
+    } else {
+      await handleRegularPayout(userID, currency, amount, transactionCode, name, config);
+    }
+
+    logger.info("======== REQUEST DONE ========\n");
+  } catch (err) {
+    logger.error(`❌ Error: ${err.message}`);
+  } finally {
+    rl.close();
   }
-
-  const amount = readlineSync.question("Masukkan Amount: ");
-  if (isNaN(amount) || Number(amount) <= 0) {
-    logger.error("❌ Amount harus angka > 0");
-    return;
-  }
-
-  const transactionCode = `TEST-WD-${timestamp}`;
-  const config = getPayoutConfig(currency);
-
-  if (config.isExternal) {
-    await sendPmiPayout(config, amount);
-  } else {
-    await handleRegularPayout(userID, currency, amount, transactionCode, name, config);
-  }
-
-  logger.info("======== REQUEST DONE ========\n");
 }
 
 sendPayout();

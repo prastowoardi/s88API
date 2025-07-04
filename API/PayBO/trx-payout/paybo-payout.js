@@ -1,11 +1,19 @@
 import fetch from "node-fetch";
-import readlineSync from "readline-sync";
+import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout } from "../../helpers/utils.js";
 import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function ask(question) {
+  return new Promise(resolve => rl.question(question, answer => resolve(answer)));
+}
 async function payout(userID, currency, amount, transactionCode, name, bankCode, callbackURL) {
   const config = getPayoutConfig(currency);
   const timestamp = Math.floor(Date.now() / 1000);
@@ -32,13 +40,19 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     payload.bank_account_number = "11133322";
   }
 
-  if (["IDR", "VND", "BDT", "THB"].includes(currency)) {
+  if (["IDR", "VND", "BDT", "THB", "BRL", "MXN"].includes(currency)) {
     if (!bankCode) {
       logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
       return;
     }
     payload.bank_code = bankCode;
     payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
+  }
+
+  if (currency === "BRL" && bankCode === "PIX") {
+    const types = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
+    const accountType = Math.floor(Math.random() * types.length);
+    payload.account_type = types[accountType];
   }
 
   logger.info(`${config.BASE_URL}/api/v1/payout/${config.merchantCode}`);
@@ -86,36 +100,44 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
 }
 
 async function sendPayout() {
-  logger.info("======== PAYOUT REQUEST ========");
-  const userID = randomInt(100, 999);
-  const currency = readlineSync.question("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT): ").toUpperCase();
-
-  if (!["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT"].includes(currency)) {
-    logger.error(`❌ Currency "${currency}" belum didukung untuk payout.`);
-    return;
-  }
-
-  let bankCode = "";
-  if (["IDR", "VND", "BDT", "THB"].includes(currency)) {
-    bankCode = readlineSync.question(`Masukkan Bank Code untuk ${currency}: `);
-    if (!bankCode) {
-      logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
+  try {  
+    logger.info("======== PAYOUT REQUEST ========");
+    const userID = randomInt(100, 999);
+    const currencyInput = await ask("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT): ");
+    const currency = currencyInput.toUpperCase();
+    if (!["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT"].includes(currency)) {
+      logger.error(`❌ Currency "${currency}" belum didukung untuk payout.`);
       return;
     }
+
+    let bankCode = "";
+    if (["IDR", "VND", "BDT", "THB", "BRL", "MXN"].includes(currency)) {
+      bankCode = await ask(`Masukkan Bank Code untuk ${currency}: `);
+      if (!bankCode) {
+        logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
+        return;
+      }
+    }
+
+    const amount = await ask("Masukkan Amount: ");
+    if (isNaN(amount) || Number(amount) <= 0) {
+      logger.error("❌ Amount harus angka lebih besar dari 0!");
+      return;
+    }
+    logger.info(`Currency : ${currency}`);
+    logger.info(`Amount : ${amount}`);
+    
+    const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
+    const name = await getRandomName();
+
+    await payout(userID, currency, amount, transactionCode, name, bankCode, null);
+
+    logger.info("======== REQUEST DONE ========\n\n");
+  } catch (err) {
+    logger.error(`❌ Error: ${err.message}`);
+  } finally {
+    rl.close();
   }
-
-  const amount = readlineSync.question("Masukkan Amount: ");
-  if (isNaN(amount) || Number(amount) <= 0) {
-    logger.error("❌ Amount harus angka lebih besar dari 0!");
-    return;
-  }
-
-  const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
-  const name = await getRandomName();
-
-  await payout(userID, currency, amount, transactionCode, name, bankCode, null);
-
-  logger.info("======== REQUEST DONE ========\n\n");
 }
 
 sendPayout();

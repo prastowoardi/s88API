@@ -8,9 +8,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-app.use(express.static('public')); // Folder untuk index.html
+app.use(express.static('public'));
 
-// Map script sesuai kebutuhan
 const scriptMap = {
     "deposit:prod": ["cross-env", "NODE_ENV=production", "node", "API/S88/trx-deposit/deposit.js"],
     "deposit:stag": ["cross-env", "NODE_ENV=staging", "node", "API/S88/trx-deposit/deposit.js"],
