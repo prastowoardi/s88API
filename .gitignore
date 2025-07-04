@@ -3,5 +3,7 @@ node_modules
 .env_production
 .env_paybo
 .paybo_staging
+.paybo_production
+.paybo_ezyplus
 old_bank.json
 log

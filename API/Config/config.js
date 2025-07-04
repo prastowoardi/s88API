@@ -6,7 +6,9 @@ import { dirname } from 'path';
 const envFile = {
     staging: '.env_staging',
     production: '.env_production',
-    PayBO_staging: '.paybo_staging'
+    PayBO_staging: '.paybo_staging',
+    PayBO_ezyplus: '.paybo_ezyplus',
+    PayBO_production: '.paybo_production'
 }[process.env.NODE_ENV] || '.env_staging';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -74,7 +76,7 @@ export const DEPOSIT_METHOD_PMI = process.env.DEPOSIT_METHOD_PMI;
 export const PAYOUT_METHOD_PMI = process.env.PAYOUT_METHOD_PMI;
 export const MERCHANT_API_KEY_PMI = process.env.MERCHANT_API_KEY_PMI;
 
-if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT || !SECRET_KEY_MMK || !SECRET_KEY_PMI) {
+if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT || !SECRET_KEY_MMK || !SECRET_KEY_PMI || !SECRET_KEY_BRL || !SECRET_KEY_IDR || !SECRET_KEY_MXN || !SECRET_KEY_THB) {
     throw new Error("SECRET_KEY is required and cannot be empty.");
 }
 
