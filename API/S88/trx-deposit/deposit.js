@@ -123,8 +123,17 @@ async function sendDeposit() {
             logger.error(`❌ PMI Deposit Error : ${err}`);
         }
     } else {
-        let payload = `merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=${userID}&currency_code=${currency}&payment_code=${config.depositMethod}&callback_url=${config.callbackURL}`;
-
+        let payload = 
+            `merchant_api_key=${config.merchantAPI}` +
+            `&merchant_code=${config.merchantCode}` +
+            `&transaction_code=${transactionCode}` +
+            `&transaction_timestamp=${timestamp}` +
+            `&transaction_amount=${amount}` +
+            `&user_id=${userID}` +
+            `&currency_code=${currency}` +
+            `&payment_code=${config.depositMethod}` +
+            `&callback_url=${config.callbackURL}`;
+            
         if (bankCode) payload += `&bank_code=${bankCode}`;
         if (phone) payload += `&phone=${phone}`;
         // if (currency === "VND") {
