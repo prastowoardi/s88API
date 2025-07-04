@@ -17,16 +17,15 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       level: "info",
       format: winston.format.combine(
-        winston.format.colorize(),
         winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
         winston.format.printf(({ timestamp, level, message }) => {
-          
-          return `[${timestamp}] ${level}: ${message}`;
+          return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
         })
       )
     }),
+
     new winston.transports.File({
-      filename: path.join(__dirname, "log", `${new Date().toISOString().slice(0,10)}.log`),
+      filename: path.join(__dirname, "log", `${new Date().toISOString().slice(0, 10)}.log`),
       level: "info",
       format: winston.format.combine(
         winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),

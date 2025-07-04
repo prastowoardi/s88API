@@ -1,4 +1,4 @@
-import readlineSync from "readline-sync";
+import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
@@ -6,34 +6,57 @@ import { encryptDecrypt } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-
 dotenv.config();
 
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function ask(question) {
+  return new Promise(resolve => rl.question(question, answer => resolve(answer)));
+}
+
 async function depositV2() {
+  try {
     const userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    
-     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN): ").toUpperCase();
+
+    const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN): ");
+    const currency = currencyInput.trim().toUpperCase();
+
     if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN"].includes(currency)) {
         logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN atau IDR.");
+        rl.close();
         return;
     }
 
-    const amount = readlineSync.question("Masukkan Amount: ");
+    const amountInput = await ask("Masukkan Amount: ");
+    const amount = amountInput.trim();
+
+    if (isNaN(amount) || Number(amount) <= 0) {
+        logger.error("❌ Amount harus berupa angka lebih dari 0.");
+        rl.close();
+        return;
+    }
+
+    logger.info(`Currency : ${currency}`);
+    logger.info(`Amount : ${amount}`);
 
     const transactionCode = `TEST-DP-${timestamp}`;
     const config = getCurrencyConfig(currency);
     let bankCode = "";
     let phone = "";
-    let cardNumber = ""
+    let cardNumber = "";
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {
-            bankCode = "PIX";
+        bankCode = "PIX";
         } else if (currency === "MXN") {
-            bankCode = "SPEI";
+        bankCode = "SPEI";
         } else {
-            bankCode = readlineSync.question("Masukkan Bank Code: ");
+        const bankCodeInput = await ask("Masukkan Bank Code: ");
+        bankCode = bankCodeInput.trim();
         }
     } else if (config.bankCodeOptions) {
         bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
@@ -48,7 +71,7 @@ async function depositV2() {
         logger.info(`Card Number: ${cardNumber}`);
     }
 
-    let payload = 
+    let payload =
         `merchant_api_key=${config.merchantAPI}` +
         `&merchant_code=${config.merchantCode}` +
         `&transaction_code=${transactionCode}` +
@@ -66,9 +89,9 @@ async function depositV2() {
     }
 
     if (bankCode) payload += `&bank_code=${bankCode}`;
-    
+
     if (phone && !(currency === "IDR" && bankCode === "OVO")) {
-         payload += `&phone = ${phone}`;
+        payload += `&phone=${phone}`;
     }
 
     if (cardNumber) payload += `&card_number=${cardNumber}`;
@@ -79,6 +102,11 @@ async function depositV2() {
     logger.info(`Request Payload : ${payload}\n`);
     logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
     logger.info("================================\n\n");
+  } catch (err) {
+    logger.error(`❌ Error: ${err.message}`);
+  } finally {
+    rl.close();
+  }
 }
 
 depositV2();
