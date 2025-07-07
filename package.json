@@ -1,7 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "cross-env": "^7.0.3",
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
@@ -44,15 +43,18 @@
     "pbov2:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-deposit/paybo-depositV2.js",
     "pbov4:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-deposit/paybo-depositV4.js",
     "pbowd:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-payout/paybo-payout.js",
-    
+
     "pbodp:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-deposit.js",
     "pbov2:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-depositV2.js",
     "pbov4:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-depositV4.js",
     "pbowd:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-payout/paybo-payout.js",
-
+    
     "ezv3:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-deposit.js",
     "ezv2:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV2.js",
     "ezv4:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV4.js",
     "ezwd:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-payout/paybo-payout.js"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
