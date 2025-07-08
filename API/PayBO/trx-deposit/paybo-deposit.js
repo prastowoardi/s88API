@@ -21,7 +21,7 @@ async function submitUTR(currency, transactionCode) {
     const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
 
     try {
-        const response = await fetch(`${BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
+        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ key: encryptedPayload })
@@ -135,28 +135,37 @@ async function sendDeposit() {
             body: JSON.stringify({ key: encrypted })
         });
 
+        const contentType = response.headers.get("content-type");
         const responseBody = await response.text();
-        
+
+        if (!contentType || !contentType.includes("application/json")) {
+            logger.error("❌ Response bukan JSON. Content-Type: " + contentType);
+            logger.error(`Response body: ${responseBody}`);
+            return;
+        }
+
         let resultDP;
         try {
             resultDP = JSON.parse(responseBody);
         } catch (parseError) {
             logger.error("❌ Gagal parse JSON:", parseError.message);
+            console.log("Raw response body:", responseBody);
             return;
         }
+
         if (!response.ok) {
-            logger.error("❌ Deposit gagal:", resultDP);
+            logger.error("❌ Deposit gagal:", JSON.stringify(resultDP, null, 2));
             return;
         }
 
         logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
-        logger.info(`Response Status ${response.status}`);
+        logger.info(`Response Status: ${response.status}`);
 
         if (["INR", "BDT"].includes(currency)) {
             await submitUTR(currency, transactionCode);
         }
     } catch (err) {
-        logger.error(`❌ Deposit Error : ${err}`);
+        logger.error(`❌ Deposit Error : ${err}\n`);
     }
 
     logger.info("======== REQUEST DONE ========\n\n");

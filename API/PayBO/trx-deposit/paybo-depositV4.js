@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -27,6 +27,7 @@ async function sendDeposit() {
 
     const transactionCode = `TEST-DP-${timestamp}`;
     const config = getCurrencyConfig(currency);
+    const ip = getRandomIP();
     let bankCode = "";
     let phone = "";
     let cardNumber = "";
@@ -63,7 +64,7 @@ async function sendDeposit() {
         user_id: userID.toString(),
         currency_code: currency,
         callback_url: config.callbackURL,
-        ip_address: "127.0.0.1"
+        ip_address: ip
     };
 
     if (currency === "IDR" && bankCode === "OVO") {
@@ -97,30 +98,39 @@ async function sendDeposit() {
             headers: { 
                 "Content-Type": "application/json",
                 "X-Encrypted-Transaction": encryptedTransactionCode
-             },
+            },
             body: payload
         });
 
         const responseBody = await response.text();
-        
-        let resultDP
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            logger.error("❌ Response bukan JSON. Content-Type:", contentType);
+            logger.error("Response Body:", responseBody);
+            return;
+        }
+
+        let resultDP;
         try {
             resultDP = JSON.parse(responseBody);
         } catch (parseError) {
             logger.error("❌ Gagal parse JSON:", parseError.message);
+            logger.error("Raw response body:", responseBody);
             return;
         }
-        if (!response.ok) {
-            logger.error("❌ Deposit gagal:", resultDP);
-            return;
-        }
-        
-        logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
-        logger.info(`Response Status ${response.status}`);
 
+        if (!response.ok) {
+            logger.error("❌ Deposit gagal:", JSON.stringify(resultDP, null, 2));
+            return;
+        }
+
+        logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
+        logger.info(`Response Status: ${response.status}`);
     } catch (err) {
-        logger.error(`❌ Deposit Error : ${err}`);
+        logger.error(`❌ Deposit Error: ${err}`);
     }
+
 
     logger.info("======== REQUEST DONE ========\n\n");
 }

@@ -63,3 +63,19 @@ export const encryptDecryptPayout = (action, data, apikey, secretkey) => {
         }
     }
 };
+
+export function getRandomIP() {
+    const isIPv6 = Math.random() > 0.5;
+
+    if (isIPv6) {
+        // IPv6: 8 blok angka heksadesimal (0x0000 – 0xFFFF)
+        return Array.from({ length: 8 }, () =>
+            Math.floor(Math.random() * 0x10000).toString(16)
+        ).join(':');
+    } else {
+        // IPv4: 4 blok angka desimal (0–255)
+        return Array.from({ length: 4 }, () =>
+            Math.floor(Math.random() * 256)
+        ).join('.');
+    }
+}

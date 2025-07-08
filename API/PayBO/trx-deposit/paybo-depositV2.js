@@ -40,9 +40,6 @@ async function depositV2() {
         return;
     }
 
-    logger.info(`Currency : ${currency}`);
-    logger.info(`Amount : ${amount}`);
-
     const transactionCode = `TEST-DP-${timestamp}`;
     const config = getCurrencyConfig(currency);
     let bankCode = "";
@@ -99,7 +96,9 @@ async function depositV2() {
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
     logger.info("======== DEPOSIT V2 REQUEST ========");
-    logger.info(`Request Payload : ${payload}\n`);
+    logger.info(`Currency : ${currency}`);
+    logger.info(`Amount : ${amount}`);
+    logger.info(`Request Payload : ${payload}`);
     logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
     logger.info("================================\n\n");
   } catch (err) {
