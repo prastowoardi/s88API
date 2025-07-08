@@ -59,11 +59,11 @@ async function sendPayout() {
         payout_code: payoutMethod,
     };
 
-    logger.info(`🔗 URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
-    logger.info(`📜 Request Payload:\n${JSON.stringify(payload, null, 2)}`);
+    logger.info(`URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
+    logger.info(`Request Payload:\n${JSON.stringify(payload, null, 2)}`);
 
     const encryptedPayload = encryptDecryptPayout("encrypt", payload, apiKey, secretKey);
-    logger.info(`🔑 Encrypted Key: ${encryptedPayload}`);
+    logger.info(`Encrypted Key: ${encryptedPayload}`);
 
     try {
         const response = await fetch(`${BASE_URL}/api/v1/payout/${merchantCode}`, {
@@ -80,8 +80,8 @@ async function sendPayout() {
         if (!response.ok) {
             logger.warn(`⚠️ HTTP Error ${response.status}`);
         }
-            logger.info(`📥Payout Response ${JSON.stringify(result, null, 2)}`);
-            logger.info(`⚡️Response Status: ${response.status}`);
+            logger.info(`Payout Response ${JSON.stringify(result, null, 2)}`);
+            logger.info(`Response Status: ${response.status}`);
         } catch (parseErr) {
             logger.error("❌ Gagal parsing JSON response");
             logger.error("Raw response:\n" + resultText);
