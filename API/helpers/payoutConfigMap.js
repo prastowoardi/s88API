@@ -104,6 +104,9 @@ export function getPayoutConfig(currency) {
     console.error(`Config untuk currency '${currency}' tidak ditemukan.`);
     throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
   }
-  // console.log(`Currency Config for ${currency}:`, config);
-  return config;
+
+  return {
+    ...defaultInternalConfig,
+    ...config,
+  };
 }
