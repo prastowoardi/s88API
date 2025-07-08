@@ -27,7 +27,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     currency_code: currency,
     payout_code: config.payoutMethod,
     callback_url: callbackURL || config.callbackURL,
-    account_name: "Rakacu",
+    account_name: name,
   };
 
   if (currency === "INR" && config.requiresIFSC) {

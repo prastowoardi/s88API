@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -43,15 +44,17 @@ async function submitUTR(currency, transactionCode) {
 
 async function sendDeposit() { 
     logger.info("======== DEPOSIT V3 REQUEST ========");
-
-    const userID = randomInt(100, 999);
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-
+    
     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW): ").toUpperCase();
     if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW"].includes(currency)) {
         logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW atau IDR.");
         return;
     }
+
+    let userID = randomInt(100, 999);
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const transactionCode = `TEST-DP-${timestamp}`;
+    const config = getCurrencyConfig(currency);
     
     const amount = readlineSync.question("Masukkan Amount: ");
     logger.info(`Amount Input : ${amount}`);
@@ -61,12 +64,27 @@ async function sendDeposit() {
         return;
     }
 
-    const transactionCode = `TEST-DP-${timestamp}`;
-
-    const config = getCurrencyConfig(currency);
     let bankCode = "";
     let phone = "";
     let cardNumber = "";
+
+    if (currency === "KRW") {
+        const result = await createKrwCustomer(config);
+
+        if (!result || result.success !== true) {
+            logger.error("❌ Gagal create customer KRW. API tidak success.");
+            return;
+        }
+
+        const user_id = result.data?.user_id;
+        if (!user_id) {
+            logger.error("❌ Tidak ada user_id di response create-customer KRW.");
+            return;
+        }
+
+        userID = user_id;
+        logger.info(`✅ user_id from API create-customer KRW: ${userID}`);
+    }
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {

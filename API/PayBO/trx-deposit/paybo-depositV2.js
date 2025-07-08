@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
 dotenv.config();
 
@@ -19,14 +20,14 @@ function ask(question) {
 
 async function depositV2() {
   try {
-    const userID = randomInt(100, 999);
+    let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-    const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN): ");
+    const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW): ");
     const currency = currencyInput.trim().toUpperCase();
 
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN atau IDR.");
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW atau IDR.");
         rl.close();
         return;
     }
@@ -45,6 +46,24 @@ async function depositV2() {
     let bankCode = "";
     let phone = "";
     let cardNumber = "";
+
+    if (currency === "KRW") {
+        const result = await createKrwCustomer(config);
+
+        if (!result || result.success !== true) {
+            logger.error("❌ Gagal create customer KRW. API tidak success.");
+            return;
+        }
+
+        const user_id = result.data?.user_id;
+        if (!user_id) {
+            logger.error("❌ Tidak ada user_id di response create-customer KRW.");
+            return;
+        }
+
+        userID = user_id;
+        logger.info(`✅ user_id from API create-customer KRW: ${userID}`);
+    }
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {
