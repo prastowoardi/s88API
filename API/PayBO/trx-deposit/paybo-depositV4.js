@@ -140,7 +140,7 @@ async function sendDeposit() {
         }
 
         if (!response.ok) {
-            logger.error("❌ Deposit gagal:", JSON.stringify(resultDP, null, 2));
+            logger.error("❌ Deposit gagal:\n" + JSON.stringify(resultDP, null, 2));
             return;
         }
 

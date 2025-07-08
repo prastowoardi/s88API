@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
@@ -67,6 +67,7 @@ async function sendDeposit() {
     let bankCode = "";
     let phone = "";
     let cardNumber = "";
+    const ip = getRandomIP();
 
     if (currency === "KRW") {
         const result = await createKrwCustomer(config);
@@ -83,7 +84,7 @@ async function sendDeposit() {
         }
 
         userID = user_id;
-        logger.info(`✅ user_id from API create-customer KRW: ${userID}`);
+        logger.info(`user_id from API create-customer KRW: ${userID}`);
     }
 
     if (config.requiresBankCode) {
@@ -121,7 +122,8 @@ async function sendDeposit() {
         `&user_id=${userID}` +
         `&currency_code=${currency}` +
         `&payment_code=${config.depositMethod}` +
-        `&callback_url=${config.callbackURL}`;
+        `&callback_url=${config.callbackURL}`; +
+        `&ip_address=${ip}`;
         
     if (currency === "IDR" && bankCode === "OVO") {
         phone = randomPhoneNumber("idr");
@@ -172,7 +174,7 @@ async function sendDeposit() {
         }
 
         if (!response.ok) {
-            logger.error("❌ Deposit gagal:", JSON.stringify(resultDP, null, 2));
+            logger.error("❌ Deposit gagal:\n" + JSON.stringify(resultDP, null, 2));
             return;
         }
 

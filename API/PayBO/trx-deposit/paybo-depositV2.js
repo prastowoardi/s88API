@@ -2,7 +2,7 @@ import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
-import { encryptDecrypt } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
@@ -46,6 +46,7 @@ async function depositV2() {
     let bankCode = "";
     let phone = "";
     let cardNumber = "";
+    const ip = getRandomIP();
 
     if (currency === "KRW") {
         const result = await createKrwCustomer(config);
@@ -62,7 +63,7 @@ async function depositV2() {
         }
 
         userID = user_id;
-        logger.info(`✅ user_id from API create-customer KRW: ${userID}`);
+        logger.info(`user_id from API create-customer KRW: ${userID}`);
     }
 
     if (config.requiresBankCode) {
@@ -96,7 +97,8 @@ async function depositV2() {
         `&user_id=${userID}` +
         `&currency_code=${currency}` +
         `&payment_code=${config.depositMethod}` +
-        `&callback_url=${config.callbackURL}`;
+        `&callback_url=${config.callbackURL}` +
+        `&ip_address=${ip}`;
 
     if (currency === "IDR" && bankCode === "OVO") {
         phone = randomPhoneNumber("idr");
