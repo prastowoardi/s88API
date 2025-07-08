@@ -8,7 +8,8 @@ import {
   MERCHANT_CODE_BRL, SECRET_KEY_BRL, MERCHANT_API_KEY_BRL, DEPOSIT_METHOD_BRL,
   MERCHANT_CODE_IDR, SECRET_KEY_IDR, MERCHANT_API_KEY_IDR, DEPOSIT_METHOD_IDR,
   MERCHANT_CODE_THB, SECRET_KEY_THB, MERCHANT_API_KEY_THB, DEPOSIT_METHOD_THB,
-  MERCHANT_CODE_MXN, SECRET_KEY_MXN, MERCHANT_API_KEY_MXN, DEPOSIT_METHOD_MXN
+  MERCHANT_CODE_MXN, SECRET_KEY_MXN, MERCHANT_API_KEY_MXN, DEPOSIT_METHOD_MXN,
+  MERCHANT_CODE_KRW, SECRET_KEY_KRW, MERCHANT_API_KEY_KRW, DEPOSIT_METHOD_KRW
 } from "../Config/config.js";
 
 const defaultConfig = {
@@ -72,6 +73,13 @@ export const currencyConfigMap = {
     secretKey: SECRET_KEY_MXN,
     merchantAPI: MERCHANT_API_KEY_MXN,
     requiresBankCode: true,
+  },
+  KRW: {
+    merchantCode: MERCHANT_CODE_KRW,
+    depositMethod: DEPOSIT_METHOD_KRW,
+    secretKey: SECRET_KEY_KRW,
+    merchantAPI: MERCHANT_API_KEY_KRW,
+    requiresBankCode: false,
   }
 };
 
@@ -81,6 +89,10 @@ for (const currency in currencyConfigMap) {
 
 export function getCurrencyConfig(currency) {
   const config = currencyConfigMap[currency];
-  if (!config) throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
+  if (!config) {
+    console.error(`Config untuk currency '${currency}' tidak ditemukan.`);
+    throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
+  }
+  // console.log(`Currency Config for ${currency}:`, config);
   return config;
 }

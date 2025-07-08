@@ -9,6 +9,7 @@ import {
     PAYOUT_METHOD_IDR, MERCHANT_CODE_IDR, MERCHANT_API_KEY_IDR, SECRET_KEY_IDR,
     PAYOUT_METHOD_THB, MERCHANT_CODE_THB, MERCHANT_API_KEY_THB, SECRET_KEY_THB,
     PAYOUT_METHOD_MXN, MERCHANT_CODE_MXN, MERCHANT_API_KEY_MXN, SECRET_KEY_MXN,
+    PAYOUT_METHOD_KRW, MERCHANT_CODE_KRW, MERCHANT_API_KEY_KRW, SECRET_KEY_KRW,
 } from "../Config/config.js";
 
 const defaultInternalConfig = {
@@ -71,6 +72,13 @@ const internalCurrencies = {
     merchantAPI: MERCHANT_API_KEY_MXN,
     requiresBankCode: true,
   },
+  KRW: {
+    merchantCode: MERCHANT_CODE_KRW,
+    payoutMethod: PAYOUT_METHOD_KRW,
+    secretKey: SECRET_KEY_KRW,
+    merchantAPI: MERCHANT_API_KEY_KRW,
+    requiresBankCode: true,
+  },
 };
 
 export const payoutConfigMap = {
@@ -91,7 +99,11 @@ export const payoutConfigMap = {
 };
 
 export function getPayoutConfig(currency) {
-  const config = payoutConfigMap[currency];
-  if (!config) throw new Error(`❌ Config untuk payout currency '${currency}' tidak ditemukan.`);
+  const config = internalCurrencies[currency];
+  if (!config) {
+    console.error(`Config untuk currency '${currency}' tidak ditemukan.`);
+    throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
+  }
+  // console.log(`Currency Config for ${currency}:`, config);
   return config;
 }

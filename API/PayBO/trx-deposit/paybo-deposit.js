@@ -47,9 +47,9 @@ async function sendDeposit() {
     const userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN atau IDR.");
+    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW): ").toUpperCase();
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW atau IDR.");
         return;
     }
     
