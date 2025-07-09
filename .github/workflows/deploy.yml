@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '18'
 
-      - name: 🔍 Debug: Cek isi folder
+      - name: 🔍 Debug Cek isi folder
         run: ls -la
 
       - name: 🔐 Buat file .env dari GitHub Secret
