@@ -12,13 +12,17 @@ jobs:
     - name: 📦 Checkout repository
       uses: actions/checkout@v3
 
+    - name: 🔍 Debug: Cek isi folder
+      run: ls -la
+
     - name: 🛠️ Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'  # sesuaikan dengan versi kamu
+        node-version: '18'
 
     - name: 🔐 Buat file .env dari GitHub Secret
       run: |
+        mkdir -p s88API
         echo "${{ secrets.S88_STAGING }}" > s88API/.env
 
     - name: 📥 Install dependencies
@@ -26,7 +30,7 @@ jobs:
         cd s88API
         npm install
 
-    - name: 🚀 Jalankan build atau test atau deploy
+    - name: 🚀 Jalankan aplikasi
       run: |
         cd s88API
-        node app.js  # sesuaikan dengan perintah kamu
+        node app.js
