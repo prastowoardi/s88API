@@ -1,0 +1,32 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [webapp-test]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📦 Checkout repository
+      uses: actions/checkout@v3
+
+    - name: 🛠️ Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'  # sesuaikan dengan versi kamu
+
+    - name: 🔐 Buat file .env dari GitHub Secret
+      run: |
+        echo "${{ secrets.S88_STAGING }}" > s88API/.env
+
+    - name: 📥 Install dependencies
+      run: |
+        cd s88API
+        npm install
+
+    - name: 🚀 Jalankan build atau test atau deploy
+      run: |
+        cd s88API
+        node app.js  # sesuaikan dengan perintah kamu
