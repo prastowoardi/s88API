@@ -59,8 +59,8 @@ async function sendDeposit() {
         const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/PMI): ");
         const currency = currencyInput.trim().toUpperCase();
 
-        if (!["INR", "VND", "BDT", "MMK", "PMI"].includes(currency)) {
-            logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, atau PMI.");
+        if (!["INR", "VND", "BDT", "MMK", "PMI", "KRW"].includes(currency)) {
+            logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, KRW atau PMI.");
             rl.close();
             return;
         }

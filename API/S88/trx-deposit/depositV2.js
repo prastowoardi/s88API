@@ -21,10 +21,10 @@ async function depositV2() {
   const userID = randomInt(100, 999);
   const timestamp = Math.floor(Date.now() / 1000).toString();
 
-  const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK): ");
+  const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/KRW): ");
   const currency = currencyInput.toUpperCase();
 
-  if (!["INR", "VND", "BDT", "MMK"].includes(currency)) {
+  if (!["INR", "VND", "BDT", "MMK", "KRW"].includes(currency)) {
     console.error(`"${currency}" Not supported yet!`);
     rl.close();
     return;
