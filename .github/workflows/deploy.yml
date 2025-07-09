@@ -9,28 +9,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📦 Checkout repository
-      uses: actions/checkout@v3
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v3
 
-    - name: 🔍 Debug: Cek isi folder
-      run: ls -la
+      - name: 🛠️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-    - name: 🛠️ Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: 🔍 Debug: Cek isi folder
+        run: ls -la
 
-    - name: 🔐 Buat file .env dari GitHub Secret
-      run: |
-        mkdir -p s88API
-        echo "${{ secrets.S88_STAGING }}" > s88API/.env
+      - name: 🔐 Buat file .env dari GitHub Secret
+        run: |
+          mkdir -p s88API
+          echo "${{ secrets.S88_STAGING }}" > s88API/.env
 
-    - name: 📥 Install dependencies
-      run: |
-        cd s88API
-        npm install
+      - name: 📥 Install dependencies
+        run: |
+          cd s88API
+          npm install
 
-    - name: 🚀 Jalankan aplikasi
-      run: |
-        cd s88API
-        node app.js
+      - name: 🚀 Jalankan aplikasi
+        run: |
+          cd s88API
+          node app.js
