@@ -101,4 +101,5 @@ if (!API_NINJAS_KEY) {
 }
 
 console.log(`Loaded environment: ${envFile}`);
+console.log("BASE_URL =", BASE_URL);
 console.log("CALLBACK_URL =", CALLBACK_URL);
