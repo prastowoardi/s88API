@@ -52,7 +52,12 @@
     "ezv3:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-deposit.js",
     "ezv2:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV2.js",
     "ezv4:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV4.js",
-    "ezwd:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-payout/paybo-payout.js"
+    "ezwd:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-payout/paybo-payout.js",
+
+    "wpv3:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-deposit.js",
+    "wpv2:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV2.js",
+    "wpv4:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV4.js",
+    "wpwd:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-payout/paybo-payout.js"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"

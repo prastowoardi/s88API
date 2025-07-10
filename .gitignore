@@ -5,5 +5,6 @@ node_modules
 .paybo_staging
 .paybo_production
 .paybo_ezyplus
+.paybo_wandpay
 old_bank.json
 log

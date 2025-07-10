@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import logger from "../logger.js";
 import { encryptDecrypt } from "./utils.js";
+import { getRandomName } from "./payoutHelper.js";
 
 function randomBankAccountNumber() {
     let acc = "";
@@ -9,6 +10,7 @@ function randomBankAccountNumber() {
     }
     return acc;
 }
+
 export async function createKrwCustomer(config) {
     const createCustomerURL = `${config.BASE_URL}/${config.merchantCode}/v4/create-customer`;
     const encryptedMerchantCode = encryptDecrypt("encrypt", config.merchantCode, config.merchantAPI, config.secretKey);
@@ -16,11 +18,17 @@ export async function createKrwCustomer(config) {
     const accountNumber = randomBankAccountNumber();
     const timestamp = Date.now();
 
+    const name = await getRandomName();
+    const nameParts = name.trim().split(" ");
+    const givenName = nameParts[0];
+    const lastName = nameParts[1] || "Test";
+    const accountHolderName = givenName;
+
     const customerPayload = {
         partnerType: "INDIVIDUAL",
-        fullname: "Hanseol LIM 12",
-        givenNames: "Hanseol 12",
-        lastName: "Lim 12",
+        fullname: name,
+        givenNames: givenName,
+        lastName: lastName,
         fullnameKo: "임한설",
         phoneNumber: "",
         phoneCountryCode: "KR",
@@ -41,7 +49,7 @@ export async function createKrwCustomer(config) {
             bankAccountNumber: accountNumber,
             bankCode: "IBK",
             dateOfBirth: "961120",
-            accountHolderName: "test12"
+            accountHolderName: accountHolderName
         }
     };
 
