@@ -36,8 +36,13 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
       logger.error("❌ IFSC code tidak ditemukan");
       return;
     }
+
+    const bank = ifscCode.substring(0, 4);
+
     payload.ifsc_code = ifscCode;
     payload.bank_account_number = "11133322";
+    payload.bank_code = bank;
+    payload.bank_name = bank;
   }
 
   if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW"].includes(currency)) {

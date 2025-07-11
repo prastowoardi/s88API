@@ -9,7 +9,7 @@ import {
   PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, PAYOUT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_MMK
-} from "../Config/config.js";
+} from "../../Config/config.js";
 import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
 
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
