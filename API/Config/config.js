@@ -17,7 +17,7 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 
-export const CALLBACK_URL = "https://moon99.free.beeceptor.com";
+export const CALLBACK_URL = "https://shallow-grandmother-33.webhook.cool";
 export const BASE_URL = process.env.BASE_URL;
 export const API_NINJAS_KEY = process.env.API_NINJAS_KEY;
 
