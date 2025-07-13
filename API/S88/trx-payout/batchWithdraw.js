@@ -159,6 +159,12 @@ async function batchPayout() {
     }
 
     logger.info(`✅ ${preloadedIFSCs.length} IFSC Code berhasil disiapkan`);
+
+    logger.info(`✅ ${preloadedIFSCs.length} IFSC Code berhasil disiapkan`);
+
+    preloadedIFSCs.forEach((code, idx) => {
+      logger.info(`IFSC ${idx + 1}: ${code}`);
+    });
   }
 
   for (const currency of currenciesToProcess) {
