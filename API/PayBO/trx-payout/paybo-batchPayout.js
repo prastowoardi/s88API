@@ -5,7 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecryptPayout } from "../../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL,
-  SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
+  SECRET_KEY_INR, SECRET_KEY_VND, 
   PAYOUT_METHOD_INR, PAYOUT_METHOD_VND,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND,
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND,
@@ -67,28 +67,6 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       payout_code: payoutMethod,
       callback_url: CALLBACK_URL,
     };
-  } else if (currency === "MMK") {
-    const bankCode = readlineSync.question("Masukkan Bank Code: ").toUpperCase();
-
-    merchantCode = MERCHANT_CODE_MMK;
-    payoutMethod = PAYOUT_METHOD_MMK;
-    apiKey = MERCHANT_API_KEY_MMK;
-    secretKey = SECRET_KEY_MMK;
-
-    payload = {
-      merchant_code: merchantCode,
-      transaction_code: transactionCode,
-      transaction_timestamp: timestamp,
-      transaction_amount: amount,
-      user_id: userID.toString(),
-      currency_code: currency,
-      bank_account_number: "11133311",
-      bank_code: bankCode,
-      bank_name: "bankName",
-      account_name: name,
-      payout_code: payoutMethod,
-      callback_url: CALLBACK_URL,
-    };
   } else {
     logger.error("❌ Unsupported currency for withdraw.");
     return;
@@ -130,7 +108,7 @@ async function sendPayoutBatch({ userID, currency, amount, transactionCode, name
 
 async function batchPayout() {
   logger.info("======== Batch Payout Request ========");
-  const availableCurrencies = ["INR", "VND", "MMK"];
+  const availableCurrencies = ["INR", "VND"];
   const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
 
   let currenciesToProcess = [];
