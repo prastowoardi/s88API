@@ -57,7 +57,6 @@ async function sendDeposit() {
     const config = getCurrencyConfig(currency);
     
     const amount = readlineSync.question("Masukkan Amount: ");
-    logger.info(`Amount Input : ${amount}`);
     
     if (isNaN(amount) || Number(amount) <= 0) {
         logger.error("❌ Amount harus berupa angka lebih dari 0.");
