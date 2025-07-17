@@ -10,6 +10,7 @@ import {
     PAYOUT_METHOD_THB, MERCHANT_CODE_THB, MERCHANT_API_KEY_THB, SECRET_KEY_THB,
     PAYOUT_METHOD_MXN, MERCHANT_CODE_MXN, MERCHANT_API_KEY_MXN, SECRET_KEY_MXN,
     PAYOUT_METHOD_KRW, MERCHANT_CODE_KRW, MERCHANT_API_KEY_KRW, SECRET_KEY_KRW,
+    PAYOUT_METHOD_PHP, MERCHANT_CODE_PHP, MERCHANT_API_KEY_PHP, SECRET_KEY_PHP,
 } from "../Config/config.js";
 
 const defaultInternalConfig = {
@@ -79,6 +80,13 @@ const internalCurrencies = {
     merchantAPI: MERCHANT_API_KEY_KRW,
     requiresBankCode: true,
   },
+  PHP: {
+      merchantCode: MERCHANT_CODE_PHP,
+      payoutMethod: PAYOUT_METHOD_PHP,
+      secretKey: SECRET_KEY_PHP,
+      merchantAPI: MERCHANT_API_KEY_PHP,
+      requiresBankCode: true,
+    }
 };
 
 export const payoutConfigMap = {

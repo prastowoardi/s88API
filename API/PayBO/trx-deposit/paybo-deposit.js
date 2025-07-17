@@ -45,9 +45,9 @@ async function submitUTR(currency, transactionCode) {
 async function sendDeposit() { 
     logger.info("======== DEPOSIT V3 REQUEST ========");
     
-    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW atau IDR.");
+    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP): ").toUpperCase();
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP atau IDR.");
         return;
     }
 

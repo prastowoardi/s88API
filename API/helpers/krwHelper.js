@@ -12,7 +12,7 @@ function randomBankAccountNumber() {
 }
 
 export async function createKrwCustomer(config) {
-    const createCustomerURL = `${config.BASE_URL}/${config.merchantCode}/v4/create-customer`;
+    const createCustomerURL = `${config.BASE_URL}/api/${config.merchantCode}/v4/create-customer`;
     const encryptedMerchantCode = encryptDecrypt("encrypt", config.merchantCode, config.merchantAPI, config.secretKey);
 
     const accountNumber = randomBankAccountNumber();
@@ -62,7 +62,7 @@ export async function createKrwCustomer(config) {
             },
             body: JSON.stringify(customerPayload)
         });
-
+        logger.info(`Request Payload: ${JSON.stringify(customerPayload, null, 2)}`);
         const text = await res.text();
         if (!res.ok) {
             logger.error(`❌ create-customer gagal dengan status ${res.status}`);
@@ -73,6 +73,7 @@ export async function createKrwCustomer(config) {
         const result = JSON.parse(text);
         logger.info(`Create User ID: ${JSON.stringify(result, null, 2)}`);
         return result;
+        
     } catch (error) {
         logger.error(`❌ Error saat create-customer KRW: ${error}`);
         return null;

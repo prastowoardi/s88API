@@ -76,6 +76,12 @@ export const DEPOSIT_METHOD_KRW = process.env.DEPOSIT_METHOD_KRW;
 export const PAYOUT_METHOD_KRW = process.env.PAYOUT_METHOD_KRW;
 export const MERCHANT_API_KEY_KRW = process.env.MERCHANT_API_KEY_KRW;
 
+export const MERCHANT_CODE_PHP = process.env.MERCHANT_CODE_PHP;
+export const SECRET_KEY_PHP = process.env.SECRET_KEY_PHP;
+export const DEPOSIT_METHOD_PHP = process.env.DEPOSIT_METHOD_PHP;
+export const PAYOUT_METHOD_PHP = process.env.PAYOUT_METHOD_PHP;
+export const MERCHANT_API_KEY_PHP = process.env.MERCHANT_API_KEY_PHP;
+
 export const PMI_WD_URL = process.env.PMI_WD_URL;
 export const PMI_DP_URL = process.env.PMI_DP_URL;
 export const PMI_AUTHORIZATION = process.env.PMI_AUTHORIZATION;

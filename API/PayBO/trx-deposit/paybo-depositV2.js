@@ -26,8 +26,8 @@ async function depositV2() {
     const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW): ");
     const currency = currencyInput.trim().toUpperCase();
 
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW atau IDR.");
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP atau IDR.");
         rl.close();
         return;
     }
