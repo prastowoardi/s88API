@@ -46,10 +46,10 @@ export async function createKrwCustomer(config) {
             zipCode: ""
         },
         bankInformation: {
-            bankAccountNumber: accountNumber,
-            bankCode: "IBK",
-            dateOfBirth: "961120",
-            accountHolderName: accountHolderName
+            bankAccountNumber: "103010100985",
+            bankCode: "SUHYUP",
+            dateOfBirth: "910507",
+            accountHolderName: "TZINMANN GABRIEL MONTGOMERY"
         }
     };
 

@@ -10,6 +10,7 @@ const envFile = {
     PayBO_ezyplus: '.paybo_ezyplus',
     PayBO_wandpay: '.paybo_wandpay',
     PayBO_swftx: '.paybo_swftx',
+    PayBO_dreampay: '.paybo_dreampay',
     PayBO_production: '.paybo_production'
 }[process.env.NODE_ENV] || '.env_staging';
 

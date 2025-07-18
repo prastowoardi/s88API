@@ -27,7 +27,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     currency_code: currency,
     payout_code: config.payoutMethod,
     callback_url: callbackURL || config.callbackURL,
-    account_name: name,
+    account_name: "Nguyễn Thị Thanh Thuỷ",
   };
 
   if (currency === "INR" && config.requiresIFSC) {
@@ -45,7 +45,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     payload.bank_name = bank;
   }
 
-  if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW"].includes(currency)) {
+  if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"].includes(currency)) {
     if (!bankCode) {
       logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
       return;
@@ -53,7 +53,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     payload.bank_code = bankCode;
     payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
     // payload.bank_account_number = "11111111";
-    // payload.bank_account_number = "8823237861";
+    // payload.bank_account_number = "976879694";
   }
 
   if (currency === "BRL" && bankCode === "PIX") {
@@ -110,15 +110,15 @@ async function sendPayout() {
   try {  
     logger.info("======== PAYOUT REQUEST ========");
     const userID = randomInt(100, 999);
-    const currencyInput = await ask("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT/KRW): ");
+    const currencyInput = await ask("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT/KRW/PHP): ");
     const currency = currencyInput.toUpperCase();
-    if (!["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW"].includes(currency)) {
+    if (!["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP"].includes(currency)) {
       logger.error(`❌ Currency "${currency}" belum didukung untuk payout.`);
       return;
     }
 
     let bankCode = "";
-    if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW"].includes(currency)) {
+    if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"].includes(currency)) {
       bankCode = await ask(`Masukkan Bank Code untuk ${currency}: `);
       if (!bankCode) {
         logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
