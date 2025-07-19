@@ -27,7 +27,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     currency_code: currency,
     payout_code: config.payoutMethod,
     callback_url: callbackURL || config.callbackURL,
-    account_name: "Nguyễn Thị Thanh Thuỷ",
+    account_name: name,
   };
 
   if (currency === "INR" && config.requiresIFSC) {
@@ -51,9 +51,8 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
       return;
     }
     payload.bank_code = bankCode;
-    payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
-    // payload.bank_account_number = "11111111";
-    // payload.bank_account_number = "976879694";
+    // payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
+    payload.bank_account_number = "11111111";
   }
 
   if (currency === "BRL" && bankCode === "PIX") {
