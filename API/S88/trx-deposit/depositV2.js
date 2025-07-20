@@ -2,7 +2,7 @@ import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
-import { encryptDecrypt } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -38,6 +38,7 @@ async function depositV2() {
   const config = getCurrencyConfig(currency);
   let bankCode = "";
   let phone = "";
+  const ip = getRandomIP();
 
   if (config.requiresBankCode) {
     bankCode = await ask("Masukkan Bank Code: ");
@@ -68,7 +69,8 @@ async function depositV2() {
     `&user_id=${userID}` +
     `&currency_code=${currency}` +
     `&payment_code=${config.depositMethod}` +
-    `&callback_url=${config.callbackURL}`;
+    `&callback_url=${config.callbackURL}` +
+    `&ip_address=${ip}`;
 
   if (bankCode) payload += `&bank_code=${bankCode}`;
   if (phone) payload += `&phone=${phone}`;

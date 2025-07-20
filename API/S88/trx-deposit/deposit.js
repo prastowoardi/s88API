@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from "readline";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -79,6 +79,7 @@ async function sendDeposit() {
         const config = getCurrencyConfig(currency);
         let bankCode = "";
         let phone = "";
+        const ip = getRandomIP();
 
         if (config.requiresBankCode) {
             const bankCodeInput = await ask("Masukkan Bank Code: ");
@@ -150,7 +151,8 @@ async function sendDeposit() {
                 `&user_id=${userID}` +
                 `&currency_code=${currency}` +
                 `&payment_code=${config.depositMethod}` +
-                `&callback_url=${config.callbackURL}`;
+                `&callback_url=${config.callbackURL}` +
+                `&ip_address=${ip}`;
 
             if (bankCode) payload += `&bank_code=${bankCode}`;
             if (phone) payload += `&phone=${phone}`;
