@@ -3,7 +3,12 @@ import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import dotenv from "dotenv";
 import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
-import { randomPhoneNumber, randomMyanmarPhoneNumber, generateUTR, randomAmount } from "../../helpers/depositHelper.js";
+import {
+  randomPhoneNumber,
+  randomMyanmarPhoneNumber,
+  generateUTR,
+  randomAmount
+} from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 dotenv.config();
@@ -28,11 +33,11 @@ async function submitUTR(currency, transactionCode, config) {
     const encryptedUTR = encryptDecrypt("encrypt", utrPayload, config.merchantAPI, config.secretKey);
 
     try {
-    const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
+        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: encryptedUTR })
-    });
+        });
         const result = await response.text();
         logger.info(`🔄 Submit UTR Result (${transactionCode}): ${result}`);
     } catch (err) {
@@ -53,7 +58,6 @@ async function createDepositV2({ currency, amount, transactionCode }) {
         bankCode = readlineSync.question("Masukkan Bank Code: ");
         if (!/^[a-z0-9]+$/.test(bankCode)) {
             console.error("❌ Bank Code harus berupa huruf/angka.");
-            rl.close();
             return;
         }
     } else if (config.bankCodeOptions) {
@@ -85,31 +89,9 @@ async function createDepositV2({ currency, amount, transactionCode }) {
     // if (currency === "VND") payload += "&random_bank_code=OBT";
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+    const payURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
 
-    logger.info(`🔗 PayURL (${currency}): ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
-
-    try {
-        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v2/dopayment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ key: encrypted })
-        });
-
-        const result = await response.json();
-
-        if (result.status === "success") {
-            const transactionNo = result.transaction_no;
-            if (["INR", "BDT"].includes(currency)) {
-                await submitUTR(currency, transactionCode, config);
-            }
-            logger.info(`✅ ${transactionNo} | Amount: ${amount} (${currency})| Success: ${result.message}\n`);
-        } else {
-            logger.error(`❌ ${transactionCode} | Failed: ${JSON.stringify(result)}\n`);
-            logger.info(`Payload: ${payload}`);
-        }
-    } catch (err) {
-        logger.error(`❌ Deposit Error (${transactionCode}): ${err.message}\n`);
-    }
+    logger.info(`🔗 PayURL: ${payURL}`);
 }
 
 async function batchDepositV2() {
@@ -129,7 +111,7 @@ async function batchDepositV2() {
     }
 
     const jumlah = readlineSync.questionInt("Berapa Transaksi: ");
-    
+
     let min, max, fixedAmount;
     if (jumlah === 1) {
         fixedAmount = readlineSync.questionInt("Masukkan amount: ");
@@ -141,8 +123,8 @@ async function batchDepositV2() {
     for (const currency of currenciesToProcess) {
         const transactionCodes = generateTransactionCodes(jumlah);
         for (const transactionCode of transactionCodes) {
-            const amount = jumlah === 1 ? fixedAmount : randomAmount(min, max);
-            await createDepositV2({ currency, amount, transactionCode });
+        const amount = jumlah === 1 ? fixedAmount : randomAmount(min, max);
+        await createDepositV2({ currency, amount, transactionCode });
         }
     }
 
