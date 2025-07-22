@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
-import logger from "../logger.js";
+import logger from "../../logger.js";
 import { encryptDecrypt } from "../../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL,
@@ -8,11 +8,11 @@ import {
   DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, DEPOSIT_METHOD_MMK,
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK,
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK
-} from "../Config/config.js";
+} from "../../Config/config.js";
 
-import { randomPhoneNumber } from "../helpers/payoutHelper.js";
-import { generateUTR } from "../helpers/depositHelper.js";
-import { sendCallback } from "../helpers/callbackHelper.js";
+import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
+import { generateUTR } from "../../helpers/depositHelper.js";
+import { sendCallback } from "../../helpers/callbackHelper.js";
 
 let lastTransactionNumber = 0;
 

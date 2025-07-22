@@ -44,6 +44,7 @@ const internalCurrencies = {
     payoutMethod: PAYOUT_METHOD_MMK,
     secretKey: SECRET_KEY_MMK,
     merchantAPI: MERCHANT_API_KEY_MMK,
+    requiresBankCode: true,
   },
   BRL: {
     merchantCode: MERCHANT_CODE_BRL,

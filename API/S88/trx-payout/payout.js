@@ -97,7 +97,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
   }
 
   if (config.requiresBankCode) {
-    const bankCode = readlineSync.question("Masukkan Bank Code: ");
+    const bankCode = await ask(`Masukkan Bank Code untuk ${currency}: `);
     if (!bankCode) return logger.error("❌ Bank Code wajib diisi!");
     payload.bank_code = bankCode;
     payload.bank_account_number = "2206491508";
@@ -149,9 +149,6 @@ async function sendPayout() {
       logger.error("❌ Amount harus angka lebih besar dari 0!");
       return;
     }
-
-    logger.info(`Currency : ${currency}`);
-    logger.info(`Amount : ${amount}`);
 
     const transactionCode = `TEST-WD-${timestamp}`;
     const config = getPayoutConfig(currency);
