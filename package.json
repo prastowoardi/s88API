@@ -33,6 +33,8 @@
 
     "batchdp:stag": "cross-env NODE_ENV=staging node API/S88/trx-deposit/batchDeposit.js",
     "batchdp:prod": "cross-env NODE_ENV=production node API/S88/trx-deposit/batchDeposit.js",
+    "batchv2:stag": "cross-env NODE_ENV=staging node API/S88/trx-deposit/batchDepositV2.js",
+    "batchv2:prod": "cross-env NODE_ENV=production node API/S88/trx-deposit/batchDepositV2.js",
     "batchwd:stag": "cross-env NODE_ENV=staging node API/S88/trx-payout/batchWithdraw.js",
     "batchwd:prod": "cross-env NODE_ENV=production node API/S88/trx-payout/batchWithdraw.js",
 

@@ -11,7 +11,7 @@ import {
 } from "../../Config/config.js";
 
 import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
-import { generateUTR } from "../../helpers/depositHelper.js";
+import { generateUTR, randomAmount } from "../../helpers/depositHelper.js";
 import { sendCallback } from "../../helpers/callbackHelper.js";
 
 let lastTransactionNumber = 0;
@@ -57,7 +57,7 @@ async function sendDeposit({ currency, amount, transactionCode }) {
       depositMethod: DEPOSIT_METHOD_VND,
       secretKey: SECRET_KEY_VND,
       merchantAPI: MERCHANT_API_KEY_VND,
-      bankCodeOptions: ["acbbank", "bidv", "mbbank"]
+      bankCodeOptions: ["acbbank", "bidv", "mbbank", "tpbank", "vpbank"]
     },
     BDT: {
       merchantCode: MERCHANT_CODE_BDT,
@@ -84,6 +84,10 @@ async function sendDeposit({ currency, amount, transactionCode }) {
   try {
     const timestamp = lastTransactionNumber;
     let payload = `callback_url=${CALLBACK_URL}&merchant_api_key=${config.merchantAPI}&merchant_code=${config.merchantCode}&transaction_code=${transactionCode}&transaction_timestamp=${timestamp}&transaction_amount=${amount}&user_id=0&currency_code=${currency}&payment_code=${config.depositMethod}`;
+    
+    // if (currency === "VND") {
+    //   payload += "&random_bank_code=OBT";
+    // }
 
     if (config.bankCodeOptions) {
       const bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
@@ -107,9 +111,9 @@ async function sendDeposit({ currency, amount, transactionCode }) {
     const resultDP = JSON.parse(responseBody);
 
     if (resultDP.status === "success") {
-      logger.info(`✅ Deposit (${transactionCode}) : ${resultDP.message}`);
       const transactionNo = resultDP.transaction_no;
       const utr = generateUTR(currency);
+      logger.info(`✅ ${transactionNo} | Amount: ${amount} (${currency})| Success: ${result.message}`);
 
       if (["INR", "BDT"].includes(currency)) {
         await submitUTR(currency, transactionCode);
@@ -130,6 +134,7 @@ async function sendDeposit({ currency, amount, transactionCode }) {
       }
     } else {
       logger.error(`❌ Deposit failed for ${transactionCode}:`, resultDP);
+      logger.info(`Payload: ${payload}`);
     }
   } catch (err) {
     logger.error(`❌ Deposit Error (${transactionCode}):`, err);
@@ -150,34 +155,42 @@ function generateTransactionCodes(count) {
 }
 
 async function batchDeposit() {
-  logger.info("======== Batch Deposit Request ========");
-  const availableCurrencies = ["INR", "BDT", "VND", "MMK"];
-  const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
+    logger.info("======== Batch Deposit Request ========");
+    const availableCurrencies = ["INR", "BDT", "VND", "MMK"];
+    const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
 
-  let currenciesToProcess = [];
+    let currenciesToProcess = [];
 
-  if (input === "ALL") {
-    currenciesToProcess = availableCurrencies;
-  } else if (availableCurrencies.includes(input)) {
-    currenciesToProcess = [input];
-  } else {
-    logger.error("❌ Currency tidak valid.");
-    return;
-  }
-
-  const jumlah = readlineSync.questionInt("Berapa Transaksi: ");
-  const amount = readlineSync.questionInt("Amount: ");
-  const tasks = [];
-
-  for (const currency of currenciesToProcess) {
-    const transactionCodes = generateTransactionCodes(jumlah);
-    for (const transactionCode of transactionCodes) {
-      tasks.push(sendDeposit({ currency, amount, transactionCode }));
+    if (input === "ALL") {
+      currenciesToProcess = availableCurrencies;
+    } else if (availableCurrencies.includes(input)) {
+      currenciesToProcess = [input];
+    } else {
+      logger.error("❌ Currency tidak valid.");
+      return;
     }
-  }
 
-  await Promise.all(tasks);
-  logger.info("======== REQUEST DONE ========\n\n");
+    const jumlah = readlineSync.questionInt("Berapa Transaksi: ");
+    let min, max, fixedAmount;
+        if (jumlah === 1) {
+            fixedAmount = readlineSync.questionInt("Masukkan amount: ");
+        } else {
+            min = readlineSync.questionInt("Masukkan minimum amount: ");
+            max = readlineSync.questionInt("Masukkan maximum amount: ");
+        }
+        
+    const tasks = [];
+
+    for (const currency of currenciesToProcess) {
+      const transactionCodes = generateTransactionCodes(jumlah);
+      for (const transactionCode of transactionCodes) {
+        const amount = jumlah === 1 ? fixedAmount : randomAmount(min, max);
+        tasks.push(sendDeposit({ currency, amount, transactionCode }));
+      }
+    }
+
+    await Promise.all(tasks);
+    logger.info("======== REQUEST DONE ========\n\n");
 }
 
 batchDeposit();

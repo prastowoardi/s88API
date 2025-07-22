@@ -74,6 +74,9 @@ async function depositV2() {
 
   if (bankCode) payload += `&bank_code=${bankCode}`;
   if (phone) payload += `&phone=${phone}`;
+  // if (currency === "VND") {
+  //         payload += "&random_bank_code=OBT";
+  // }
 
   const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
