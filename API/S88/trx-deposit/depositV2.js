@@ -42,7 +42,7 @@ async function depositV2() {
 
   if (config.requiresBankCode) {
     bankCode = await ask("Masukkan Bank Code: ");
-    if (!/^[a-z0-9]+$/.test(bankCode)) {
+    if (!/^[a-z0-9A-Z]+$/.test(bankCode)) {
       console.error("❌ Bank Code harus berupa huruf/angka.");
       rl.close();
       return;
