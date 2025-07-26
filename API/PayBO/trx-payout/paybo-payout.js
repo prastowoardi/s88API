@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP } from "../../helpers/utils.js";
 import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
@@ -17,6 +17,7 @@ function ask(question) {
 async function payout(userID, currency, amount, transactionCode, name, bankCode, callbackURL) {
   const config = getPayoutConfig(currency);
   const timestamp = Math.floor(Date.now() / 1000);
+  const ip = getRandomIP();
 
   let payload = {
     merchant_code: config.merchantCode,
@@ -28,6 +29,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     payout_code: config.payoutMethod,
     callback_url: callbackURL || config.callbackURL,
     account_name: name,
+    ip_address: ip,
   };
 
   if (currency === "INR" && config.requiresIFSC) {

@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout } from "../../helpers/utils.js";
+import { encryptDecryptPayout, getRandomIP } from "../../helpers/utils.js";
 import { BASE_URL, SECRET_KEY_VND, PAYOUT_METHOD_VND, MERCHANT_CODE_VND, MERCHANT_API_KEY_VND } from "../Config/config.js";
 import { getRandomName } from "../../helpers/payoutHelper.js";
 
@@ -45,6 +45,7 @@ async function sendPayout() {
     const payoutMethod = PAYOUT_METHOD_VND;
     const apiKey = MERCHANT_API_KEY_VND;
     const secretKey = SECRET_KEY_VND;
+    const ip = getRandomIP();
 
     const payload = {
         merchant_code: merchantCode,
@@ -57,6 +58,7 @@ async function sendPayout() {
         bank_code: bankCode,
         account_name: accountName,
         payout_code: payoutMethod,
+        ip_address: ip
     };
 
     logger.info(`URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);

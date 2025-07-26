@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout } from "../../helpers/utils.js";
+import { encryptDecryptPayout, getRandomIP } from "../../helpers/utils.js";
 import { BASE_URL, CALLBACK_URL, SECRET_KEY_INR, PAYOUT_METHOD_INR, MERCHANT_CODE_INR, MERCHANT_API_KEY_INR } from "../../Config/config.js";
 import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
 
@@ -41,6 +41,7 @@ async function sendPayout() {
     // const accountName = await getRandomName();
     // const bankAccountNumber = 111111;
     const userID = randomInt(100);
+    const ip = getRandomIP();
 
     const merchantCode = MERCHANT_CODE_INR;
     const payoutMethod = PAYOUT_METHOD_INR;
@@ -58,7 +59,8 @@ async function sendPayout() {
         ifsc_code: "MAHB0002591",
         account_name: "M K AMUSEMENTS",
         payout_code: payoutMethod,
-        callback_url: CALLBACK_URL
+        callback_url: CALLBACK_URL,
+        ip_address: ip
     };
 
     logger.info(`URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
