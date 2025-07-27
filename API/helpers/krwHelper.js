@@ -25,26 +25,26 @@ export async function createKrwCustomer(config) {
     const accountHolderName = givenName;
 
     const customerPayload = {
+        // fullnameKo: "임한설",
+        // phoneNumber: "",
+        // phoneCountryCode: "KR",
+        // idNumber: "",
+        // idType: "FOREIGN_RESIDENT_CARD",
+        // dateOfBirth: "",
+        // address: {
+        //     address1: "Teheran-ro, Gangnam-Gu",
+        //     address2: "",
+        //     city: "",
+        //     countryCode: "KR",
+        //     state: "",
+        //     province: "",
+        //     zipCode: ""
+        // },
         partnerType: "INDIVIDUAL",
         fullname: name,
         givenNames: givenName,
         lastName: lastName,
-        fullnameKo: "임한설",
-        phoneNumber: "",
-        phoneCountryCode: "KR",
         email: `test${timestamp}@test.com`,
-        idNumber: "",
-        idType: "FOREIGN_RESIDENT_CARD",
-        dateOfBirth: "",
-        address: {
-            address1: "Teheran-ro, Gangnam-Gu",
-            address2: "",
-            city: "",
-            countryCode: "KR",
-            state: "",
-            province: "",
-            zipCode: ""
-        },
         bankInformation: {
             bankAccountNumber: "103010100985",
             bankCode: "SUHYUP",
