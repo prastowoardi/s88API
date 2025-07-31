@@ -8,5 +8,6 @@ node_modules
 .paybo_wandpay
 .paybo_swftx
 .paybo_dreampay
+.paybo_bajix
 old_bank.json
 log

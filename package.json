@@ -69,6 +69,11 @@
     "swfv4:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-deposit/paybo-depositV4.js",
     "swfwd:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-payout/paybo-payout.js",
     
+    "bajiv3:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-deposit/paybo-deposit.js",
+    "bajiv2:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-deposit/paybo-depositV2.js",
+    "bajiv4:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-deposit/paybo-depositV4.js",
+    "bajiwd:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-payout/paybo-payout.js",
+    
     "drmv3:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-deposit.js",
     "drmv2:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-depositV2.js",
     "drmv4:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-depositV4.js",
