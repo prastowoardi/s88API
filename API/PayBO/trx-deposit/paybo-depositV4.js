@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, getRandomIP } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
@@ -104,12 +104,14 @@ async function sendDeposit() {
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+    const signature = signVerify("sign", encrypted, config.merchantAPI, config.secretKey);
 
     logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
     logger.info(`Merchant Code : ${config.merchantCode}`)
     logger.info(`Request Payload : ${payload}`);
     logger.info(`Encrypted : ${encrypted}`);
     logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
+    logger.info(`Signature: ${signature}`);
 
     try {
         const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`, {
