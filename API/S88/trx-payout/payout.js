@@ -141,7 +141,7 @@ async function sendPayout() {
     const userID = randomInt(100, 999);
     const currencyInput = await ask("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT): ");
     const currency = currencyInput.toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "PMI"].includes(currency)) {
+    if (!["INR", "VND", "BDT", "MMK", "THB", "PMI"].includes(currency)) {
       logger.error(`❌ Currency '${currency}' tidak didukung.`);
       return;
     }

@@ -56,11 +56,11 @@ async function sendDeposit() {
         const userID = randomInt(100, 999);
         const timestamp = Math.floor(Date.now() / 1000).toString();
 
-        const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/PMI): ");
+        const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
         const currency = currencyInput.trim().toUpperCase();
 
-        if (!["INR", "VND", "BDT", "MMK", "PMI", "KRW"].includes(currency)) {
-            logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, KRW atau PMI.");
+        if (!["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"].includes(currency)) {
+            logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, KRW, THB atau PMI.");
             rl.close();
             return;
         }
@@ -97,16 +97,14 @@ async function sendDeposit() {
                 bankCode = bankCode.toLowerCase();
             }
         } else if (config.bankCodeOptions) {
-        bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
+            bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
         }
 
-        if (currency === "MMK" && bankCode === "WAVEPAY") {
+        if (currency === "INR" || currency === "BDT") {
+            phone = randomPhoneNumber(currency.toLowerCase());
+        } else if (currency === "MMK" && bankCode === "WAVEPAY") {
             phone = randomMyanmarPhoneNumber();
             logger.info(`Phone Number WavePay: ${phone}`);
-        }
-
-        if (currency === "BDT") {
-            phone = randomPhoneNumber("bdt");
         }
 
         if (currency === "PMI") {
@@ -151,8 +149,8 @@ async function sendDeposit() {
                 `&user_id=${userID}` +
                 `&currency_code=${currency}` +
                 `&payment_code=${config.depositMethod}` +
-                `&callback_url=${config.callbackURL}` +
-                `&ip_address=${ip}`;
+                `&ip_address=${ip}` +
+                `&callback_url=${config.callbackURL}`;
 
             if (bankCode) payload += `&bank_code=${bankCode}`;
             if (phone) payload += `&phone=${phone}`;

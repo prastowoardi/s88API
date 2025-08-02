@@ -65,7 +65,7 @@ export const currencyConfigMap = {
     depositMethod: DEPOSIT_METHOD_THB,
     secretKey: SECRET_KEY_THB,
     merchantAPI: MERCHANT_API_KEY_THB,
-    bankCodeOptions: ["BBL", "GSB", "KTB", "SCBEASY"],
+    bankCodeOptions: ["BBL", "GSB", "KTB", "SCBEASY", "PROMPTPAY"],
     cardNumber: true,
   },
   MXN: {

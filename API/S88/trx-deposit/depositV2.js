@@ -21,10 +21,10 @@ async function depositV2() {
   const userID = randomInt(100, 999);
   const timestamp = Math.floor(Date.now() / 1000).toString();
 
-  const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/KRW): ");
+  const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/KRW,THB): ");
   const currency = currencyInput.toUpperCase();
 
-  if (!["INR", "VND", "BDT", "MMK", "KRW"].includes(currency)) {
+  if (!["INR", "VND", "BDT", "MMK", "KRW", "THB"].includes(currency)) {
     console.error(`"${currency}" Not supported yet!`);
     rl.close();
     return;
@@ -51,13 +51,11 @@ async function depositV2() {
     bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
   }
 
-  if (currency === "MMK" && bankCode === "wavepay") {
+  if (currency === "INR" || currency === "BDT") {
+    phone = randomPhoneNumber(currency.toLowerCase());
+  } else if (currency === "MMK" && bankCode === "WAVEPAY") {
     phone = randomMyanmarPhoneNumber();
-    logger.info(`Phone Number WavePay): ${phone}`);
-  }
-
-  if (currency === "BDT") {
-    phone = randomPhoneNumber("bdt");
+    logger.info(`Phone Number WavePay: ${phone}`);
   }
 
   let payload =
