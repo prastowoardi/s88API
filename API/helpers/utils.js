@@ -64,6 +64,45 @@ export const encryptDecryptPayout = (action, data, apikey, secretkey) => {
     }
 };
 
+export function signVerify(action, data, secretkey) {
+    if (!['sign', 'verify'].includes(action)) {
+        console.error("Invalid action. Use 'sign' or 'verify'.");
+        return null;
+    }
+
+    const dataString = typeof data === 'string' ? data : JSON.stringify(data);
+    const key = CryptoJS.enc.Utf8.parse(secretkey);
+
+    if (action === "sign") {
+        const signature = CryptoJS.HmacSHA256(dataString, key).toString(CryptoJS.enc.Hex);
+        return signature;
+    }
+
+    if (action === "verify") {
+        const { payload, signature } = data;
+        const expectedSignature = CryptoJS.HmacSHA256(
+            typeof payload === 'string' ? payload : JSON.stringify(payload),
+            key
+        ).toString(CryptoJS.enc.Hex);
+
+        return expectedSignature === signature;
+    }
+
+    return signature
+};
+
+export function verifyProviderSignature(bizContent, sign, apiKey, secretKey) {
+    const isValid = signVerify("verify", { payload: bizContent, signature: sign }, apiKey, secretKey);
+
+    if (isValid) {
+        logger.info("VALID SIGN");
+    } else {
+        logger.error("INVALID SIGN");
+    }
+
+    return isValid;
+}
+
 export function getRandomIP() {
     const isIPv6 = Math.random() > 0.5;
 

@@ -45,26 +45,26 @@ async function depositV2() {
     const config = getCurrencyConfig(currency);
     let bankCode = "";
     let phone = "";
-    let cardNumber = "";
+    const cardNumber = randomCardNumber();
     const ip = getRandomIP();
 
-    if (currency === "KRW") {
-        const result = await createKrwCustomer(config);
+    // if (currency === "KRW") {
+    //     const result = await createKrwCustomer(config);
 
-        if (!result || result.success !== true) {
-            logger.error("❌ Gagal create customer KRW. API tidak success.");
-            return;
-        }
+    //     if (!result || result.success !== true) {
+    //         logger.error("❌ Gagal create customer KRW. API tidak success.");
+    //         return;
+    //     }
 
-        const user_id = result.data?.user_id;
-        if (!user_id) {
-            logger.error("❌ Tidak ada user_id di response create-customer KRW.");
-            return;
-        }
+    //     const user_id = result.data?.user_id;
+    //     if (!user_id) {
+    //         logger.error("❌ Tidak ada user_id di response create-customer KRW.");
+    //         return;
+    //     }
 
-        userID = user_id;
-        logger.info(`user_id from API create-customer KRW: ${userID}`);
-    }
+    //     userID = user_id;
+    //     logger.info(`user_id from API create-customer KRW: ${userID}`);
+    // }
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {
@@ -84,7 +84,6 @@ async function depositV2() {
     }
 
     if (config.cardNumber) {
-        cardNumber = randomCardNumber();
         logger.info(`Card Number: ${cardNumber}`);
     }
 
@@ -114,6 +113,13 @@ async function depositV2() {
 
     if (cardNumber) payload += `&card_number=${cardNumber}`;
 
+    if (currency === "KRW") {
+        payload += 
+            `&bank_name=중국공상은행` +
+            `&card_holder_name=중국공상은행` +
+            `&card_number=${cardNumber}`;
+    }
+    
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
     logger.info("======== DEPOSIT V2 REQUEST ========");

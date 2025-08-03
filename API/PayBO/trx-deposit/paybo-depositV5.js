@@ -2,13 +2,13 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, getRandomIP } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
 async function sendDeposit() { 
-    logger.info("======== DEPOSIT V4 REQUEST ========");
+    logger.info("======== DEPOSIT V5 REQUEST ========");
 
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
@@ -28,10 +28,9 @@ async function sendDeposit() {
 
     const transactionCode = `TEST-DP-${timestamp}`;
     const config = getCurrencyConfig(currency);
-    const ip = getRandomIP();
     let bankCode = "";
     let phone = "";
-    const cardNumber = randomCardNumber();
+    let cardNumber = "";
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {
@@ -55,34 +54,36 @@ async function sendDeposit() {
     }
 
     if (config.cardNumber) {
+        cardNumber = randomCardNumber();
         logger.info(`Card Number: ${cardNumber}`);
     }
 
-    // if (currency === "KRW") {
-    //     const result = await createKrwCustomer(config);
+    if (currency === "KRW") {
+        const result = await createKrwCustomer(config);
 
-    //     if (!result || result.success !== true) {
-    //         logger.error("❌ Gagal create customer KRW. API tidak success.");
-    //         return;
-    //     }
+        if (!result || result.success !== true) {
+            logger.error("❌ Gagal create customer KRW. API tidak success.");
+            return;
+        }
 
-    //     const user_id = result.data?.user_id;
-    //     if (!user_id) {
-    //         logger.error("❌ Tidak ada user_id di response create-customer KRW.");
-    //         return;
-    //     }
+        const user_id = result.data?.user_id;
+        if (!user_id) {
+            logger.error("❌ Tidak ada user_id di response create-customer KRW.");
+            return;
+        }
 
-    //     userID = user_id;
-    //     logger.info(`user_id from API create-customer KRW: ${userID}`);
-    // }
+        userID = user_id;
+        logger.info(`user_id from API create-customer KRW: ${userID}`);
+    }
 
     const payloadObject = {
+        transaction_code: transactionCode,
         transaction_amount: parseInt(amount),
         payment_code: config.depositMethod,
         user_id: userID.toString(),
         currency_code: currency,
         callback_url: config.callbackURL,
-        ip_address: ip
+        ip_address: getRandomIP()
     };
 
     if (currency === "IDR" && bankCode === "OVO") {
@@ -97,31 +98,36 @@ async function sendDeposit() {
         payloadObject.cust_phone = phone;
     }
 
-    if (currency.toUpperCase() === "KRW") {
-        payloadObject.bank_name = "우리은행";
-        payloadObject.card_holder_name = "ANJILI";
-        payloadObject.card_number = `${cardNumber}`;
-    }
-
     if (cardNumber) payloadObject.card_number = cardNumber;
 
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
-    const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+    const signature = signVerify("sign", payload, config.merchantAPI, config.secretKey);
 
-    logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
+    logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v5/generateDeposit`);
     logger.info(`Merchant Code : ${config.merchantCode}`)
     logger.info(`Request Payload : ${payload}`);
-    logger.info(`Encrypted : ${encrypted}`);
     logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
+    logger.info(`Signature: ${signature}`);
+
+    const isValid = signVerify("verify", {
+        payload: payload,
+        signature: signature
+    }, config.merchantAPI, config.secretKey);
+
+    if (isValid) {
+        logger.info("✅ VALID SIGN");
+    } else {
+        logger.info("❌ INVALID SIGN !");
+    }
 
     try {
-        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`, {
+        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v5/generateDeposit`, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "X-Encrypted-Transaction": encryptedTransactionCode
+                "sign": signature
             },
             body: payload
         });
