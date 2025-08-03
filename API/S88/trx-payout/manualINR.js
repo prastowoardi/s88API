@@ -55,9 +55,9 @@ async function sendPayout() {
         transaction_amount: amount,
         user_id: userID,
         currency_code: "INR",
-        bank_account_number: 60531708910,
-        ifsc_code: "MAHB0002591",
-        account_name: "M K AMUSEMENTS",
+        bank_account_number: 8049694641,
+        ifsc_code: "IDIB000L030",
+        account_name: "SVS CONSTRUCTIONS",
         payout_code: payoutMethod,
         callback_url: CALLBACK_URL,
         ip_address: ip
