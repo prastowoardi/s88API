@@ -98,7 +98,7 @@ async function sendDeposit() {
     }
 
     if (currency.toUpperCase() === "KRW") {
-        payloadObject.bank_name = "우리은행";
+        payloadObject.bank_code = `${bankCode}`;
         payloadObject.card_holder_name = "ANJILI";
         payloadObject.card_number = `${cardNumber}`;
     }

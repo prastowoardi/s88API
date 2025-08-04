@@ -139,7 +139,7 @@ async function sendDeposit() {
 
     if (currency === "KRW") {
         payload += 
-            `&bank_name=중국공상은행` +
+            `&bank_code=${bankCode}` +
             `&card_holder_name=중국공상은행` +
             `&card_number=${cardNumber}`;
     }
