@@ -103,10 +103,11 @@ async function sendDeposit() {
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
-    const signature = signVerify("sign", payload, config.merchantAPI, config.secretKey);
+    const signature = signVerify("sign", payload, config.secretKey);
 
     logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v5/generateDeposit`);
-    logger.info(`Merchant Code : ${config.merchantCode}`)
+    logger.info(`Merchant Code : ${config.merchantCode}`);
+    logger.info(`Secret Key : ${config.secretKey}`)
     logger.info(`Request Payload : ${payload}`);
     logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
     logger.info(`Signature: ${signature}`);
@@ -114,7 +115,7 @@ async function sendDeposit() {
     const isValid = signVerify("verify", {
         payload: payload,
         signature: signature
-    }, config.merchantAPI, config.secretKey);
+    }, config.secretKey);
 
     if (isValid) {
         logger.info("✅ VALID SIGN");

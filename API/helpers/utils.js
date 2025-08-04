@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import logger from "../logger.js";
 
 export const encryptDecrypt = (action, data, apikey, secretkey) => {
     const key = CryptoJS.SHA256(apikey); 
@@ -70,29 +71,47 @@ export function signVerify(action, data, secretkey) {
         return null;
     }
 
-    const dataString = typeof data === 'string' ? data : JSON.stringify(data);
-    const key = CryptoJS.enc.Utf8.parse(secretkey);
+    const decodeKey = decodeURIComponent(secretkey)
+    const dataString = typeof data === 'string' ? data : stableStringify(data);
+    const key = CryptoJS.enc.Utf8.parse(decodeKey);
+    const hmacHex = CryptoJS.HmacSHA256(dataString, key).toString(CryptoJS.enc.Hex);
+    const signature = Buffer.from(hmacHex, 'utf8').toString('base64');
 
     if (action === "sign") {
-        const signature = CryptoJS.HmacSHA256(dataString, key).toString(CryptoJS.enc.Hex);
+        logger.info(`HMAC Hex: ${hmacHex}`);
+        logger.info(`Final Sign (Base64): ${signature}`);
+
         return signature;
     }
 
     if (action === "verify") {
-        const { payload, signature } = data;
-        const expectedSignature = CryptoJS.HmacSHA256(
-            typeof payload === 'string' ? payload : JSON.stringify(payload),
+        const { payload, signature: sig } = data;
+        const expectedHmacHex = CryptoJS.HmacSHA256(
+            typeof payload === 'string' ? payload : stableStringify(payload),
             key
         ).toString(CryptoJS.enc.Hex);
+        const expectedSignature = Buffer.from(expectedHmacHex, 'utf8').toString('base64');
 
-        return expectedSignature === signature;
+        return sig === expectedSignature;
     }
 
-    return signature
-};
+    return null;
+}
 
-export function verifyProviderSignature(bizContent, sign, apiKey, secretKey) {
-    const isValid = signVerify("verify", { payload: bizContent, signature: sign }, apiKey, secretKey);
+function stableStringify(obj) {
+  if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
+  const keys = Object.keys(obj).sort();
+  let result = '{';
+  keys.forEach((key, i) => {
+    if (i) result += ',';
+    result += JSON.stringify(key) + ':' + stableStringify(obj[key]);
+  });
+  result += '}';
+  return result;
+}
+
+export function verifySign(bizContent, sign, secretKey) {
+    const isValid = signVerify("verify", { payload: bizContent, signature: sign }, secretKey);
 
     if (isValid) {
         logger.info("VALID SIGN");
