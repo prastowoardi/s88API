@@ -73,6 +73,17 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
   const signature = signVerify("sign", payload, config.secretKey);
   logger.info(`Signature: ${signature}`);
 
+  const isValid = signVerify("verify", {
+        payload: payload,
+        signature: signature
+  }, config.secretKey);
+
+  if (isValid) {
+        logger.info("✅ VALID SIGN");
+    } else {
+        logger.info("❌ INVALID SIGN !");
+  }
+
   try {
     const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v5/payout`, {
       method: "POST",
