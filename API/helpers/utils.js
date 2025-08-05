@@ -99,7 +99,7 @@ export function signVerify(action, data, secretkey) {
     return null;
 }
 
-function stableStringify(obj) {
+export function stableStringify(obj) {
   if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
   const keys = Object.keys(obj).sort();
   let result = '{';

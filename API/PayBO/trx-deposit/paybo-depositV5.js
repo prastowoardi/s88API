@@ -137,7 +137,7 @@ async function sendDeposit() {
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-            logger.error("❌ Response bukan JSON. Content-Type:", contentType);
+            logger.error(`❌ Response bukan JSON. Content-Type: ${contentType}`);
             logger.error("Response Body:", responseBody);
             return;
         }
