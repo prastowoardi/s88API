@@ -19,36 +19,33 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
   const timestamp = Math.floor(Date.now() / 1000);
   const ip = getRandomIP();
 
-  // let payload = {
-  //   merchant_code: config.merchantCode,
-  //   transaction_code: transactionCode,
-  //   transaction_timestamp: timestamp,
-  //   transaction_amount: Number(amount),
-  //   user_id: userID.toString(),
-  //   currency_code: currency,
-  //   payout_code: config.payoutMethod,
-  //   account_name: name,
-  //   ip_user: ip,
-  //   callback_url: callbackURL || config.callbackURL,
-  // };
   let payload = {
-    "merchant_code":"SKU20240109100737","transaction_code":"TEST-WD-1754371141","transaction_timestamp":1754371142,"transaction_amount":100,"user_id":"301","currency_code":"INR","payout_code":"WI01","account_name":"Shawn Wilson","ip_user":"feca:52e0:3e5f:6c7d:7f9b:7d24:c88b:abff","callback_url":"https://webhook.prastowoardi616.workers.dev/webhook","ifsc_code":"INDB0SSBN01","bank_account_number":"11133322","bank_code":"INDB","bank_name":"INDB"
+    merchant_code: config.merchantCode,
+    transaction_code: transactionCode,
+    transaction_timestamp: timestamp,
+    transaction_amount: Number(amount),
+    user_id: userID.toString(),
+    currency_code: currency,
+    payout_code: config.payoutMethod,
+    account_name: name,
+    ip_user: ip,
+    callback_url: callbackURL || config.callbackURL,
   };
 
-  // if (currency === "INR" && config.requiresIFSC) {
-  //   const ifscCode = await getValidIFSC();
-  //   if (!ifscCode) {
-  //     logger.error("❌ IFSC code tidak ditemukan");
-  //     return;
-  //   }
+  if (currency === "INR" && config.requiresIFSC) {
+    const ifscCode = await getValidIFSC();
+    if (!ifscCode) {
+      logger.error("❌ IFSC code tidak ditemukan");
+      return;
+    }
 
-  //   const bank = ifscCode.substring(0, 4);
+    const bank = ifscCode.substring(0, 4);
 
-  //   payload.ifsc_code = ifscCode;
-  //   payload.bank_account_number = "11133322";
-  //   payload.bank_code = bank;
-  //   payload.bank_name = bank;
-  // }
+    payload.ifsc_code = ifscCode;
+    payload.bank_account_number = "11133322";
+    payload.bank_code = bank;
+    payload.bank_name = bank;
+  }
 
   if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"].includes(currency)) {
     if (!bankCode) {
