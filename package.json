@@ -49,6 +49,7 @@
     "pbov4:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-deposit/paybo-depositV4.js",
     "pbov5:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-deposit/paybo-depositV5.js",
     "pbowd:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-payout/paybo-payout.js",
+    "pbowdv5:stag": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-payout/paybo-payoutV5.js",
 
     "pbodp:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-deposit.js",
     "pbov2:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-depositV2.js",
