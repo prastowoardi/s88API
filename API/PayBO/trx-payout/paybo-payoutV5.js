@@ -1,0 +1,160 @@
+import fetch from "node-fetch";
+import readline from 'readline';
+import logger from "../../logger.js";
+import { randomInt } from "crypto";
+import { encryptDecrypt, wdSignVerify, getRandomIP } from "../../helpers/utils.js";
+import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
+import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function ask(question) {
+  return new Promise(resolve => rl.question(question, answer => resolve(answer)));
+}
+async function payout(userID, currency, amount, transactionCode, name, bankCode, callbackURL) {
+  const config = getPayoutConfig(currency);
+  const timestamp = Math.floor(Date.now() / 1000);
+  const ip = getRandomIP();
+
+  // let payload = {
+  //   merchant_code: config.merchantCode,
+  //   transaction_code: transactionCode,
+  //   transaction_timestamp: timestamp,
+  //   transaction_amount: Number(amount),
+  //   user_id: userID.toString(),
+  //   currency_code: currency,
+  //   payout_code: config.payoutMethod,
+  //   account_name: name,
+  //   ip_user: ip,
+  //   callback_url: callbackURL || config.callbackURL,
+  // };
+  let payload = {
+    "merchant_code":"SKU20240109100737","transaction_code":"TEST-WD-1754371141","transaction_timestamp":1754371142,"transaction_amount":100,"user_id":"301","currency_code":"INR","payout_code":"WI01","account_name":"Shawn Wilson","ip_user":"feca:52e0:3e5f:6c7d:7f9b:7d24:c88b:abff","callback_url":"https://webhook.prastowoardi616.workers.dev/webhook","ifsc_code":"INDB0SSBN01","bank_account_number":"11133322","bank_code":"INDB","bank_name":"INDB"
+  };
+
+  // if (currency === "INR" && config.requiresIFSC) {
+  //   const ifscCode = await getValidIFSC();
+  //   if (!ifscCode) {
+  //     logger.error("❌ IFSC code tidak ditemukan");
+  //     return;
+  //   }
+
+  //   const bank = ifscCode.substring(0, 4);
+
+  //   payload.ifsc_code = ifscCode;
+  //   payload.bank_account_number = "11133322";
+  //   payload.bank_code = bank;
+  //   payload.bank_name = bank;
+  // }
+
+  if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"].includes(currency)) {
+    if (!bankCode) {
+      logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
+      return;
+    }
+    payload.bank_code = bankCode;
+    // payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
+    payload.bank_account_number = "11111111";
+  }
+
+  if (currency === "BRL" && bankCode === "PIX") {
+    const types = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
+    const accountType = Math.floor(Math.random() * types.length);
+    payload.account_type = types[accountType];
+  }
+
+  if (currency === "KRW") {
+    payload.bank_name = "우리은행" ;
+  }
+
+  logger.info(`${config.BASE_URL}/api/${config.merchantCode}/v5/payout`);
+  logger.info(`Request Payload : ${JSON.stringify(payload, null, 2)}`);
+
+  const signature = wdSignVerify("sign", payload, config.secretKey);
+  logger.info(`Signature: ${signature}`);
+
+  try {
+    const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v5/payout`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "sign": signature,
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const responseText = await response.text();
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseErr) {
+      logger.error("❌ Gagal parsing JSON response");
+      logger.error("Raw response :\n" + responseText);
+      logger.error("Error detail : " + parseErr.message);
+      return;
+    }
+
+    if (!response.ok) {
+      logger.error(`❌ Payout gagal: HTTP ${response.status} - ${JSON.stringify(result, null, 2)}`);
+      return;
+    }
+
+    logger.info(`Payout Response: ${JSON.stringify(result, null, 2)}`);
+    logger.info(`Response Status: ${response.status}`);
+
+    if (result.encrypted_data) {
+      const decryptedPayload = encryptDecrypt("decrypt", result.encrypted_data, config.merchantAPI, config.secretKey);
+      logger.info(`Decrypted Response Payload : ${decryptedPayload}`);
+    }
+
+  } catch (error) {
+    logger.error(`❌ Payout Error : ${error.message}`);
+  }
+}
+
+async function sendPayout() {
+  try {  
+    logger.info("======== PAYOUT REQUEST ========");
+    const userID = randomInt(100, 999);
+    const currencyInput = await ask("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT/KRW/PHP): ");
+    const currency = currencyInput.toUpperCase();
+    if (!["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP"].includes(currency)) {
+      logger.error(`❌ Currency "${currency}" belum didukung untuk payout.`);
+      return;
+    }
+
+    let bankCode = "";
+    if (["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"].includes(currency)) {
+      bankCode = await ask(`Masukkan Bank Code untuk ${currency}: `);
+      if (!bankCode) {
+        logger.error(`❌ Bank Code wajib diisi untuk ${currency}!`);
+        return;
+      }
+    }
+
+    const amount = await ask("Masukkan Amount: ");
+    if (isNaN(amount) || Number(amount) <= 0) {
+      logger.error("❌ Amount harus angka lebih besar dari 0!");
+      return;
+    }
+    logger.info(`Currency : ${currency}`);
+    logger.info(`Amount : ${amount}`);
+    
+    const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
+    const name = await getRandomName();
+
+    await payout(userID, currency, amount, transactionCode, name, bankCode, null);
+
+    logger.info("======== REQUEST DONE ========\n\n");
+  } catch (err) {
+    logger.error(`❌ Error: ${err.message}`);
+  } finally {
+    rl.close();
+  }
+}
+
+sendPayout();

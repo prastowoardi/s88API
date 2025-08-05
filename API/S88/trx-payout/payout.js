@@ -7,7 +7,7 @@ import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { getValidIFSC, getRandomName, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 
 const timestamp = Math.floor(Date.now() / 1000);
-const phone = randomPhoneNumber();
+const phone = randomPhoneNumber("inr");
 const name = await getRandomName();
 const ip = getRandomIP();
 const rl = readline.createInterface({
@@ -89,6 +89,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
     callback_url: config.callbackURL,
     account_name: name,
     ip_address: ip,
+    phone_number: phone
   };
 
   if (config.requiresIFSC) {
