@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, wdSignVerify, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, getRandomIP } from "../../helpers/utils.js";
 import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
@@ -73,7 +73,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
   logger.info(`${config.BASE_URL}/api/${config.merchantCode}/v5/payout`);
   logger.info(`Request Payload : ${JSON.stringify(payload, null, 2)}`);
 
-  const signature = wdSignVerify("sign", payload, config.secretKey);
+  const signature = signVerify("sign", payload, config.secretKey);
   logger.info(`Signature: ${signature}`);
 
   try {
