@@ -81,7 +81,6 @@ export function signVerify(action, data, secretkey) {
         logger.info(`Decoded Key: ${decodeKey}`);
         logger.info(`Data String: ${dataString}`);
         logger.info(`HMAC Hex: ${hmacHex}`);
-        logger.info(`Final Sign (Base64): ${signature}`);
 
         return signature;
     }
