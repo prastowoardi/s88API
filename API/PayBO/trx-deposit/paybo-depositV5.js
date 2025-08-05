@@ -3,9 +3,50 @@ import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt, signVerify, getRandomIP } from "../../helpers/utils.js";
-import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
+import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
+
+async function submitUTR(currency, transactionCode) {
+    if (!["INR", "BDT"].includes(currency)) {
+        logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
+        return;
+    }
+
+    const reference = generateUTR(currency);
+    const config = getCurrencyConfig(currency);
+    const payloadObj = {
+        transaction_code: transactionCode,
+        reference: reference
+    };
+
+    const payloadString = JSON.stringify(payloadObj);
+    const signature = signVerify("sign", payloadString, config.secretKey); // opsional jika API butuh
+    logger.info(`Signature: ${signature}`)
+    try {
+        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v5/submitReference`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                sign: signature
+            },
+            body: payloadString
+        });
+
+        const responseText = await response.text();
+
+        if (!response.ok) {
+            logger.error("❌ HTTP Error:", response.status);
+            logger.info(`Response : ${responseText}`);
+            return;
+        }
+
+        const result = JSON.parse(responseText);
+        logger.info(`✅ Submit UTR Response : ${JSON.stringify(result, null, 2)}`);
+    } catch (err) {
+        logger.error(`❌ Submit UTR Error : ${err}`);
+    }
+}
 
 async function sendDeposit() { 
     logger.info("======== DEPOSIT V5 REQUEST ========");
@@ -156,8 +197,13 @@ async function sendDeposit() {
             return;
         }
 
-        logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
         logger.info(`Response Status: ${response.status}`);
+        logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
+
+        if (["INR", "BDT"].includes(currency)) {
+            await submitUTR(currency, transactionCode);
+        }
+
     } catch (err) {
         logger.error(`❌ Deposit Error: ${err}`);
     }
