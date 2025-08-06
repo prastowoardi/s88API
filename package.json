@@ -60,36 +60,42 @@
     "pbov4:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-depositV4.js",
     "pbov5:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-depositV5.js",
     "pbowd:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-payout/paybo-payout.js",
-    
+    "pbowdv5:prod": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-payout/paybo-payoutV5.js",
+
     "ezv3:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-deposit.js",
     "ezv2:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV2.js",
     "ezv4:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV4.js",
     "ezv5:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV5.js",
     "ezwd:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-payout/paybo-payout.js",
+    "ezwdv5:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-payout/paybo-payoutV5.js",
 
     "wpv3:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-deposit.js",
     "wpv2:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV2.js",
     "wpv4:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV4.js",
     "wpv5:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV5.js",
     "wpwd:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-payout/paybo-payout.js",
+    "wpwdv5:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-payout/paybo-payoutV5.js",
 
     "swfv3:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-deposit/paybo-deposit.js",
     "swfv2:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-deposit/paybo-depositV2.js",
     "swfv4:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-deposit/paybo-depositV4.js",
     "swfv5:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-deposit/paybo-depositV5.js",
     "swfwd:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-payout/paybo-payout.js",
+    "swfwdv5:prod": "cross-env NODE_ENV=PayBO_swftx node API/PayBO/trx-payout/paybo-payoutV5.js",
     
     "bajiv3:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-deposit/paybo-deposit.js",
     "bajiv2:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-deposit/paybo-depositV2.js",
     "bajiv4:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-deposit/paybo-depositV4.js",
     "bajiv5:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-deposit/paybo-depositV5.js",
     "bajiwd:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-payout/paybo-payout.js",
+    "bajiwdv5:prod": "cross-env NODE_ENV=PayBO_bajix node API/PayBO/trx-payout/paybo-payoutV5.js",
     
     "drmv3:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-deposit.js",
     "drmv2:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-depositV2.js",
     "drmv4:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-depositV4.js",
     "drmv5:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-depositV5.js",
-    "drmwd:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-payout/paybo-payout.js"
+    "drmwd:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-payout/paybo-payout.js",
+    "drmwdv5:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-payout/paybo-payoutV5.js"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
