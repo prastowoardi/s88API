@@ -60,7 +60,7 @@
     "pbov4:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-depositV4.js",
     "pbov5:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-deposit/paybo-depositV5.js",
     "pbowd:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-payout/paybo-payout.js",
-    "pbowdv5:prod": "cross-env NODE_ENV=PayBO_staging node API/PayBO/trx-payout/paybo-payoutV5.js",
+    "pbowdv5:prod": "cross-env NODE_ENV=PayBO_production node API/PayBO/trx-payout/paybo-payoutV5.js",
 
     "ezv3:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-deposit.js",
     "ezv2:prod": "cross-env NODE_ENV=PayBO_ezyplus node API/PayBO/trx-deposit/paybo-depositV2.js",
