@@ -95,7 +95,14 @@
     "drmv4:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-depositV4.js",
     "drmv5:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-deposit/paybo-depositV5.js",
     "drmwd:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-payout/paybo-payout.js",
-    "drmwdv5:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-payout/paybo-payoutV5.js"
+    "drmwdv5:prod": "cross-env NODE_ENV=PayBO_dreampay node API/PayBO/trx-payout/paybo-payoutV5.js",
+    
+    "epv3:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-deposit/paybo-deposit.js",
+    "epv2:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-deposit/paybo-depositV2.js",
+    "epv4:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-deposit/paybo-depositV4.js",
+    "epv5:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-deposit/paybo-depositV5.js",
+    "epwd:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-payout/paybo-payout.js",
+    "epwdv5:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-payout/paybo-payoutV5.js"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
