@@ -149,7 +149,7 @@ async function sendDeposit() {
     logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v5/generateDeposit`);
     logger.info(`Merchant Code : ${config.merchantCode}`);
     logger.info(`Secret Key : ${config.secretKey}`)
-    logger.info(`Request Payload : ${payload}`);
+    logger.info(`Request Payload : ${JSON.stringify(payloadObject, null, 2)}`);
     logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
     logger.info(`Signature: ${signature}`);
 
