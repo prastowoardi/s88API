@@ -12,6 +12,7 @@ const envFile = {
     PayBO_swftx: '.paybo_swftx',
     PayBO_bajix: '.paybo_bajix',
     PayBO_dreampay: '.paybo_dreampay',
+    PayBO_erfolgpay: '.paybo_erfolgpay',
     PayBO_production: '.paybo_production'
 }[process.env.NODE_ENV] || '.env_staging';
 
