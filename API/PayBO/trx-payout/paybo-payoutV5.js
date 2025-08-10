@@ -64,7 +64,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
   }
 
   if (currency === "KRW") {
-    payload.bank_name = "우리은행" ;
+    payload.bank_name = "SUHYUP" ;
   }
 
   logger.info(`${config.BASE_URL}/api/${config.merchantCode}/v5/payout`);

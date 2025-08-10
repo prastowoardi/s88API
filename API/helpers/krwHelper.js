@@ -46,10 +46,10 @@ export async function createKrwCustomer(config) {
         lastName: lastName,
         email: `test${timestamp}@test.com`,
         bankInformation: {
-            bankAccountNumber: "103010100985",
+            bankAccountNumber: accountNumber,
             bankCode: "SUHYUP",
             dateOfBirth: "910507",
-            accountHolderName: "TZINMANN GABRIEL MONTGOMERY"
+            accountHolderName: name
         }
     };
 
