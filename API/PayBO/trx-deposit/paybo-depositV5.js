@@ -99,23 +99,23 @@ async function sendDeposit() {
         logger.info(`Card Number: ${cardNumber}`);
     }
 
-    if (currency === "KRW") {
-        const result = await createKrwCustomer(config);
+    // if (currency === "KRW") {
+    //     const result = await createKrwCustomer(config);
 
-        if (!result || result.success !== true) {
-            logger.error("❌ Gagal create customer KRW. API tidak success.");
-            return;
-        }
+    //     if (!result || result.success !== true) {
+    //         logger.error("❌ Gagal create customer KRW. API tidak success.");
+    //         return;
+    //     }
 
-        const user_id = result.data?.user_id;
-        if (!user_id) {
-            logger.error("❌ Tidak ada user_id di response create-customer KRW.");
-            return;
-        }
+    //     const user_id = result.data?.user_id;
+    //     if (!user_id) {
+    //         logger.error("❌ Tidak ada user_id di response create-customer KRW.");
+    //         return;
+    //     }
 
-        userID = user_id;
-        logger.info(`user_id from API create-customer KRW: ${userID}`);
-    }
+    //     userID = user_id;
+    //     logger.info(`user_id from API create-customer KRW: ${userID}`);
+    // }
 
     const payloadObject = {
         transaction_code: transactionCode,

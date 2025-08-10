@@ -132,7 +132,7 @@ async function sendDeposit() {
     if (bankCode) payload += `&bank_code=${bankCode}`;
     
     if (phone && !(currency === "IDR" && bankCode === "OVO")) {
-         payload += `&phone = ${phone}`;
+        payload += `&phone = ${phone}`;
     }
 
     if (cardNumber) payload += `&card_number=${cardNumber}`;

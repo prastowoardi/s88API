@@ -68,12 +68,12 @@ async function depositV2() {
 
     if (config.requiresBankCode) {
         if (currency === "BRL") {
-        bankCode = "PIX";
+          bankCode = "PIX";
         } else if (currency === "MXN") {
-        bankCode = "SPEI";
+          bankCode = "SPEI";
         } else {
-        const bankCodeInput = await ask("Masukkan Bank Code: ");
-        bankCode = bankCodeInput.trim();
+          const bankCodeInput = await ask("Masukkan Bank Code: ");
+          bankCode = bankCodeInput.trim();
         }
     } else if (config.bankCodeOptions) {
         bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
