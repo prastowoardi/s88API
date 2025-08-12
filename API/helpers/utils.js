@@ -78,7 +78,6 @@ export function signVerify(action, data, secretkey) {
     dataString = dataString.replace(/[\u007F-\uFFFF]/g, function (c) {
         return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
     });
-    logger.info(`Data String (Post-Processing): ${dataString}`);
 
     const key = CryptoJS.enc.Utf8.parse(decodeKey);
     const hmacHex = CryptoJS.HmacSHA256(dataString, key).toString(CryptoJS.enc.Hex);
@@ -97,7 +96,6 @@ export function signVerify(action, data, secretkey) {
         payloadString = payloadString.replace(/[\u007F-\uFFFF]/g, function (c) {
             return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
         });
-        logger.info(`Payload String (Post-Processing): ${payloadString}`);
 
         const expectedHmacHex = CryptoJS.HmacSHA256(payloadString, key).toString(CryptoJS.enc.Hex);
         const expectedSignature = Buffer.from(expectedHmacHex, 'utf8').toString('base64');
