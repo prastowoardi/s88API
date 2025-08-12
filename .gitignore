@@ -10,5 +10,6 @@ node_modules
 .paybo_dreampay
 .paybo_bajix
 .paybo_erfolgpay
+.paybo_demo
 old_bank.json
 log
