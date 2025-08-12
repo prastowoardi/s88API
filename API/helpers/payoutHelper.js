@@ -2,7 +2,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import fetch from 'node-fetch';
 import { fileURLToPath } from 'url';
-import { API_NINJAS_KEY } from "../Config/config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,36 +50,6 @@ export async function getValidIFSC(currency, maxRetries = 3) {
   }
   console.error("❌ Gagal mendapatkan IFSC setelah beberapa percobaan.");
   return null;
-}
-
-export async function getRandomName() {
-  try {
-    const response = await fetch(
-      'https://api.api-ninjas.com/v1/randomuser',
-      {
-        headers: {
-          'X-Api-Key': API_NINJAS_KEY
-        }
-      }
-    );
-
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      return "Anderson Sales";
-    }
-
-    const data = await response.json();
-
-    if (!data.name) {
-      return "Cinantya Melki";
-    }
-
-    return data.name;
-  } catch (error) {
-    console.error("❌ Gagal mengambil random user:", error.message);
-    return "Andre Stainless";
-  }
 }
 
 export function randomPhoneNumber(currency = "default") {

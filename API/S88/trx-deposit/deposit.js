@@ -2,8 +2,8 @@ import fetch from "node-fetch";
 import readline from "readline";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
-import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber } from "../../helpers/depositHelper.js";
+import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 const rl = readline.createInterface({
@@ -14,6 +14,9 @@ const rl = readline.createInterface({
 function ask(question) {
   return new Promise(resolve => rl.question(question, answer => resolve(answer)));
 }
+
+const name = await getRandomName();
+const accountNumber = randomCardNumber();
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -157,6 +160,11 @@ async function sendDeposit() {
             // if (currency === "VND") {
             //         payload += "&random_bank_code=OBT";
             // }
+
+            if (currency === "THB") {
+                payload += `&depositor_name=${name}`;
+                payload += `&depositor_account_number=${accountNumber}`
+            }
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
             logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);

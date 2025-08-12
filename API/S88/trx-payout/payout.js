@@ -2,9 +2,9 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
-import { getValidIFSC, getRandomName, randomPhoneNumber } from "../../helpers/payoutHelper.js";
+import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 
 const timestamp = Math.floor(Date.now() / 1000);
 const phone = randomPhoneNumber("inr");
@@ -89,7 +89,7 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
     callback_url: config.callbackURL,
     account_name: name,
     ip_address: ip,
-    phone_number: phone
+    // phone_number: phone
   };
 
   if (config.requiresIFSC) {

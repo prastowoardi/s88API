@@ -1,5 +1,6 @@
 import CryptoJS from 'crypto-js';
 import logger from "../logger.js";
+import { API_NINJAS_KEY } from "../Config/config.js";
 
 export const encryptDecrypt = (action, data, apikey, secretkey) => {
     const key = CryptoJS.SHA256(apikey); 
@@ -71,26 +72,34 @@ export function signVerify(action, data, secretkey) {
         return null;
     }
 
-    const decodeKey = decodeURIComponent(secretkey)
-    const dataString = typeof data === 'string' ? data : stableStringify(data);
+    const decodeKey = decodeURIComponent(secretkey);
+    let dataString = typeof data === 'string' ? data : stableStringify(data);
+        
+    dataString = dataString.replace(/[\u007F-\uFFFF]/g, function (c) {
+        return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
+    });
+    logger.info(`Data String (Post-Processing): ${dataString}`);
+
     const key = CryptoJS.enc.Utf8.parse(decodeKey);
     const hmacHex = CryptoJS.HmacSHA256(dataString, key).toString(CryptoJS.enc.Hex);
     const signature = Buffer.from(hmacHex, 'utf8').toString('base64');
 
     if (action === "sign") {
-        logger.info(`Decoded Key: ${decodeKey}`);
-        logger.info(`Data String: ${dataString}`);
-        logger.info(`HMAC Hex: ${hmacHex}`);
-
+        logger.info(`Generated Signature (Base64): ${signature}`);
         return signature;
     }
 
     if (action === "verify") {
-        const { payload, signature: sig } = data;
-        const expectedHmacHex = CryptoJS.HmacSHA256(
-            typeof payload === 'string' ? payload : stableStringify(payload),
-            key
-        ).toString(CryptoJS.enc.Hex);
+        let { payload, signature: sig } = data;
+
+        let payloadString = typeof payload === 'string' ? payload : stableStringify(payload);
+    
+        payloadString = payloadString.replace(/[\u007F-\uFFFF]/g, function (c) {
+            return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
+        });
+        logger.info(`Payload String (Post-Processing): ${payloadString}`);
+
+        const expectedHmacHex = CryptoJS.HmacSHA256(payloadString, key).toString(CryptoJS.enc.Hex);
         const expectedSignature = Buffer.from(expectedHmacHex, 'utf8').toString('base64');
 
         return sig === expectedSignature;
@@ -136,5 +145,35 @@ export function getRandomIP() {
         return Array.from({ length: 4 }, () =>
             Math.floor(Math.random() * 256)
         ).join('.');
+    }
+}
+
+export async function getRandomName() {
+    try {
+        const response = await fetch(
+            'https://api.api-ninjas.com/v1/randomuser',
+            {
+                headers: {
+                    'X-Api-Key': API_NINJAS_KEY
+                }
+            }
+        );
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            return "Anderson Sales";
+        }
+
+        const data = await response.json();
+
+        if (!data.name) {
+            return "Cinantya Melki";
+        }
+
+    return data.name;
+    } catch (error) {
+        console.error("❌ Gagal mengambil random user:", error.message);
+        return "Andre Stainless";
     }
 }

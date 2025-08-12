@@ -2,8 +2,8 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, stableStringify, getRandomIP } from "../../helpers/utils.js";
-import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
+import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
 const rl = readline.createInterface({
@@ -64,7 +64,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
   }
 
   if (currency === "KRW") {
-    payload.bank_name = "SUHYUP" ;
+    payload.bank_name = "우리은행" ;
   }
 
   logger.info(`${config.BASE_URL}/api/${config.merchantCode}/v5/payout`);

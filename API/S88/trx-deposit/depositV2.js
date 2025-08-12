@@ -2,8 +2,8 @@ import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
-import { randomPhoneNumber, randomMyanmarPhoneNumber } from "../../helpers/depositHelper.js";
+import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 dotenv.config();
@@ -16,6 +16,9 @@ const rl = readline.createInterface({
 function ask(question) {
   return new Promise(resolve => rl.question(question, answer => resolve(answer)));
 }
+
+const name = await getRandomName();
+const accountNumber = randomCardNumber();
 
 async function depositV2() {
   const userID = randomInt(100, 999);
@@ -76,6 +79,10 @@ async function depositV2() {
   //         payload += "&random_bank_code=OBT";
   // }
 
+  if (currency === "THB") {
+      payload += `&depositor_name=${name}`;
+      payload += `&depositor_account_number=${accountNumber}`
+  }
   const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
   logger.info("======== DEPOSIT V2 REQUEST ========");

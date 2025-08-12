@@ -1,7 +1,6 @@
 import fetch from "node-fetch";
 import logger from "../logger.js";
-import { encryptDecrypt } from "./utils.js";
-import { getRandomName } from "./payoutHelper.js";
+import { encryptDecrypt, getRandomName } from "./utils.js";
 
 function randomBankAccountNumber() {
     let acc = "";

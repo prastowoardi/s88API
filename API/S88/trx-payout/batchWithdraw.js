@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout } from "../../helpers/utils.js";
+import { encryptDecryptPayout, getRandomName } from "../../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL,
   SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
@@ -10,7 +10,7 @@ import {
   MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_MMK,
   MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_MMK
 } from "../../Config/config.js";
-import { getValidIFSC, getRandomName } from "../../helpers/payoutHelper.js";
+import { getValidIFSC } from "../../helpers/payoutHelper.js";
 
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
 
