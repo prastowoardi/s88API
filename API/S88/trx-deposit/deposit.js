@@ -3,20 +3,38 @@ import readline from "readline";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { sendToTelegram } from "../../helpers/bot/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import querystring from "querystring";
+
+function ask(question) {
+    return new Promise(resolve => rl.question(question, answer => resolve(answer)));
+}
+
+const name = await getRandomName();
+const accountNumber = randomCardNumber();
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
 
-function ask(question) {
-  return new Promise(resolve => rl.question(question, answer => resolve(answer)));
-}
+function formatDepositMessage(config, payload, resultDP, isError, version = "V3") {
+  const header = `*S88 - Deposit ${version}*\n\n`;
 
-const name = await getRandomName();
-const accountNumber = randomCardNumber();
+  const body = 
+`URL : ${config.BASE_URL}/api/${config.merchantCode}/${version.toLowerCase()}/dopayment
+Merchant Code : ${config.merchantCode}
+
+Request Payload:
+${payload}
+
+${isError ? "❌ Deposit gagal:" : "✅ Deposit berhasil:"}
+${JSON.stringify(resultDP, null, 2)}`;
+
+  return `${header}n${body}`;
+}
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -33,8 +51,8 @@ async function submitUTR(currency, transactionCode) {
 
     try {
         const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ key: encryptedPayload })
         });
 
@@ -53,7 +71,7 @@ async function submitUTR(currency, transactionCode) {
 }
 
 async function sendDeposit() {
-    try {
+  try {
         logger.info("======== DEPOSIT V3 REQUEST ========");
 
         const userID = randomInt(100, 999);
@@ -78,7 +96,6 @@ async function sendDeposit() {
         }
 
         const transactionCode = `TEST-DP-${timestamp}`;
-
         const config = getCurrencyConfig(currency);
         let bankCode = "";
         let phone = "";
@@ -94,11 +111,7 @@ async function sendDeposit() {
                 return;
             }
 
-            if (currency === 'MMK') {
-                bankCode = bankCode.toUpperCase();
-            } else {
-                bankCode = bankCode.toLowerCase();
-            }
+            bankCode = (currency === 'MMK') ? bankCode.toUpperCase() : bankCode.toLowerCase();
         } else if (config.bankCodeOptions) {
             bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
         }
@@ -117,28 +130,28 @@ async function sendDeposit() {
                 currency: "INR",
                 payment_method: config.depositMethod,
                 callback_url: config.callbackURL
-            };
+        };
 
-            const headers = {
-                "Content-Type": "application/json",
-                "Authorization": PMI_AUTHORIZATION,
-            };
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": PMI_AUTHORIZATION,
+        };
 
-            try {
-                const response = await fetch(PMI_DP_URL, {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify(payload)
-                });
+        try {
+            const response = await fetch(PMI_DP_URL, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(payload)
+            });
 
-                const responseText = await response.text();
-                const parsed = JSON.parse(responseText.replace(/\\"/g, '"'));
+            const responseText = await response.text();
+            const parsed = JSON.parse(responseText.replace(/\\"/g, '"'));
 
-                logger.info(`Response Status: ${response.status}`);
-                logger.info(`✅ PMI Deposit Response ${JSON.stringify(parsed, null, 2)}`);
-            } catch (err) {
-                logger.error(`❌ PMI Deposit Error : ${err}`);
-            }
+            logger.info(`Response Status: ${response.status}`);
+            logger.info(`✅ PMI Deposit Response ${JSON.stringify(parsed, null, 2)}`);
+        } catch (err) {
+            logger.error(`❌ PMI Deposit Error : ${err}`);
+        }
             logger.info("PMI deposit belum di-implementasi di CLI ini.");
             rl.close();
             return;
@@ -157,14 +170,11 @@ async function sendDeposit() {
 
             if (bankCode) payload += `&bank_code=${bankCode}`;
             if (phone) payload += `&phone=${phone}`;
-            // if (currency === "VND") {
-            //         payload += "&random_bank_code=OBT";
-            // }
-
             if (currency === "THB") {
                 payload += `&depositor_name=${name}`;
-                payload += `&depositor_account_number=${accountNumber}`
+                payload += `&depositor_account_number=${accountNumber}`;
             }
+
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
             logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
@@ -184,16 +194,31 @@ async function sendDeposit() {
                 resultDP = JSON.parse(responseBody);
             } catch (parseError) {
                 logger.error(`❌ Gagal parse JSON: ${parseError.message}`);
-                rl.close();
                 return;
             }
+
             if (!response.ok) {
                 logger.error(`❌ Deposit gagal: ${JSON.stringify(resultDP)}`);
-                rl.close();
+                const message = formatDepositMessage(config, payload, resultDP, true);
+
+                await sendToTelegram({
+                    text: message,
+                    markdown: true,
+                    raw: true,
+                    filename: `deposit_${transactionCode}.json`
+                });
                 return;
             }
 
             logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
+            const message = formatDepositMessage(config, payload, resultDP, true);
+
+            await sendToTelegram({
+                text: message,
+                markdown: true,
+                raw: true,
+                });
+
             logger.info(`Response Status: ${response.status}`);
 
             if (["INR", "BDT"].includes(currency)) {

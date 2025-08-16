@@ -3,22 +3,25 @@ import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { sendToTelegram } from "../../helpers/bot/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import querystring from "querystring";
+import { text } from 'stream/consumers';
 
 dotenv.config();
+const name = await getRandomName();
+const accountNumber = randomCardNumber();
+
 
 const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
+    input: process.stdin,
+    output: process.stdout,
 });
 
 function ask(question) {
-  return new Promise(resolve => rl.question(question, answer => resolve(answer)));
+    return new Promise(resolve => rl.question(question, answer => resolve(answer)));
 }
-
-const name = await getRandomName();
-const accountNumber = randomCardNumber();
 
 async function depositV2() {
   const userID = randomInt(100, 999);
@@ -75,21 +78,30 @@ async function depositV2() {
 
   if (bankCode) payload += `&bank_code=${bankCode}`;
   if (phone) payload += `&phone=${phone}`;
-  // if (currency === "VND") {
-  //         payload += "&random_bank_code=OBT";
-  // }
-
   if (currency === "THB") {
-      payload += `&depositor_name=${name}`;
-      payload += `&depositor_account_number=${accountNumber}`
+    payload += `&depositor_name=${name}`;
+    payload += `&depositor_account_number=${accountNumber}`;
   }
+
   const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+  const payUrl = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
 
   logger.info("======== DEPOSIT V2 REQUEST ========");
   logger.info(`Request Payload : ${payload}\n`);
-  logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
+  logger.info(`PayURL : ${payUrl}`);
   logger.info("======== REQUEST DONE ========\n\n");
 
+  const message = `*S88 - Deposit V2*\n
+Merchant Code: ${config.merchantCode}
+Currency : ${currency}
+Payment Page: ${payUrl}
+  `;
+
+  await sendToTelegram({
+    text: message,
+    markdown: true,
+    raw: true,
+  });
   rl.close();
 }
 
