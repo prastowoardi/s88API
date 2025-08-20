@@ -113,7 +113,7 @@ async function sendDeposit({ currency, amount, transactionCode }) {
     if (resultDP.status === "success") {
       const transactionNo = resultDP.transaction_no;
       const utr = generateUTR(currency);
-      logger.info(`✅ ${transactionNo} | Amount: ${amount} (${currency})| Success: ${result.message}`);
+      logger.info(`✅ ${transactionNo} | Amount: ${amount} (${currency})| Success: ${resultDP.message}`);
 
       if (["INR", "BDT"].includes(currency)) {
         await submitUTR(currency, transactionCode);
