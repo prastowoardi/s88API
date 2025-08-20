@@ -106,6 +106,10 @@ async function handleRegularPayout(userID, currency, amount, transactionCode, na
     payload.bank_account_number = "2206491508";
   }
 
+  if (currency === "THB" ) {
+    payload.bank_name = "Siam Commercial Bank	" 
+  }
+  
   const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.merchantAPI, config.secretKey);
   logger.info(`Encrypted Payload: ${encryptedPayload}`);
   logger.info(`Payload: ${JSON.stringify(payload, null, 2)}`);

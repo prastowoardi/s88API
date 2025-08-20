@@ -3,7 +3,7 @@ import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecryptPayout, getRandomIP, getRandomName } from "../../helpers/utils.js";
-import { BASE_URL, SECRET_KEY_VND, PAYOUT_METHOD_VND, MERCHANT_CODE_VND, MERCHANT_API_KEY_VND } from "../Config/config.js";
+import { BASE_URL, CALLBACK_URL, SECRET_KEY_VND, PAYOUT_METHOD_VND, MERCHANT_CODE_VND, MERCHANT_API_KEY_VND } from "../../Config/config.js";
 
 async function sendPayout() {
     logger.info("=== VND - PAYOUT REQUEST ===");
@@ -30,8 +30,8 @@ async function sendPayout() {
     // const transactionCode = readlineSync.question("Masukkan Transaction Code: ")
     // logger.info(`Transaction Code input: ${transactionCode}`);
 
-    const bankCode = readlineSync.question("Masukkan Bank Code: ");
-    logger.info(`Bank Code Input: ${bankCode}`);
+    // const bankCode = readlineSync.question("Masukkan Bank Code: ");
+    // logger.info(`Bank Code Input: ${bankCode}`);
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const transactionCode = `TEST-WD-${timestamp}`;
@@ -53,11 +53,12 @@ async function sendPayout() {
         transaction_amount: amount,
         user_id: userID,
         currency_code: "VND",
-        bank_account_number: bankAccountNumber,
-        bank_code: bankCode,
-        account_name: accountName,
+        bank_account_number: "006912111986",
+        bank_code: "970443",
+        account_name: "HOANG TRAN HANH",
         payout_code: payoutMethod,
-        ip_address: ip
+        ip_address: ip,
+        callback_url: CALLBACK_URL
     };
 
     logger.info(`URL: ${BASE_URL}/api/v1/payout/${merchantCode}`);
