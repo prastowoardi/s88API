@@ -6,207 +6,282 @@ import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
+const UTR_CURRENCIES = ["INR", "BDT"];
+const PHONE_CURRENCIES = ["INR", "BDT"];
 
-function ask(question) {
-  return new Promise(resolve => rl.question(question, answer => resolve(answer)));
-}
-
-const name = await getRandomName();
-const accountNumber = randomCardNumber();
-
-async function submitUTR(currency, transactionCode) {
-    if (!["INR", "BDT"].includes(currency)) {
-        logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
-        return;
+class DepositService {
+    constructor() {
+        this.rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
     }
 
-    const utr = generateUTR(currency);
-    logger.info(`✅ UTR : ${utr}`);
+    ask(question) {
+        return new Promise(resolve => 
+            this.rl.question(question, answer => resolve(answer))
+        );
+    }
 
-    const config = getCurrencyConfig(currency);
-    const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
-    const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
+    close() {
+        this.rl.close();
+    }
 
-    try {
-        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
+    validateCurrency(currency) {
+        if (!SUPPORTED_CURRENCIES.includes(currency)) {
+            throw new Error(`Invalid currency. Supported: ${SUPPORTED_CURRENCIES.join(", ")}`);
+        }
+        return currency;
+    }
+
+    validateAmount(amount) {
+        const numAmount = Number(amount);
+        if (isNaN(numAmount) || numAmount <= 0) {
+            throw new Error("Amount must be a positive number");
+        }
+        return numAmount;
+    }
+
+    validateBankCode(bankCode, currency) {
+        if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
+            throw new Error("Bank Code must contain only letters and numbers");
+        }
+        return currency === 'MMK' ? bankCode.toUpperCase() : bankCode.toLowerCase();
+    }
+
+    generateTransactionCode() {
+        const timestamp = Math.floor(Date.now() / 1000).toString();
+        return `TEST-DP-${timestamp}`;
+    }
+
+    async getBankCode(config, currency) {
+        if (config.requiresBankCode) {
+            const bankCodeInput = await this.ask("Masukkan Bank Code: ");
+            return this.validateBankCode(bankCodeInput.trim(), currency);
+        }
+        
+        if (config.bankCodeOptions) {
+            return config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
+        }
+        
+        return "";
+    }
+
+    getPhoneNumber(currency, bankCode) {
+        if (PHONE_CURRENCIES.includes(currency)) {
+            return randomPhoneNumber(currency.toLowerCase());
+        }
+        
+        if (currency === "MMK" && bankCode === "WAVEPAY") {
+            const phone = randomMyanmarPhoneNumber();
+            logger.info(`Phone Number WavePay: ${phone}`);
+            return phone;
+        }
+        
+        return "";
+    }
+
+    buildPayload(config, transactionData, userInfo) {
+        const {
+            transactionCode,
+            timestamp,
+            amount,
+            userID,
+            currency,
+            ip,
+            bankCode,
+            phone
+        } = transactionData;
+
+        let payload = [
+            `merchant_api_key=${config.merchantAPI}`,
+            `merchant_code=${config.merchantCode}`,
+            `transaction_code=${transactionCode}`,
+            `transaction_timestamp=${timestamp}`,
+            `transaction_amount=${amount}`,
+            `user_id=${userID}`,
+            `currency_code=${currency}`,
+            `payment_code=${config.depositMethod}`,
+            `ip_address=${ip}`,
+            `callback_url=${config.callbackURL}`
+        ].join('&');
+
+        if (bankCode) payload += `&bank_code=${bankCode}`;
+        if (phone) payload += `&phone=${phone}`;
+        
+        if (currency === "THB") {
+            payload += `&depositor_name=${userInfo.name}`;
+            payload += `&depositor_account_number=${userInfo.accountNumber}`;
+        }
+
+        return payload;
+    }
+
+    async makeDepositRequest(config, payload) {
+        const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+        
+        logger.info(`URL: ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
+        logger.info(`Merchant Code: ${config.merchantCode}`);
+        logger.info(`Request Payload: ${payload}`);
+        logger.info(`Encrypted: ${encrypted}`);
+
+        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ key: encryptedPayload })
+            body: JSON.stringify({ key: encrypted })
         });
 
-        const responseText = await response.text();
+        const responseBody = await response.text();
+        
         if (!response.ok) {
-            logger.error(`❌ HTTP Error: ${response.status}`);
-            logger.info(`Response : ${responseText}`);
-            return;
+            throw new Error(`HTTP ${response.status}: ${responseBody}`);
         }
 
-        const result = JSON.parse(responseText);
-        logger.info(`Submit UTR Response : ${JSON.stringify(result, null, 2)}`);
-    } catch (err) {
-        logger.error(`❌ Submit UTR Error : ${err}`);
+        try {
+            return JSON.parse(responseBody);
+        } catch (parseError) {
+            throw new Error(`Failed to parse response JSON: ${parseError.message}`);
+        }
     }
-}
 
-async function sendDeposit() {
-    try {
-        logger.info("======== DEPOSIT V3 REQUEST ========");
-
-        const userID = randomInt(100, 999);
-        const timestamp = Math.floor(Date.now() / 1000).toString();
-
-        const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
-        const currency = currencyInput.trim().toUpperCase();
-
-        if (!["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"].includes(currency)) {
-            logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, KRW, THB atau PMI.");
-            rl.close();
+    async submitUTR(currency, transactionCode) {
+        if (!UTR_CURRENCIES.includes(currency)) {
+            logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
             return;
         }
 
-        const amountInput = await ask("Masukkan Amount: ");
-        const amount = amountInput.trim();
-
-        if (isNaN(amount) || Number(amount) <= 0) {
-            logger.error("❌ Amount harus berupa angka lebih dari 0.");
-            rl.close();
-            return;
-        }
-
-        const transactionCode = `TEST-DP-${timestamp}`;
+        const utr = generateUTR(currency);
+        logger.info(`✅ UTR: ${utr}`);
 
         const config = getCurrencyConfig(currency);
-        let bankCode = "";
-        let phone = "";
-        const ip = getRandomIP();
+        const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
+        const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
 
-        if (config.requiresBankCode) {
-            const bankCodeInput = await ask("Masukkan Bank Code: ");
-            bankCode = bankCodeInput.trim();
-
-            if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
-                logger.error("❌ Bank Code harus berupa huruf/angka.");
-                rl.close();
-                return;
-            }
-
-            if (currency === 'MMK') {
-                bankCode = bankCode.toUpperCase();
-            } else {
-                bankCode = bankCode.toLowerCase();
-            }
-        } else if (config.bankCodeOptions) {
-            bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
-        }
-
-        if (currency === "INR" || currency === "BDT") {
-            phone = randomPhoneNumber(currency.toLowerCase());
-        } else if (currency === "MMK" && bankCode === "WAVEPAY") {
-            phone = randomMyanmarPhoneNumber();
-            logger.info(`Phone Number WavePay: ${phone}`);
-        }
-
-        if (currency === "PMI") {
-            const payload = {
-                invoice_id: transactionCode,
-                amount: amount,
-                currency: "INR",
-                payment_method: config.depositMethod,
-                callback_url: config.callbackURL
-            };
-
-            const headers = {
-                "Content-Type": "application/json",
-                "Authorization": PMI_AUTHORIZATION,
-            };
-
-            try {
-                const response = await fetch(PMI_DP_URL, {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify(payload)
-                });
-
-                const responseText = await response.text();
-                const parsed = JSON.parse(responseText.replace(/\\"/g, '"'));
-
-                logger.info(`Response Status: ${response.status}`);
-                logger.info(`✅ PMI Deposit Response ${JSON.stringify(parsed, null, 2)}`);
-            } catch (err) {
-                logger.error(`❌ PMI Deposit Error : ${err}`);
-            }
-            logger.info("PMI deposit belum di-implementasi di CLI ini.");
-            rl.close();
-            return;
-        } else {
-            let payload =
-                `merchant_api_key=${config.merchantAPI}` +
-                `&merchant_code=${config.merchantCode}` +
-                `&transaction_code=${transactionCode}` +
-                `&transaction_timestamp=${timestamp}` +
-                `&transaction_amount=${amount}` +
-                `&user_id=${userID}` +
-                `&currency_code=${currency}` +
-                `&payment_code=${config.depositMethod}` +
-                `&ip_address=${ip}` +
-                `&callback_url=${config.callbackURL}`;
-
-            if (bankCode) payload += `&bank_code=${bankCode}`;
-            if (phone) payload += `&phone=${phone}`;
-            // if (currency === "VND") {
-            //         payload += "&random_bank_code=OBT";
-            // }
-
-            if (currency === "THB") {
-                payload += `&depositor_name=${name}`;
-                payload += `&depositor_account_number=${accountNumber}`
-            }
-            const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-
-            logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
-            logger.info(`Merchant Code : ${config.merchantCode}`);
-            logger.info(`Request Payload : ${payload}`);
-            logger.info(`Encrypted : ${encrypted}`);
-
-            const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`, {
+        try {
+            const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ key: encrypted })
+                body: JSON.stringify({ key: encryptedPayload })
             });
 
-            const responseBody = await response.text();
-            let resultDP;
-            try {
-                resultDP = JSON.parse(responseBody);
-            } catch (parseError) {
-                logger.error(`❌ Gagal parse JSON: ${parseError.message}`);
-                rl.close();
-                return;
-            }
+            const responseText = await response.text();
+            
             if (!response.ok) {
-                logger.error(`❌ Deposit gagal: ${JSON.stringify(resultDP)}`);
-                rl.close();
+                logger.error(`❌ HTTP Error: ${response.status}`);
+                logger.info(`Response: ${responseText}`);
                 return;
             }
 
-            logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
-            logger.info(`Response Status: ${response.status}`);
+            const result = JSON.parse(responseText);
+            logger.info(`Submit UTR Response: ${JSON.stringify(result, null, 2)}`);
+        } catch (err) {
+            logger.error(`❌ Submit UTR Error: ${err}`);
+        }
+    }
 
-            if (["INR", "BDT"].includes(currency)) {
-                await submitUTR(currency, transactionCode);
-            }
+    async processPMIDeposit(transactionCode, amount, config) {
+        const payload = {
+            invoice_id: transactionCode,
+            amount: amount,
+            currency: "INR",
+            payment_method: config.depositMethod,
+            callback_url: config.callbackURL
+        };
+
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": PMI_AUTHORIZATION,
+        };
+
+        try {
+            const response = await fetch(PMI_DP_URL, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(payload)
+            });
+
+            const responseText = await response.text();
+            const parsed = JSON.parse(responseText.replace(/\\"/g, '"'));
+
+            logger.info(`Response Status: ${response.status}`);
+            logger.info(`✅ PMI Deposit Response ${JSON.stringify(parsed, null, 2)}`);
+        } catch (err) {
+            logger.error(`❌ PMI Deposit Error: ${err}`);
+        }
+        
+        logger.info("PMI deposit belum di-implementasi di CLI ini.");
+    }
+
+    async processStandardDeposit(currency, amount, config, transactionCode) {
+        const userID = randomInt(100, 999);
+        const timestamp = Math.floor(Date.now() / 1000).toString();
+        const ip = getRandomIP();
+        const name = await getRandomName();
+        const accountNumber = randomCardNumber();
+
+        const bankCode = await this.getBankCode(config, currency);
+        const phone = this.getPhoneNumber(currency, bankCode);
+
+        const transactionData = {
+            transactionCode,
+            timestamp,
+            amount,
+            userID,
+            currency,
+            ip,
+            bankCode,
+            phone
+        };
+
+        const userInfo = { name, accountNumber };
+
+        const payload = this.buildPayload(config, transactionData, userInfo);
+        const result = await this.makeDepositRequest(config, payload);
+
+        logger.info("Deposit Response: " + JSON.stringify(result, null, 2));
+
+        // Submit UTR if required
+        if (UTR_CURRENCIES.includes(currency)) {
+            await this.submitUTR(currency, transactionCode);
         }
 
-        logger.info("======== REQUEST DONE ========\n\n");
-    } catch (error) {
-        logger.error(`❌ Error umum: ${error}`);
-    } finally {
-        rl.close();
+        return result;
+    }
+
+    async getUserInput() {
+        const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
+        const currency = this.validateCurrency(currencyInput.trim().toUpperCase());
+
+        const amountInput = await this.ask("Masukkan Amount: ");
+        const amount = this.validateAmount(amountInput.trim());
+
+        return { currency, amount };
+    }
+
+    async sendDeposit() {
+        try {
+            logger.info("======== DEPOSIT V3 REQUEST ========");
+
+            const { currency, amount } = await this.getUserInput();
+            const transactionCode = this.generateTransactionCode();
+            const config = getCurrencyConfig(currency);
+
+            if (currency === "PMI") {
+                await this.processPMIDeposit(transactionCode, amount, config);
+            } else {
+                await this.processStandardDeposit(currency, amount, config, transactionCode);
+            }
+
+            logger.info("======== REQUEST DONE ========\n\n");
+
+        } catch (error) {
+            logger.error(`❌ Error: ${error.message}`);
+        } finally {
+            this.close();
+        }
     }
 }
 
-sendDeposit();
+const depositService = new DepositService();
+depositService.sendDeposit();
