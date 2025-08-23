@@ -91,7 +91,8 @@ export async function sendCallback({
       return responseText;
     }
   } catch (error) {
-    console.error(`❌ Error sending callback for ${transactionNo}:`, error);
-    throw error;
+    const shortMsg = error?.message || String(error);
+    logger.error(`❌ Error sending callback for ${transactionNo}: ${shortMsg}`);
+    return Promise.reject(new Error(shortMsg));
   }
 }

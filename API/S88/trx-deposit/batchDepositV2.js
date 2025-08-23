@@ -309,13 +309,11 @@ class BatchDepositV2Service {
 
     printSummary() {
         const duration = (this.stats.endTime - this.stats.startTime) / 1000;
-        const successRate = ((this.stats.success / this.stats.total) * 100).toFixed(1);
 
-        logger.info("\n======== BATCH SUMMARY ========");
+        logger.info("======== BATCH SUMMARY ========");
         logger.info(`Total Transactions: ${this.stats.total}`);
         logger.info(`Successful: ${this.stats.success}`);
         logger.info(`Failed: ${this.stats.failed}`);
-        logger.info(`Success Rate: ${successRate}%`);
         logger.info(`Total Duration: ${duration.toFixed(2)}s`);
         logger.info(`Average per transaction: ${(duration / this.stats.total).toFixed(2)}s`);
         logger.info("======== BATCH REQUEST DONE ========\n\n");

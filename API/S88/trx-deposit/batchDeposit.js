@@ -416,7 +416,6 @@ class BatchDepositV3Service {
 
     printSummary() {
         const duration = (this.stats.endTime - this.stats.startTime) / 1000;
-        const successRate = this.stats.total > 0 ? ((this.stats.success / this.stats.total) * 100).toFixed(1) : 0;
 
         logger.info("======== BATCH SUMMARY ========");
         logger.info(`Total Transactions: ${this.stats.total}`);
@@ -424,7 +423,6 @@ class BatchDepositV3Service {
         logger.info(`Failed Deposits: ${this.stats.failed}`);
         logger.info(`UTR Submitted: ${this.stats.utrSubmitted}`);
         logger.info(`Callbacks Sent: ${this.stats.callbackSent}`);
-        logger.info(`Success Rate: ${successRate}%`);
         logger.info(`Total Duration: ${duration.toFixed(2)}s`);
         
         if (this.stats.total > 0) {
