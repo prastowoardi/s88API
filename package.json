@@ -22,6 +22,7 @@
     "payout:stag": "cross-env NODE_ENV=staging node API/S88/trx-payout/payout.js",
 
     "singv3:prod": "cross-env NODE_ENV=singhapay node API/S88/trx-deposit/deposit.js",
+    "singv4:prod": "cross-env NODE_ENV=singhapay node API/S88/trx-deposit/depositV4.js",
     "singv2:prod": "cross-env NODE_ENV=singhapay node API/S88/trx-deposit/depositV2.js",
     "singwd:prod": "cross-env NODE_ENV=singhapay node API/S88/trx-payout/payout.js",
     "singinr:prod": "cross-env NODE_ENV=singhapay node API/S88/trx-payout/manualINR.js",
