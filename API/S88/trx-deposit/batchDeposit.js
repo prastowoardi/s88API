@@ -94,7 +94,7 @@ class BatchDepositV3Service {
     }
 
     validateAmountRange(min, max) {
-        if (min >= max) {
+        if (min > max) {
             throw new Error("Minimum amount must be less than maximum amount");
         }
         if (min < 1) {
