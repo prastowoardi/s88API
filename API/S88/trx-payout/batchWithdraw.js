@@ -142,7 +142,8 @@ async function payout(userID, currency, amount, transactionCode, name, options =
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
       return response;
@@ -154,6 +155,7 @@ async function payout(userID, currency, amount, transactionCode, name, options =
     try {
       parsedResult = JSON.parse(rawResponse);
     } catch (e) {
+      logger.error(`❌ Raw response for ${transactionCode}:`, rawResponse);
       throw new Error(`❌ Gagal parse JSON untuk ${transactionCode}: ${rawResponse}`);
     }
 
@@ -167,8 +169,13 @@ async function payout(userID, currency, amount, transactionCode, name, options =
     return { success: true, data: parsedResult };
     
   } catch (error) {
-    logger.error(`❌ Withdraw failed for ${transactionCode}:`, error.message || error);
-    return { success: false, error: error.message };
+    logger.error({
+      message: `Withdraw failed for ${transactionCode}`,
+      error: error.message,
+      stack: error.stack || 'No stack trace available'
+    });
+
+    return { success: false, error: error.message || error.toString() };
   }
 }
 
@@ -196,7 +203,23 @@ async function batchProcess(requests) {
     });
     
     const batchResults = await Promise.allSettled(batchPromises);
-    results.push(...batchResults);
+    
+    batchResults.forEach((result, index) => {
+      const request = batch[index];
+      
+      if (result.status === 'fulfilled') {
+        if (result.value.success) {
+          logger.info(`✅ Transaction ${request.transactionCode} completed successfully`);
+          results.push({ success: true, data: result.value.data, transactionCode: request.transactionCode });
+        } else {
+          logger.error(`❌ Transaction ${request.transactionCode} failed: ${result.value.error}`);
+          results.push({ success: false, error: result.value.error, transactionCode: request.transactionCode });
+        }
+      } else {
+        logger.error(`💥 Promise rejected for ${request.transactionCode}:`, result.reason);
+        results.push({ success: false, error: result.reason.message || result.reason, transactionCode: request.transactionCode });
+      }
+    });
     
     // Delay setiap batch
     if (i + CONFIG.BATCH_SIZE < requests.length) {
@@ -329,7 +352,8 @@ async function batchPayout() {
     
     const results = await batchProcess(allRequests);
     
-    const successCount = results.filter(r => r.status === 'fulfilled' && r.value?.success).length;
+    // Improved result analysis dengan detail error
+    const successCount = results.filter(r => r.success).length;
     const failureCount = results.length - successCount;
     const duration = (Date.now() - startTime) / 1000;
     
@@ -337,14 +361,25 @@ async function batchPayout() {
     logger.info(`Successful: ${successCount}`);
     logger.info(`Failed: ${failureCount}`);
     logger.info(`Duration: ${duration.toFixed(2)}s`);
-    logger.info(`Rate: ${(results.length / duration).toFixed(2)} transactions/second`);
     
-    if (failureCount > 0) {
-      logger.warn("⚠️ Some transactions failed. Check logs for details.");
+    if (failureCount > 0) {      
+      const failedTransactions = results.filter(r => !r.success);
+      
+      // Summary error types
+      const errorTypes = {};
+      failedTransactions.forEach(failure => {
+        const errorType = failure.error?.split(':')[0] || 'Unknown Error';
+        errorTypes[errorType] = (errorTypes[errorType] || 0) + 1;
+      });
+      
+      Object.entries(errorTypes).forEach(([errorType, count]) => {
+        logger.info(`${errorType}: ${count} occurrences`);
+      });
     }
     
   } catch (error) {
     logger.error("❌ Batch payout failed:", error.message);
+    logger.error("❌ Full error details:", error);
     throw error;
   }
 }
