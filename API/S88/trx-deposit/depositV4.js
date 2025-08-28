@@ -261,7 +261,7 @@ class DepositService {
 
     async sendDeposit() {
         try {
-            logger.info("======== DEPOSIT V3 REQUEST ========");
+            logger.info("======== DEPOSIT V4 REQUEST ========");
 
             const { currency, amount } = await this.getUserInput();
             const transactionCode = this.generateTransactionCode();
