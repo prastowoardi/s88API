@@ -121,7 +121,7 @@ class DepositService {
     async makeDepositRequest(config, payload) {
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
         
-        logger.info(`URL: ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
+        logger.info(`URL: ${config.BASE_URL}/api/${config.merchantCode}/v4/dopayment`);
         logger.info(`Merchant Code: ${config.merchantCode}`);
         logger.info(`Request Payload: ${payload}`);
         logger.info(`Encrypted: ${encrypted}`);
