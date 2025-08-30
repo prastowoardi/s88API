@@ -158,7 +158,7 @@ class DepositService {
                     }
                     throw new Error(`HTTP ${response.status}: ${responseBody}`);
                 }
-                return result;
+                return { result, url: urls[i] };
             } catch (err) {
                 logger.error(`Error on ${urls[i]}: ${err.message}`);
             }
@@ -171,7 +171,7 @@ class DepositService {
         }
     }
 
-    async submitUTR(currency, transactionCode) {
+    async submitUTR(currency, transactionCode, baseURL) {
         if (!UTR_CURRENCIES.includes(currency)) {
             logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
             return;
@@ -185,14 +185,14 @@ class DepositService {
         const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
 
         try {
-            const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
+            const response = await fetch(`${baseURL}/api/${config.merchantCode}/v3/submit-utr`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ key: encryptedPayload })
             });
 
             const responseText = await response.text();
-            
+
             if (!response.ok) {
                 logger.error(`❌ HTTP Error: ${response.status}`);
                 logger.info(`Response: ${responseText}`);
@@ -263,13 +263,13 @@ class DepositService {
         const userInfo = { name, accountNumber };
 
         const payload = this.buildPayload(config, transactionData, userInfo);
-        const result = await this.makeDepositRequest(config, payload);
+        const { result, url: successfulURL } = await this.makeDepositRequest(config, payload);
 
         logger.info("Deposit Response: " + JSON.stringify(result, null, 2));
 
         // Submit UTR if required
         if (UTR_CURRENCIES.includes(currency)) {
-            await this.submitUTR(currency, transactionCode);
+            await this.submitUTR(currency, transactionCode, successfulURL);
         }
 
         return result;
