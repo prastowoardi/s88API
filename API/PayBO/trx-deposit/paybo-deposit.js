@@ -45,9 +45,9 @@ async function submitUTR(currency, transactionCode) {
 async function sendDeposit() { 
     logger.info("======== DEPOSIT V3 REQUEST ========");
     
-    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP atau IDR.");
+    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP/HKD): ").toUpperCase();
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
         return;
     }
 
@@ -136,6 +136,13 @@ async function sendDeposit() {
     }
 
     if (cardNumber) payload += `&card_number=${cardNumber}`;
+
+    if (currency === "HKD") {
+        payloadObject.card_number = "3566111111111113";
+        payloadObject.card_date = "06/25";
+        payloadObject.card_cvv = "100";
+        payloadObject.card_holder_name = "bob Brown";
+    }
 
     if (currency === "KRW") {
         payload += 

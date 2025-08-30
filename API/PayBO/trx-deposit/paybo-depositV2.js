@@ -23,11 +23,11 @@ async function depositV2() {
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-    const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW): ");
+    const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/HKD): ");
     const currency = currencyInput.trim().toUpperCase();
 
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP atau IDR.");
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
         rl.close();
         return;
     }
@@ -113,6 +113,13 @@ async function depositV2() {
 
     if (cardNumber) payload += `&card_number=${cardNumber}`;
 
+    if (currency === "HKD") {
+        payloadObject.card_number = "3566111111111113";
+        payloadObject.card_date = "06/25";
+        payloadObject.card_cvv = "100";
+        payloadObject.card_holder_name = "bob Brown";
+    }
+    
     if (currency === "KRW") {
         payload += 
             `&bank_code=${bankCode}` +

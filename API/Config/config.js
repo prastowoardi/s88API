@@ -5,6 +5,7 @@ import { dirname } from 'path';
 
 const envFile = {
     staging: '.env_staging',
+    singhapay: '.env_singhapay',
     production: '.env_production',
     PayBO_staging: '.paybo_staging',
     PayBO_ezyplus: '.paybo_ezyplus',
@@ -86,6 +87,12 @@ export const DEPOSIT_METHOD_PHP = process.env.DEPOSIT_METHOD_PHP;
 export const PAYOUT_METHOD_PHP = process.env.PAYOUT_METHOD_PHP;
 export const MERCHANT_API_KEY_PHP = process.env.MERCHANT_API_KEY_PHP;
 
+export const MERCHANT_CODE_HKD = process.env.MERCHANT_CODE_HKD;
+export const SECRET_KEY_HKD = process.env.SECRET_KEY_HKD;
+export const DEPOSIT_METHOD_HKD = process.env.DEPOSIT_METHOD_HKD;
+export const PAYOUT_METHOD_HKD = process.env.PAYOUT_METHOD_HKD;
+export const MERCHANT_API_KEY_HKD = process.env.MERCHANT_API_KEY_HKD;
+
 export const PMI_WD_URL = process.env.PMI_WD_URL;
 export const PMI_DP_URL = process.env.PMI_DP_URL;
 export const PMI_AUTHORIZATION = process.env.PMI_AUTHORIZATION;
@@ -95,7 +102,7 @@ export const DEPOSIT_METHOD_PMI = process.env.DEPOSIT_METHOD_PMI;
 export const PAYOUT_METHOD_PMI = process.env.PAYOUT_METHOD_PMI;
 export const MERCHANT_API_KEY_PMI = process.env.MERCHANT_API_KEY_PMI;
 
-if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT || !SECRET_KEY_MMK || !SECRET_KEY_PMI || !SECRET_KEY_BRL || !SECRET_KEY_IDR || !SECRET_KEY_MXN || !SECRET_KEY_THB) {
+if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT || !SECRET_KEY_MMK || !SECRET_KEY_PMI || !SECRET_KEY_BRL || !SECRET_KEY_IDR || !SECRET_KEY_MXN || !SECRET_KEY_THB || !SECRET_KEY_HKD) {
     throw new Error("SECRET_KEY is required and cannot be empty.");
 }
 

@@ -54,9 +54,9 @@ async function sendDeposit() {
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP atau IDR.");
+    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP,HKD): ").toUpperCase();
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
         return;
     }
     
@@ -141,6 +141,13 @@ async function sendDeposit() {
 
     if (cardNumber) payloadObject.card_number = cardNumber;
 
+    if (currency === "HKD") {
+        payloadObject.card_number = "3566111111111113";
+        payloadObject.card_date = "06/25";
+        payloadObject.card_cvv = "100";
+        payloadObject.card_holder_name = "bob Brown";
+    }
+    
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 

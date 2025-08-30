@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
@@ -13,9 +13,9 @@ async function sendDeposit() {
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP atau IDR.");
+     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP/HKD): ").toUpperCase();
+    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
+        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
         return;
     }
     
@@ -75,6 +75,7 @@ async function sendDeposit() {
     //     userID = user_id;
     //     logger.info(`user_id from API create-customer KRW: ${userID}`);
     // }
+    const name = getRandomName();
 
     const payloadObject = {
         transaction_amount: parseInt(amount),
@@ -97,13 +98,20 @@ async function sendDeposit() {
         payloadObject.cust_phone = phone;
     }
 
-    if (currency.toUpperCase() === "KRW") {
+    if (currency === "KRW") {
         payloadObject.bank_code = `${bankCode}`;
         payloadObject.card_holder_name = "ANJILI";
         payloadObject.card_number = `${cardNumber}`;
     }
 
     if (cardNumber) payloadObject.card_number = cardNumber;
+
+    if (currency === "HKD") {
+        payloadObject.card_number = "3566111111111113";
+        payloadObject.card_date = "06/25";
+        payloadObject.card_cvv = "100";
+        payloadObject.card_holder_name = "bob Brown";
+    }
 
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
