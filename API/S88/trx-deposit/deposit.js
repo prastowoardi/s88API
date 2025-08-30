@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { warn } from "console";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
 const UTR_CURRENCIES = ["INR", "BDT"];
@@ -121,27 +122,52 @@ class DepositService {
     async makeDepositRequest(config, payload) {
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
         
-        logger.info(`URL: ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
-        logger.info(`Merchant Code: ${config.merchantCode}`);
-        logger.info(`Request Payload: ${payload}`);
-        logger.info(`Encrypted: ${encrypted}`);
+        const urls = [
+            config.BASE_URL,
+            process.env.BASE_URL_2,
+        ].filter(Boolean);
 
-        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ key: encrypted })
-        });
+        for (let i = 0; i < urls.length; i++) {
+            const url = `${urls[i]}/api/${config.merchantCode}/v3/dopayment`;
 
-        const responseBody = await response.text();
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${responseBody}`);
-        }
+            logger.info(`URL: ${url}`);
+            logger.info(`Merchant Code: ${config.merchantCode}`);
+            logger.info(`Request Payload: ${payload}`);
+            logger.info(`Encrypted: ${encrypted}`);
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: encrypted })
+                });
 
-        try {
-            return JSON.parse(responseBody);
-        } catch (parseError) {
-            throw new Error(`Failed to parse response JSON: ${parseError.message}`);
+                const responseBody = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseBody);
+                } catch (err) {
+                    throw new Error(`Failed to parse response JSON: ${err.message}`);
+                }
+                
+                if (!response.ok) {
+                    logger.warn(`HTTP ${response.status}: ${responseBody}`);
+                    if (result.message === "[DP] Unauthorize") {
+                        logger.warn(`Unauthorized on ${urls[i]}, trying next API URL\n`);
+                        logger.info(`================== Trying Other URL ==================\n`);
+                        continue;
+                    }
+                    throw new Error(`HTTP ${response.status}: ${responseBody}`);
+                }
+                return result;
+            } catch (err) {
+                logger.error(`Error on ${urls[i]}: ${err.message}`);
+            }
+
+            try {
+                return JSON.parse(responseBody);
+            } catch (parseError) {
+                throw new Error(`Failed to parse response JSON: ${parseError.message}`);
+            }
         }
     }
 
