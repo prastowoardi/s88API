@@ -125,6 +125,7 @@ class DepositService {
         const urls = [
             config.BASE_URL,
             process.env.BASE_URL_2,
+            process.env.BASE_URL_3,
         ].filter(Boolean);
 
         for (let i = 0; i < urls.length; i++) {
