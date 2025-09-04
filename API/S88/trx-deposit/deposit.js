@@ -121,7 +121,7 @@ class DepositService {
 
     async makeDepositRequest(config, payload) {
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-        
+
         const urls = [
             config.BASE_URL,
             process.env.BASE_URL_2,
@@ -135,6 +135,7 @@ class DepositService {
             logger.info(`Merchant Code: ${config.merchantCode}`);
             logger.info(`Request Payload: ${payload}`);
             logger.info(`Encrypted: ${encrypted}`);
+            
             try {
                 const response = await fetch(url, {
                     method: "POST",
@@ -144,12 +145,13 @@ class DepositService {
 
                 const responseBody = await response.text();
                 let result;
+
                 try {
                     result = JSON.parse(responseBody);
                 } catch (err) {
-                    throw new Error(`Failed to parse response JSON: ${err.message}`);
+                    throw new Error(`Failed to parse response JSON: ${err.message}\nRaw Response: ${responseBody}`);
                 }
-                
+
                 if (!response.ok) {
                     logger.warn(`HTTP ${response.status}: ${responseBody}`);
                     if (result.message === "[DP] Unauthorize") {
@@ -159,17 +161,15 @@ class DepositService {
                     }
                     throw new Error(`HTTP ${response.status}: ${responseBody}`);
                 }
+
                 return { result, url: urls[i] };
             } catch (err) {
                 logger.error(`Error on ${urls[i]}: ${err.message}`);
-            }
-
-            try {
-                return JSON.parse(responseBody);
-            } catch (parseError) {
-                throw new Error(`Failed to parse response JSON: ${parseError.message}`);
+                continue;
             }
         }
+
+        return null; // kalau semua URL gagal
     }
 
     async submitUTR(currency, transactionCode, baseURL) {
@@ -264,7 +264,13 @@ class DepositService {
         const userInfo = { name, accountNumber };
 
         const payload = this.buildPayload(config, transactionData, userInfo);
-        const { result, url: successfulURL } = await this.makeDepositRequest(config, payload);
+        const response = await this.makeDepositRequest(config, payload);
+
+        if (!response) {
+            throw new Error("Failed Submit Deposit!");
+        }
+
+        const { result, url: successfulURL } = response;
 
         logger.info("Deposit Response: " + JSON.stringify(result, null, 2));
 
