@@ -233,7 +233,7 @@ class regularPayout {
       callback_url: config.callbackURL,
       account_name: name,
       ip_address: ip,
-      phone_number: phone
+      // phone_number: phone
     };
   }
 
