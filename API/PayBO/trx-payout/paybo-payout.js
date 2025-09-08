@@ -8,9 +8,8 @@ import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP"];
 const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"];
-const PIX_ACCOUNT_TYPES = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
+const PIX_ACCOUNT_TYPES = ["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"];
 const DEFAULT_BANK_ACCOUNT = "11133322";
-const FALLBACK_BANK_ACCOUNT = "11111111";
 
 class PayoutService {
   constructor() {
@@ -84,8 +83,7 @@ class PayoutService {
       }
       
       payload.bank_code = bankCode;
-      // payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
-      payload.bank_account_number = FALLBACK_BANK_ACCOUNT;
+      payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
 
       if (currency === "BRL" && bankCode === "PIX") {
         payload.account_type = PIX_ACCOUNT_TYPES[Math.floor(Math.random() * PIX_ACCOUNT_TYPES.length)];
@@ -106,11 +104,17 @@ class PayoutService {
     const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.merchantAPI, config.secretKey);
     logger.info(`Encrypted Payload: ${encryptedPayload}`);
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: encryptedPayload }),
-    });
+    let response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: encryptedPayload }),
+      });
+    } catch (err) {
+      logger.error(`❌ Network error: ${err.message}`);
+      throw err;
+    }
 
     return this.handleResponse(response, config);
   }
