@@ -128,6 +128,8 @@ class DepositService {
             process.env.BASE_URL_3,
         ].filter(Boolean);
 
+        let lastError = null;
+
         for (let i = 0; i < urls.length; i++) {
             const url = `${urls[i]}/api/${config.merchantCode}/v3/dopayment`;
 
@@ -148,8 +150,10 @@ class DepositService {
 
                 try {
                     result = JSON.parse(responseBody);
-                } catch (err) {
-                    throw new Error(`Failed to parse response JSON: ${err.message}\nRaw Response: ${responseBody}`);
+                } catch (parseErr) {
+                    lastError = new Error(`Failed to parse response JSON from ${url}: ${parseErr.message}`);
+                    logger.error(`Parse error on ${url}: ${parseErr.message}`);
+                    continue;                
                 }
 
                 if (!response.ok) {
@@ -157,19 +161,23 @@ class DepositService {
                     if (result.message === "[DP] Unauthorize") {
                         logger.warn(`Unauthorized on ${urls[i]}, trying next API URL\n`);
                         logger.info(`================== Trying Other URL ==================\n`);
+                        lastError = new Error(`Unauthorized on ${url}`);
                         continue;
                     }
-                    throw new Error(`HTTP ${response.status}: ${responseBody}`);
-                }
 
+                    lastError = new Error(`HTTP ${response.status} from ${url}: ${result.message || responseBody}`);
+                    logger.error(`HTTP error on ${url}: ${response.status} - ${result.message || responseBody}`);
+                    continue;
+                }
                 return { result, url: urls[i] };
             } catch (err) {
-                logger.error(`Error on ${urls[i]}: ${err.message}`);
-                continue;
+                lastError = err;
+                logger.error(`Network error on ${url}: ${err.message}`);
+                continue;            
             }
         }
 
-        return null; // kalau semua URL gagal
+        throw lastError || new Error("All API URLs failed without specific error");
     }
 
     async submitUTR(currency, transactionCode, baseURL) {
