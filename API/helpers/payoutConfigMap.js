@@ -39,6 +39,7 @@ const internalCurrencies = {
     payoutMethod: PAYOUT_METHOD_BDT,
     secretKey: SECRET_KEY_BDT,
     merchantAPI: MERCHANT_API_KEY_BDT,
+    requiresBankCode: true,
   },
   MMK: {
     merchantCode: MERCHANT_CODE_MMK,
