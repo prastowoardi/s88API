@@ -8,7 +8,7 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { warn } from "console";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
-const UTR_CURRENCIES = ["INR", "BDT"];
+const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
 class DepositService {
@@ -182,19 +182,29 @@ class DepositService {
 
     async submitUTR(currency, transactionCode, baseURL) {
         if (!UTR_CURRENCIES.includes(currency)) {
-            logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
+            logger.error("❌ Submit UTR hanya tersedia untuk INR, BDT & MMK.");
             return;
         }
 
-        const utr = generateUTR(currency);
+        let utr;
+        if (currency === "MMK") {
+            utr = Math.floor(10000 + Math.random() * 90000).toString();
+        } else {
+            utr = generateUTR(currency);
+        }
         logger.info(`✅ UTR: ${utr}`);
 
         const config = getCurrencyConfig(currency);
         const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
         const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
 
+        const endpoint =
+            currency === "MMK"
+                ? `${baseURL}/api/${config.merchantCode}/v3/submit-refno`
+                : `${baseURL}/api/${config.merchantCode}/v3/submit-utr`;
+
         try {
-            const response = await fetch(`${baseURL}/api/${config.merchantCode}/v3/submit-utr`, {
+            const response = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ key: encryptedPayload })
@@ -205,13 +215,15 @@ class DepositService {
             if (!response.ok) {
                 logger.error(`❌ HTTP Error: ${response.status}`);
                 logger.info(`Response: ${responseText}`);
-                return;
+                return null;
             }
 
             const result = JSON.parse(responseText);
             logger.info(`Submit UTR Response: ${JSON.stringify(result, null, 2)}`);
+            return result;
         } catch (err) {
             logger.error(`❌ Submit UTR Error: ${err}`);
+            return null;
         }
     }
 
