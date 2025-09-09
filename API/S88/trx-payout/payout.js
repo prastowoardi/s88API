@@ -331,7 +331,7 @@ class regularPayout {
       return { success: true, data: result };
 
     } catch (error) {
-      logger.error(`❌ Regular Payout Error: ${error.message}`);
+      // logger.error(`❌ Regular Payout Error: ${error.message}`);
       return { success: false, error: error.message };
     }
   }
