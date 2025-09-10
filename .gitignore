@@ -12,5 +12,6 @@ node_modules
 .paybo_bajix
 .paybo_erfolgpay
 .paybo_demo
+.env_singhaStag
 old_bank.json
 log

@@ -6,6 +6,7 @@ import { dirname } from 'path';
 const envFile = {
     staging: '.env_staging',
     singhapay: '.env_singhapay',
+    singhapay_staging: '.env_singhaStag',
     production: '.env_production',
     PayBO_staging: '.paybo_staging',
     PayBO_ezyplus: '.paybo_ezyplus',
