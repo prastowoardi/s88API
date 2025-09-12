@@ -268,7 +268,11 @@ class BatchDepositV3Service {
                 const transactionNo = resultDP.transaction_no;
                 const utr = generateUTR(currency);
                 
-                logger.info(`✅ ${transactionNo} | Amount: ${amount} (${currency}) | UTR: ${utr} | Success: ${resultDP.message}`);
+                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency})`;
+                if (currency === "INR") logMsg += ` | UTR: ${utr}`;
+                logMsg += ` | Success: ${resultDP.message}`;
+                logger.info(logMsg);                
+
                 this.stats.success++;
 
                 if (UTR_CURRENCIES.includes(currency)) {
