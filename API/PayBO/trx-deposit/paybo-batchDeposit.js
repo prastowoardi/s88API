@@ -12,7 +12,6 @@ import {
 
 import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { generateUTR, randomAmount } from "../../helpers/depositHelper.js";
-import { sendCallback } from "../../helpers/callbackHelper.js";
 
 const AVAILABLE_CURRENCIES = ["INR", "BDT", "VND", "MMK"];
 const UTR_CURRENCIES = ["INR", "BDT"];
@@ -30,7 +29,6 @@ class BatchDepositV3Service {
             success: 0,
             failed: 0,
             utrSubmitted: 0,
-            // callbackSent: 0,
             startTime: null,
             endTime: null,
             errors: []
@@ -185,18 +183,6 @@ class BatchDepositV3Service {
         return { success: false, error: "Max retries exceeded" };
     }
 
-    // async sendCallbackSafe(callbackData, transactionCode) {
-    //     try {
-    //         await sendCallback(callbackData);
-    //         this.stats.callbackSent++;
-    //         logger.info(`✅ Callback success for transaction_no ${callbackData.transactionNo}`);
-    //         return { success: true };
-    //     } catch (error) {
-    //         logger.error(`❌ Callback failed for ${transactionCode}:`, error.message);
-    //         return { success: false, error: error.message };
-    //     }
-    // }
-
     buildPayload(config, transactionData) {
         const {
             transactionCode,
@@ -289,24 +275,12 @@ class BatchDepositV3Service {
                     await this.submitUTR(currency, transactionCode);
                 }
 
-                // if (transactionNo) {
-                //     await this.sendCallbackSafe({
-                //         transactionNo,
-                //         amount,
-                //         utr,
-                //         status: 0,
-                //         transactionType: 1,
-                //         currency
-                //     }, transactionCode);
-                // } else {
-                //     logger.warn(`⚠️ transaction_no not found for ${transactionCode}`);
-                // }
-
                 return { success: true, transactionNo, result: resultDP };
             } else {
                 const error = `Deposit failed: ${JSON.stringify(resultDP)}`;
-                logger.error(`❌ Deposit failed for ${transactionCode}:`, resultDP);
-                logger.info(`Payload: ${payload}`);
+                // logger.error(`❌ Deposit failed for ${transactionCode}:`, resultDP);
+                logger.error(`❌ Deposit failed for ${transactionCode}:`);
+                // logger.info(`Payload: ${payload}`);
                 
                 this.stats.failed++;
                 this.stats.errors.push({ transactionCode, error: resultDP });
@@ -422,7 +396,6 @@ class BatchDepositV3Service {
         logger.info(`Successful Deposits: ${this.stats.success}`);
         logger.info(`Failed Deposits: ${this.stats.failed}`);
         logger.info(`UTR Submitted: ${this.stats.utrSubmitted}`);
-        // logger.info(`Callbacks Sent: ${this.stats.callbackSent}`);
         logger.info(`Total Duration: ${duration.toFixed(2)}s`);
         
         if (this.stats.total > 0) {
@@ -440,7 +413,7 @@ class BatchDepositV3Service {
                 .sort(([,a], [,b]) => b - a)
                 .slice(0, 5)
                 .forEach(([error, count]) => {
-                    logger.info(`${count} transactions: ${error.substring(0, 100)}${error.length > 100 ? '...' : ''}`);
+                    logger.error(`${count} transactions: ${error.substring(0, 100)}${error.length > 100 ? '...' : ''}`);
                 });
         }
 

@@ -10,6 +10,7 @@ import { warn } from "console";
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
+const DEPOSITOR_BANK_THB = ["SCB", "KTB", "BBL"]
 
 class DepositService {
     constructor() {
@@ -69,6 +70,11 @@ class DepositService {
         return "";
     }
 
+    getRandomBank() {
+        const randomIndex = Math.floor(Math.random() * DEPOSITOR_BANK_THB.length);
+        return DEPOSITOR_BANK_THB[randomIndex];
+    }
+
     getPhoneNumber(currency, bankCode) {
         if (PHONE_CURRENCIES.includes(currency)) {
             return randomPhoneNumber(currency.toLowerCase());
@@ -113,6 +119,7 @@ class DepositService {
         
         if (currency === "THB") {
             payload += `&depositor_name=${userInfo.name}`;
+            payload += `&depositor_bank_THB=${this.getRandomBank()}`;
             payload += `&depositor_account_number=${userInfo.accountNumber}`;
         }
 
