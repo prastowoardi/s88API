@@ -119,7 +119,7 @@ class DepositService {
         
         if (currency === "THB") {
             payload += `&depositor_name=${userInfo.name}`;
-            payload += `&depositor_bank_THB=${this.getRandomBank()}`;
+            payload += `&depositor_bank=${this.getRandomBank()}`;
             payload += `&depositor_account_number=${userInfo.accountNumber}`;
         }
 
