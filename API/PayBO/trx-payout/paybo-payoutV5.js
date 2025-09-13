@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+import { fileURLToPath } from 'url';
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP"];
 const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"];
@@ -14,6 +15,7 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+rl.input.setEncoding('utf8'); // Windows terminal
 
 const ask = (question) => new Promise(resolve => rl.question(question, resolve));
 
@@ -60,9 +62,7 @@ const buildBasePayload = (userID, currency, amount, transactionCode, name, callb
 
 const addINRSpecificFields = async (payload) => {
   const ifscCode = await getValidIFSC();
-  if (!ifscCode) {
-    throw new Error("IFSC code not found");
-  }
+  if (!ifscCode) throw new Error("IFSC code not found");
 
   const bank = ifscCode.substring(0, 4);
   return {
@@ -86,13 +86,8 @@ const addBankCodeFields = (payload, bankCode, currency) => {
     updatedPayload.account_type = accountType;
   }
 
-  if (currency === "KRW") {
-    updatedPayload.bank_name = "우리은행";
-  }
-
-  if (currency === "THB") {
-    updatedPayload.bank_name = "SCB";
-  }
+  if (currency === "KRW") updatedPayload.bank_name = "우리은행";
+  if (currency === "THB") updatedPayload.bank_name = "SCB";
 
   return updatedPayload;
 };
@@ -102,24 +97,18 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     const config = getPayoutConfig(currency);
     let payload = buildBasePayload(userID, currency, amount, transactionCode, name, callbackURL, config);
 
-    if (currency === "INR" && config.requiresIFSC) {
-      payload = await addINRSpecificFields(payload);
-    }
-
-    if (BANK_CODE_REQUIRED.includes(currency)) {
-      payload = addBankCodeFields(payload, bankCode, currency);
-    }
+    if (currency === "INR" && config.requiresIFSC) payload = await addINRSpecificFields(payload);
+    if (BANK_CODE_REQUIRED.includes(currency)) payload = addBankCodeFields(payload, bankCode, currency);
 
     return await executePayoutRequest(payload, config);
   } catch (error) {
-    // logger.error(`❌ Payout Error: ${error.message}`);
     throw error;
   }
 }
 
 async function executePayoutRequest(payload, config) {
   const apiUrl = `${config.BASE_URL}/api/${config.merchantCode}/v5/payout`;
-  
+
   logger.info(`API URL: ${apiUrl}`);
   logger.info(`Request Payload: ${JSON.stringify(payload, null, 2)}`);
 
@@ -129,10 +118,7 @@ async function executePayoutRequest(payload, config) {
 
   const isValid = signVerify("verify", { payload, signature }, config.secretKey);
   logger.info(isValid ? "✅ VALID SIGN" : "❌ INVALID SIGN");
-
-  if (!isValid) {
-    throw new Error("Invalid signature");
-  }
+  if (!isValid) throw new Error("Invalid signature");
 
   const response = await fetch(apiUrl, {
     method: "POST",
@@ -150,9 +136,8 @@ async function handleResponse(response, config) {
   const responseText = await response.text();
   let result;
 
-  try {
-    result = JSON.parse(responseText);
-  } catch (parseErr) {
+  try { result = JSON.parse(responseText); }
+  catch (parseErr) {
     logger.error("❌ Failed to parse JSON response");
     logger.error(`Raw response:\n${responseText}`);
     throw new Error(`JSON parsing failed: ${parseErr.message}`);
@@ -201,7 +186,7 @@ async function collectInputs() {
 async function sendPayout() {
   try {
     logger.info("======== PAYOUT REQUEST ========");
-    
+
     const userID = randomInt(100, 999);
     const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
     const name = await getRandomName();
@@ -219,7 +204,6 @@ async function sendPayout() {
     logger.info("======== REQUEST DONE ========\n");
     
     return result;
-
   } catch (error) {
     // logger.error(`❌ Payout failed: ${error.message}`);
     throw error;
@@ -244,8 +228,7 @@ process.on('uncaughtException', (error) => {
 export { payout, sendPayout };
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  sendPayout().catch(error => {
-    process.exit(1);
-  });
+const __filename = fileURLToPath(import.meta.url);
+if (__filename === process.argv[1]) {
+  sendPayout().catch(error => process.exit(1));
 }
