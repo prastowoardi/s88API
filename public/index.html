@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>s88API — Interactive</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <style>
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:0; display:flex; height:100vh; }
+        #left { width:30%; border-right:1px solid #ddd; padding:12px; overflow:auto }
+        #right { flex:1; padding:12px; display:flex; flex-direction:column }
+        .file { cursor:pointer; padding:6px; border-radius:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+        .file:hover { background:#f2f2f2 }
+        pre { background:#0b0b0b; color:#e6e6e6; padding:12px; border-radius:8px; overflow:auto; flex:1 }
+        button { padding:8px 12px; margin-right:8px }
+        .controls { margin-bottom:8px }
+        .log { height:200px; overflow:auto; background:#111; color:#cfcfcf; padding:8px; border-radius:6px; font-family: monospace }
+        h3,h4 { margin:8px 0 }
+    </style>
+    </head>
+    <body>
+    <!-- <div id="left">
+        <h3>Project files</h3>
+        <div id="tree">Loading…</div>
+    </div> -->
+    <div id="right">
+        <div class="controls">
+            <button id="refresh">Refresh tree</button>
+            <select id="runSelect" style="min-width:300px"></select>
+            <button id="runBtn">Run</button>
+            <span id="status"></span>
+        </div>
+            <div id="previewWrap" style="margin-bottom:8px">
+            <h4 id="filePath"></h4>
+            <pre id="content">Select a file to preview</pre>
+        </div>
+        <h4>Run output</h4>
+        <div id="log" class="log"></div>
+    </div>
+    <script>
+        const API_BASE = "http://localhost:3000/api/";
+
+        async function api(path){ 
+            const r = await fetch(API_BASE+path); 
+            return r.json(); 
+        }
+
+        async function loadTree(){
+            document.getElementById('tree').innerText='Loading…';
+            const res = await api('tree');
+            const t = res.tree || [];
+            const container = document.getElementById('tree');
+            container.innerHTML='';
+            const runSelect = document.getElementById('runSelect');
+            runSelect.innerHTML='';
+
+            // // Tampilkan file & folder di sidebar
+            // t.forEach(item=>{
+            //     const el = document.createElement('div');
+            //     el.className='file';
+            //     el.textContent = item.path;
+            //     el.onclick = ()=> previewFile(item.path);
+            //     container.appendChild(el);
+            // });
+
+            // Tambahkan npm scripts ke dropdown
+            try {
+                const pkgRes = await api('read?path=package.json');
+                if(pkgRes.ok){
+                    const pkg = JSON.parse(pkgRes.content);
+                    if(pkg.scripts){
+                        Object.keys(pkg.scripts).forEach(s=>{
+                            const opt = document.createElement('option');
+                            opt.value = 'npm:'+s;
+                            opt.textContent = 'npm run '+s;
+                            runSelect.appendChild(opt);
+                        });
+                    }
+                }
+            } catch(e){}
+        }
+
+
+        async function previewFile(path){
+            const res = await fetch(API_BASE+'read?path='+encodeURIComponent(path)).then(r=>r.json());
+            if(!res.ok){ alert(res.error || 'failed'); return; }
+            document.getElementById('filePath').textContent = res.path;
+            document.getElementById('content').textContent = res.content;
+        }
+
+        document.getElementById('refresh').onclick = loadTree;
+        document.getElementById('runBtn').onclick = ()=> {
+            const target = document.getElementById('runSelect').value;
+            if(!target) return alert('Choose a file or npm script to run');
+            runTarget(target);
+        };
+
+        function runTarget(target){
+            const log = document.getElementById('log');
+            log.textContent = '';
+            document.getElementById('status').textContent = 'Running '+target;
+            const es = new EventSource(API_BASE+'run?target='+encodeURIComponent(target));
+            es.onmessage = (ev)=>{
+                log.textContent += ev.data + '\n';
+                log.scrollTop = log.scrollHeight;
+            };
+            es.addEventListener('done', (ev)=>{
+                const d = JSON.parse(ev.data);
+                log.textContent += '\nProcess exited with code '+d.code+'\n';
+                document.getElementById('status').textContent = 'Done';
+                es.close();
+            });
+            es.onerror = (e)=>{
+                document.getElementById('status').textContent = 'Connection closed';
+                es.close();
+            };
+        }
+
+        loadTree();
+    </script>
+</body>
+</html>
