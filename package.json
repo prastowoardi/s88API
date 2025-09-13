@@ -10,7 +10,7 @@
     "strip-ansi": "^7.1.0",
     "winston": "^3.17.0",
     "ws": "^8.18.3",
-    "axios": "^1.11.0"
+    "axios": "^1.12.0"
   },
   "scripts": {
     "deposit:prod": "cross-env NODE_ENV=production node API/S88/trx-deposit/deposit.js",
