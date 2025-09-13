@@ -93,6 +93,10 @@ class PayoutService {
         payload.bank_name = "우리은행";
       }
     }
+
+    if (currency === "THB") {
+      payload.bank_name = "SCB";
+    }
   }
 
   async makePayoutRequest(config, payload) {

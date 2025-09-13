@@ -119,7 +119,7 @@ async function sendDeposit() {
 
     const payloadObject = {
         transaction_code: transactionCode,
-        transaction_amount: parseInt(amount),
+        transaction_amount: amount,
         payment_code: config.depositMethod,
         user_id: userID.toString(),
         currency_code: currency,
@@ -139,7 +139,7 @@ async function sendDeposit() {
         payloadObject.cust_phone = phone;
     }
 
-    if (cardNumber) payloadObject.card_number = cardNumber;
+    if (cardNumber) payloadObject.card_number = `${cardNumber}`;
 
     if (currency === "HKD") {
         payloadObject.card_number = "3566111111111113";
