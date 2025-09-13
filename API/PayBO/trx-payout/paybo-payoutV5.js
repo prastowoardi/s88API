@@ -47,8 +47,8 @@ const buildBasePayload = (userID, currency, amount, transactionCode, name, callb
   return {
     merchant_code: config.merchantCode,
     transaction_code: transactionCode,
-    transaction_timestamp: timestamp,
-    transaction_amount: amount,
+    transaction_timestamp: `${timestamp}`,
+    transaction_amount: `${amount}`,
     user_id: userID.toString(),
     currency_code: currency,
     payout_code: config.payoutMethod,
@@ -88,6 +88,10 @@ const addBankCodeFields = (payload, bankCode, currency) => {
 
   if (currency === "KRW") {
     updatedPayload.bank_name = "우리은행";
+  }
+
+  if (currency === "THB") {
+    updatedPayload.bank_name = "SCB";
   }
 
   return updatedPayload;
