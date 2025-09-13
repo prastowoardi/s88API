@@ -103,8 +103,17 @@ export const DEPOSIT_METHOD_PMI = process.env.DEPOSIT_METHOD_PMI;
 export const PAYOUT_METHOD_PMI = process.env.PAYOUT_METHOD_PMI;
 export const MERCHANT_API_KEY_PMI = process.env.MERCHANT_API_KEY_PMI;
 
-if (!SECRET_KEY_INR || !SECRET_KEY_VND || !SECRET_KEY_BDT || !SECRET_KEY_MMK || !SECRET_KEY_PMI || !SECRET_KEY_BRL || !SECRET_KEY_IDR || !SECRET_KEY_MXN || !SECRET_KEY_THB || !SECRET_KEY_HKD) {
-    throw new Error("SECRET_KEY is required and cannot be empty.");
+const missingKeys = [];
+
+for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith("SECRET_KEY_") && !value) {
+        console.error(`❌ ${key} is EMPTY`);
+        missingKeys.push(key);
+    }
+}
+
+if (missingKeys.length > 0) {
+    throw new Error(`Missing SECRET_KEY(s): ${missingKeys.join(', ')}`);
 }
 
 if (!PMI_DP_URL || !PMI_WD_URL) {
