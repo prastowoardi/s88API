@@ -138,10 +138,11 @@ async function sendDeposit() {
     if (cardNumber) payload += `&card_number=${cardNumber}`;
 
     if (currency === "HKD") {
-        payloadObject.card_number = "3566111111111113";
-        payloadObject.card_date = "06/25";
-        payloadObject.card_cvv = "100";
-        payloadObject.card_holder_name = "bob Brown";
+        payload +=
+        `&card_number=3566111111111113` +
+        `&card_date=06/25` +
+        `&card_cvv=100` +
+        `&card_holder_name=bob Brown`;
     }
 
     if (currency === "KRW") {
@@ -150,6 +151,8 @@ async function sendDeposit() {
             `&card_holder_name=중국공상은행` +
             `&card_number=${cardNumber}`;
     }
+
+    if (currency === "THB") { payload += `&bank_account_number=${cardNumber}`}
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
     const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);

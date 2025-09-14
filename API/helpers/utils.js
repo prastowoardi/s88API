@@ -84,7 +84,7 @@ export function signVerify(action, data, secretkey) {
     const signature = Buffer.from(hmacHex, 'utf8').toString('base64');
 
     if (action === "sign") {
-        logger.info(`Generated Signature (Base64): ${signature}`);
+        // logger.info(`Generated Signature (Base64): ${signature}`);
         return signature;
     }
 

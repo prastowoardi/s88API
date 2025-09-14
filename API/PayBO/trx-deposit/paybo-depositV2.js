@@ -114,10 +114,11 @@ async function depositV2() {
     if (cardNumber) payload += `&card_number=${cardNumber}`;
 
     if (currency === "HKD") {
-        payloadObject.card_number = "3566111111111113";
-        payloadObject.card_date = "06/25";
-        payloadObject.card_cvv = "100";
-        payloadObject.card_holder_name = "bob Brown";
+        payload += 
+          `&card_number=3566111111111113` +
+          `&card_date=06/25` +
+          `&card_cvv=100` +
+          `&card_holder_name=bob Brown`;
     }
     
     if (currency === "KRW") {
@@ -125,6 +126,10 @@ async function depositV2() {
             `&bank_code=${bankCode}` +
             `&card_holder_name=중국공상은행` +
             `&card_number=${cardNumber}`;
+    }
+
+    if (currency === "THB" ) {
+        payload += `&bank_account_number=${cardNumber}`;
     }
     
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
@@ -134,7 +139,7 @@ async function depositV2() {
     logger.info(`Amount : ${amount}`);
     logger.info(`Request Payload : ${payload}`);
     logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
-    logger.info("================================\n\n");
+    logger.info("\n=============== CLICK LINK TO FINISHED THIS REQUEST ===============\n\n");
   } catch (err) {
     logger.error(`❌ Error: ${err.message}`);
   } finally {

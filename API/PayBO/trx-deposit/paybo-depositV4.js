@@ -113,6 +113,10 @@ async function sendDeposit() {
         payloadObject.card_holder_name = "bob Brown";
     }
 
+    if (currency === "THB" ) {
+        payloadObject.bank_account_number = `${cardNumber}`
+    }
+
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
