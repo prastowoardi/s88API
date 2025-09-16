@@ -3,9 +3,44 @@ import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
-import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
+import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
+
+async function submitUTR(currency, transactionCode) {
+    if (!["INR", "BDT"].includes(currency)) {
+        logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
+        return;
+    }
+
+    const utr = generateUTR(currency);
+    logger.info(`✅ UTR : ${utr}`);
+
+    const config = getCurrencyConfig(currency);
+
+    const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
+    const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
+
+    try {
+        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: encryptedPayload })
+        });
+
+        const responseText = await response.text();
+        if (!response.ok) {
+            logger.error("❌ HTTP Error:", response.status);
+            logger.info(`Response : ${responseText}`);
+            return;
+        }
+
+        const result = JSON.parse(responseText);
+        logger.info(`Submit UTR Response : ${JSON.stringify(result, null, 2)}`);        
+    } catch (err) {
+        logger.error(`❌ Submit UTR Error : ${err}`);
+    }
+}
 
 async function sendDeposit() { 
     logger.info("======== DEPOSIT V4 REQUEST ========");
@@ -163,6 +198,11 @@ async function sendDeposit() {
 
         logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
         logger.info(`Response Status: ${response.status}`);
+
+        if (["INR", "BDT"].includes(currency)) {
+            await submitUTR(currency, transactionCode);
+        }
+
     } catch (err) {
         logger.error(`❌ Deposit Error: ${err}`);
     }

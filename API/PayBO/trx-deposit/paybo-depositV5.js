@@ -42,7 +42,7 @@ async function submitUTR(currency, transactionCode) {
         }
 
         const result = JSON.parse(responseText);
-        logger.info(`✅ Submit UTR Response : ${JSON.stringify(result, null, 2)}`);
+        logger.info(`Submit UTR Response : ${JSON.stringify(result, null, 2)}`);
     } catch (err) {
         logger.error(`❌ Submit UTR Error : ${err}`);
     }

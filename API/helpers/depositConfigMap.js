@@ -59,7 +59,7 @@ export const currencyConfigMap = {
     depositMethod: DEPOSIT_METHOD_IDR,
     secretKey: SECRET_KEY_IDR,
     merchantAPI: MERCHANT_API_KEY_IDR,
-    bankCodeOptions: ["BCA", "DANA", "OVO", "GOPAY", "MANDIRI", "BNI"],
+    requiresBankCode: true,
   },
   THB: {
     merchantCode: MERCHANT_CODE_THB,
