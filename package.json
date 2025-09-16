@@ -129,7 +129,14 @@
     "demov4:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-deposit/paybo-depositV4.js",
     "demov5:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-deposit/paybo-depositV5.js",
     "demowd:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-payout/paybo-payout.js",
-    "demowdv5:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-payout/paybo-payoutV5.js"
+    "demowdv5:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-payout/paybo-payoutV5.js",
+    
+    "apv3:prod": "cross-env NODE_ENV=PayBO_apollo node API/PayBO/trx-deposit/paybo-deposit.js",
+    "apv2:prod": "cross-env NODE_ENV=PayBO_apollo node API/PayBO/trx-deposit/paybo-depositV2.js",
+    "apv4:prod": "cross-env NODE_ENV=PayBO_apollo node API/PayBO/trx-deposit/paybo-depositV4.js",
+    "apv5:prod": "cross-env NODE_ENV=PayBO_apollo node API/PayBO/trx-deposit/paybo-depositV5.js",
+    "apwd:prod": "cross-env NODE_ENV=PayBO_apollo node API/PayBO/trx-payout/paybo-payout.js",
+    "apwdv5:prod": "cross-env NODE_ENV=PayBO_apollo node API/PayBO/trx-payout/paybo-payoutV5.js"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
