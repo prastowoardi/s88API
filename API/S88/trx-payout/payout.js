@@ -271,6 +271,8 @@ class regularPayout {
   }
 
   static async send(userID, currency, amount, transactionCode, name, config, inputHandler) {
+      const url = `${config.BASE_URL}/api/v1/payout/${config.merchantCode}`;
+
       try {
       logger.info("🚀 Creating payout payload...");
       
@@ -282,6 +284,7 @@ class regularPayout {
         payload, currency, config, inputHandler
       );
 
+      logger.info(`URL: ${url}`)
       logger.info(`Payout request:\n${JSON.stringify(payload, null, 2)}`);
 
       const encryptedPayload = encryptDecryptPayout(
@@ -293,7 +296,7 @@ class regularPayout {
       logger.info("Payload encrypted successfully");
 
       const result = await utils.retryWithBackoff(async () => {
-        const response = await fetch(`${config.BASE_URL}/api/v1/payout/${config.merchantCode}`, {
+        const response = await fetch(url, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
