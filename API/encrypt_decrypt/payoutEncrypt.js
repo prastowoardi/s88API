@@ -1,57 +1,9 @@
 import fetch from "node-fetch";
 import { randomInt } from "crypto";
 import readlineSync from "readline-sync";
-import { encryptDecrypt, encryptDecryptPayout } from "../utils.js";
-import { SECRET_KEY_INR, SECRET_KEY_VND, PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND } from "../Config/config.js";
-import fs from 'fs/promises';
-import { fileURLToPath } from 'url';
-import path from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const ifscDataPath = path.resolve(__dirname, '../s88API/API/src/banks.json');
-
-async function getRandomIFSC(currency) {
-    try {
-        await fs.access(ifscDataPath);
-
-        const data = await fs.readFile(ifscDataPath, 'utf8');
-        const ifscData = JSON.parse(data);
-
-        if (!ifscData.NTDRESP || !Array.isArray(ifscData.NTDRESP.BANKLIST)) {
-            throw new Error("Format data banks.json tidak valid!");
-        }
-
-        const bankList = ifscData.NTDRESP.BANKLIST;
-
-        if (bankList.length === 0) {
-            throw new Error("Data bank kosong!");
-        }
-
-        const randomBank = bankList[Math.floor(Math.random() * bankList.length)];
-
-        if (!randomBank.MIFSCCODE) {
-            throw new Error(`Bank ${randomBank.BANKNAME} tidak memiliki IFSC yang valid.`);
-        }
-
-        return randomBank.MIFSCCODE;
-    } catch (error) {
-        console.error(`❌ Error saat membaca IFSC data: ${error.message}`);
-        return null;
-    }
-}
-
-async function getRandomName() {
-    try {
-        const response = await fetch('https://randomuser.me/api/');
-        const data = await response.json();
-        return `${data.results[0].name.first} ${data.results[0].name.last}`;
-    } catch (error) {
-        console.error("❌ Gagal mengambil data:", error);
-        return null;
-    }
-}
+import { encryptDecrypt, encryptDecryptPayout, getRandomName } from "../helpers/utils.js";
+import { SECRET_KEY_INR, SECRET_KEY_VND, PAYOUT_METHOD_INR, PAYOUT_METHOD_VND, MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, CALLBACK_URL } from "../Config/config.js";
+import { getRandomIFSC } from "../helpers/payoutHelper.js";
 
 async function payoutEncrypt() {
     console.log("\n=== ENCRYPT/DECRYPT ===");
@@ -82,6 +34,7 @@ async function payoutEncrypt() {
             ifsc_code: await getRandomIFSC(currency),
             account_name: await getRandomName(),
             payout_code: payoutMethod,
+            CALLBACK_URL
         };
     } else if (currency === "VND") {
         merchantCode = MERCHANT_CODE_VND;
@@ -113,7 +66,7 @@ async function payoutEncrypt() {
     const decryptedPayload = encryptDecrypt("decrypt", encryptedPayload, apiKey, secretKey);
     console.log("\n🔓 Decrypted Payload:", decryptedPayload);
 
-    console.log(`\n==================================================== DONE ============================================================== `);
+    console.log(`\n======================================== DONE ======================================== `);
 }
 
 payoutEncrypt();

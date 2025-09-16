@@ -44,6 +44,7 @@
 
     "payoutenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/payoutEncrypt.js",
     "payoutenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/payoutEncrypt.js",
+    "singwdenc:stag": "cross-env NODE_ENV=singhapay_staging node API/encrypt_decrypt/payoutEncrypt.js",
 
     "depositenc:prod": "cross-env NODE_ENV=production node API/encrypt_decrypt/depositEncrypt.js",
     "depositenc:stag": "cross-env NODE_ENV=staging node API/encrypt_decrypt/depositEncrypt.js",
