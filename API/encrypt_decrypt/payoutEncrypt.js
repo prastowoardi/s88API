@@ -3,7 +3,7 @@ import { randomInt } from "crypto";
 import readlineSync from "readline-sync";
 import { encryptDecrypt, encryptDecryptPayout, getRandomName } from "../helpers/utils.js";
 import { getPayoutConfig } from "../helpers/payoutConfigMap.js";
-import { getRandomIFSC } from "../helpers/payoutHelper.js";
+import { getValidIFSC } from "../helpers/payoutHelper.js";
 
 async function payoutEncrypt() {
     console.log("\n=== ENCRYPT/DECRYPT ===");
@@ -32,7 +32,7 @@ async function payoutEncrypt() {
             user_id: userID.toString(),
             currency_code: currency,
             bank_account_number: "11133322",
-            ifsc_code: await getRandomIFSC(currency),
+            ifsc_code: await getValidIFSC(currency),
             account_name: await getRandomName(),
             payout_code: config.payoutMethod,
             callback_url: config.callbackURL

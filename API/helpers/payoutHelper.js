@@ -40,7 +40,7 @@ export async function getRandomIFSC(currency) {
   }
 }
 
-export async function getValidIFSC(currency, maxRetries = 3) {
+export async function getValidIFSC(currency, maxRetries = 5) {
   let attempts = 0;
   while (attempts < maxRetries) {
     const ifscCode = await getRandomIFSC(currency);
