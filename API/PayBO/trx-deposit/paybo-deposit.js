@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
@@ -152,7 +152,18 @@ async function sendDeposit() {
             `&card_number=${cardNumber}`;
     }
 
-    if (currency === "THB") { payload += `&bank_account_number=${cardNumber}`}
+    if (currency === "THB") {
+        const account_type = readlineSync.question("Masukkan Account Type : ");
+        if (!/^[a-z0-9A-Z]+$/.test(account_type)) {
+            throw new Error("Depositor Bank must contain only letters");
+        }
+
+        payload += `&account_type=${account_type}`;
+        payload += `&depositor_name=${await getRandomName()}`;
+        payload += `&depositor_bank=${bankCode}`;
+        payload += `&bank_account_number=${cardNumber}`;
+    }
+
 
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
     const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);

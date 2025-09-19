@@ -263,6 +263,12 @@ class SimpleDepositV2 {
             if (phone) payloadParts.push(`phone=${phone}`);
             
             if (currency === "THB") {
+                const depositorBank = await ask("Masukkan Depositor Bank: ");
+                if (!/^[a-z0-9A-Z]+$/.test(depositorBank)) {
+                    throw new Error("Depositor Bank must contain only letters");
+                }
+                
+                payloadParts.push(`depositor_bank=${depositorBank}`)
                 payloadParts.push(`depositor_name=${name}`);
                 payloadParts.push(`depositor_account_number=${accountNumber}`);
             }

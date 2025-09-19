@@ -10,7 +10,6 @@ import { warn } from "console";
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
-const DEPOSITOR_BANK_THB = ["SCB", "KTB", "BBL"]
 
 class DepositService {
     constructor() {
@@ -49,7 +48,7 @@ class DepositService {
         if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
             throw new Error("Bank Code must contain only letters and numbers");
         }
-        return currency === 'MMK' ? bankCode.toUpperCase() : bankCode.toLowerCase();
+        return bankCode;
     }
 
     generateTransactionCode() {
@@ -70,11 +69,6 @@ class DepositService {
         return "";
     }
 
-    getRandomBank() {
-        const randomIndex = Math.floor(Math.random() * DEPOSITOR_BANK_THB.length);
-        return DEPOSITOR_BANK_THB[randomIndex];
-    }
-
     getPhoneNumber(currency, bankCode) {
         if (PHONE_CURRENCIES.includes(currency)) {
             return randomPhoneNumber(currency.toLowerCase());
@@ -89,7 +83,7 @@ class DepositService {
         return "";
     }
 
-    buildPayload(config, transactionData, userInfo) {
+    async buildPayload(config, transactionData, userInfo) {
         const {
             transactionCode,
             timestamp,
@@ -118,8 +112,13 @@ class DepositService {
         if (phone) payload += `&phone=${phone}`;
         
         if (currency === "THB") {
+            const depositorBank = await this.ask("Masukkan Depositor Bank: ");
+            if (!/^[a-z0-9A-Z]+$/.test(depositorBank)) {
+                throw new Error("Depositor Bank must contain only letters");
+            }
+
             payload += `&depositor_name=${userInfo.name}`;
-            payload += `&depositor_bank=${this.getRandomBank()}`;
+            payload += `&depositor_bank=${depositorBank}`;
             payload += `&depositor_account_number=${userInfo.accountNumber}`;
         }
 
@@ -290,7 +289,7 @@ class DepositService {
 
         const userInfo = { name, accountNumber };
 
-        const payload = this.buildPayload(config, transactionData, userInfo);
+        const payload = await this.buildPayload(config, transactionData, userInfo);
         const response = await this.makeDepositRequest(config, payload);
 
         if (!response) {

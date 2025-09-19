@@ -128,7 +128,15 @@ async function depositV2() {
             `&card_number=${cardNumber}`;
     }
 
-    if (currency === "THB" ) {
+    if (currency === "THB") {
+        const account_type = readlineSync.question("Masukkan Account Type : ");
+        if (!/^[a-z0-9A-Z]+$/.test(account_type)) {
+            throw new Error("Depositor Bank must contain only letters");
+        }
+
+        payload += `&account_type=${account_type}`;
+        payload += `&depositor_name=${await getRandomName()}`;
+        payload += `&depositor_bank=${bankCode}`;
         payload += `&bank_account_number=${cardNumber}`;
     }
     

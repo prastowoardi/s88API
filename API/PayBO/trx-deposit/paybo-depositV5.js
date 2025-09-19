@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
@@ -148,8 +148,16 @@ async function sendDeposit() {
         payloadObject.card_holder_name = "bob Brown";
     }
 
-    if (currency === "THB" ) {
-        payloadObject.bank_account_number = `${cardNumber}`
+    if (currency === "THB") {
+        const account_type = readlineSync.question("Masukkan Account Type: ");
+        if (!/^[a-z0-9A-Z]+$/.test(account_type)) {
+            throw new Error("Account Type must contain only letters");
+        }
+        
+        payloadObject.bank_code = bankCode
+        payloadObject.depositor_name = await getRandomName();
+        payloadObject.account_type = account_type;
+        payloadObject.bank_account_number = cardNumber;
     }
     
     const payload = JSON.stringify(payloadObject);
