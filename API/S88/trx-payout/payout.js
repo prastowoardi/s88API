@@ -250,7 +250,7 @@ class regularPayout {
       
       enhancedPayload.ifsc_code = ifscCode;
       enhancedPayload.bank_account_number = BANK_CONFIG.INR.bank_account_number;
-      logger.info(`✅ IFSC Code: ${ifscCode}`);
+      logger.info(`IFSC Code: ${ifscCode}`);
     }
 
     if (config.requiresBankCode) {

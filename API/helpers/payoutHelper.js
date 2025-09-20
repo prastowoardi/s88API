@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ifscDataPath = path.resolve(__dirname, '../src/banks.json');
 
-export async function getRandomIFSC(currency) {
+export async function getRandomIFSC() {
   try {
     await fs.access(ifscDataPath);
     const data = await fs.readFile(ifscDataPath, 'utf8');
@@ -22,18 +22,19 @@ export async function getRandomIFSC(currency) {
         throw new Error("Data bank kosong!");
     }
 
-    const randomBank = bankList[Math.floor(Math.random() * bankList.length)];
+    let validBank = null;
 
-    if (!randomBank.MIFSCCODE) {
-        throw new Error(`Bank ${randomBank.BANKNAME} tidak memiliki IFSC yang valid.`);
+    while (!validBank) {
+      const randomBank = bankList[Math.floor(Math.random() * bankList.length)];
+      
+      if (randomBank.MIFSCCODE && randomBank.MIFSCCODE.trim() !== "") {
+        validBank = randomBank;
+        // console.log(`✅ Bank: ${validBank.BANKNAME} (${validBank.BANKCODE})`);
+        // console.log(`✅ IFSC Code: ${validBank.MIFSCCODE}`);
+      }
     }
 
-    if (currency === "INR") {
-        console.log(`✅ Bank: ${randomBank.BANKNAME} (${randomBank.BANKCODE})`);
-        console.log(`✅ IFSC Code: ${randomBank.MIFSCCODE}`);
-    }
-
-    return randomBank.MIFSCCODE;
+    return validBank.MIFSCCODE;
   } catch (error) {
     console.error(`❌ Error saat membaca IFSC data: ${error.message}`);
     return null;
@@ -44,12 +45,51 @@ export async function getValidIFSC(currency, maxRetries = 5) {
   let attempts = 0;
   while (attempts < maxRetries) {
     const ifscCode = await getRandomIFSC(currency);
-    if (ifscCode) return ifscCode;
+    if (ifscCode) {
+      const isValid = await validateIFSC(ifscCode);
+      if (isValid) return ifscCode;
+    }
     console.warn(`⚠️ Percobaan ${attempts + 1} gagal mendapatkan IFSC. Mencoba lagi...`);
     attempts++;
   }
   console.error("❌ Gagal mendapatkan IFSC setelah beberapa percobaan.");
   return null;
+}
+
+export async function validateIFSC(ifscCode) {
+  try {
+    const response = await fetch(`https://ifsc-prod-p1.rubikpay.com/${ifscCode}`);
+    
+    if (!response.ok) {
+      console.error(`❌ Validasi IFSC gagal: ${response.statusText}`);
+      return false;
+    }
+
+    let data;
+    const textResponse = await response.text();
+
+    try {
+      data = JSON.parse(textResponse);
+    } catch (error) {
+      console.error('❌ Gagal parse respons API:', error.message);
+      data = textResponse;
+    }
+
+    if (data && data.IFSC && data.BANKCODE && data.BANK) {
+      console.log("API Response:", JSON.stringify({
+        ifsc_status: `${ifscCode} Valid!`,
+        response: data
+      }, null, 2));
+
+      return true;
+    } else {
+      console.error(`❌ IFSC Code ${ifscCode} tidak valid. Respons tidak lengkap.`);
+      return false;
+    }
+  } catch (error) {
+    console.error(`❌ Error saat memvalidasi IFSC Code: ${error.message}`);
+    return false;
+  }
 }
 
 export function randomPhoneNumber(currency = "default") {
