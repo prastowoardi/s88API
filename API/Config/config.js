@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 
-const envFile = {
+// Load environment
+const envFiles = {
     staging: '.env_staging',
     singhapay: '.env_singhapay',
     singhapay_staging: '.env_singhaStag',
@@ -18,103 +18,53 @@ const envFile = {
     PayBO_erfolgpay: '.paybo_erfolgpay',
     PayBO_apollo: '.paybo_apollo',
     PayBO_production: '.paybo_production'
-}[process.env.NODE_ENV] || '.env_staging';
+};
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const envFile = envFiles[process.env.NODE_ENV] || '.env_staging';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 
+const currencies = ['INR', 'VND', 'BDT', 'MMK', 'BRL', 'IDR', 'THB', 'MXN', 'KRW', 'PHP', 'HKD'];
+const merchantFields = ['SECRET_KEY', 'DEPOSIT_METHOD', 'PAYOUT_METHOD', 'MERCHANT_API_KEY', 'MERCHANT_CODE'];
+const pmiFields = ['PMI_WD_URL', 'PMI_DP_URL', 'PMI_AUTHORIZATION', 'MERCHANT_CODE_PMI', 'SECRET_KEY_PMI', 'DEPOSIT_METHOD_PMI', 'PAYOUT_METHOD_PMI', 'MERCHANT_API_KEY_PMI'];
+const staticFields = ['BASE_URL', 'API_NINJAS_KEY'];
+
+const allFields = [
+    ...staticFields,
+    ...currencies.flatMap(curr => merchantFields.map(field => `${field}_${curr}`)),
+    ...pmiFields
+];
+
+const exports = {};
+allFields.forEach(field => {
+    exports[field] = process.env[field];
+});
+
+export const {
+    BASE_URL,
+    API_NINJAS_KEY,
+    SECRET_KEY_INR, DEPOSIT_METHOD_INR, PAYOUT_METHOD_INR, MERCHANT_API_KEY_INR, MERCHANT_CODE_INR,
+    SECRET_KEY_VND, DEPOSIT_METHOD_VND, PAYOUT_METHOD_VND, MERCHANT_API_KEY_VND, MERCHANT_CODE_VND,
+    SECRET_KEY_BDT, DEPOSIT_METHOD_BDT, PAYOUT_METHOD_BDT, MERCHANT_API_KEY_BDT, MERCHANT_CODE_BDT,
+    SECRET_KEY_MMK, DEPOSIT_METHOD_MMK, PAYOUT_METHOD_MMK, MERCHANT_API_KEY_MMK, MERCHANT_CODE_MMK,
+    SECRET_KEY_BRL, DEPOSIT_METHOD_BRL, PAYOUT_METHOD_BRL, MERCHANT_API_KEY_BRL, MERCHANT_CODE_BRL,
+    SECRET_KEY_IDR, DEPOSIT_METHOD_IDR, PAYOUT_METHOD_IDR, MERCHANT_API_KEY_IDR, MERCHANT_CODE_IDR,
+    SECRET_KEY_THB, DEPOSIT_METHOD_THB, PAYOUT_METHOD_THB, MERCHANT_API_KEY_THB, MERCHANT_CODE_THB,
+    SECRET_KEY_MXN, DEPOSIT_METHOD_MXN, PAYOUT_METHOD_MXN, MERCHANT_API_KEY_MXN, MERCHANT_CODE_MXN,
+    SECRET_KEY_KRW, DEPOSIT_METHOD_KRW, PAYOUT_METHOD_KRW, MERCHANT_API_KEY_KRW, MERCHANT_CODE_KRW,
+    SECRET_KEY_PHP, DEPOSIT_METHOD_PHP, PAYOUT_METHOD_PHP, MERCHANT_API_KEY_PHP, MERCHANT_CODE_PHP,
+    SECRET_KEY_HKD, DEPOSIT_METHOD_HKD, PAYOUT_METHOD_HKD, MERCHANT_API_KEY_HKD, MERCHANT_CODE_HKD,
+    PMI_WD_URL, PMI_DP_URL, PMI_AUTHORIZATION, MERCHANT_CODE_PMI, SECRET_KEY_PMI, DEPOSIT_METHOD_PMI, PAYOUT_METHOD_PMI, MERCHANT_API_KEY_PMI
+} = process.env;
+
 export const CALLBACK_URL = "https://webhook.prastowoardi616.workers.dev/webhook";
-export const BASE_URL = process.env.BASE_URL;
-export const API_NINJAS_KEY = process.env.API_NINJAS_KEY;
 
-export const SECRET_KEY_INR = process.env.SECRET_KEY_INR;
-export const DEPOSIT_METHOD_INR = process.env.DEPOSIT_METHOD_INR;
-export const PAYOUT_METHOD_INR = process.env.PAYOUT_METHOD_INR;
-export const MERCHANT_API_KEY_INR = process.env.MERCHANT_API_KEY_INR;
-export const MERCHANT_CODE_INR = process.env.MERCHANT_CODE_INR;
-
-export const MERCHANT_CODE_VND = process.env.MERCHANT_CODE_VND;
-export const SECRET_KEY_VND = process.env.SECRET_KEY_VND;
-export const DEPOSIT_METHOD_VND = process.env.DEPOSIT_METHOD_VND;
-export const PAYOUT_METHOD_VND = process.env.PAYOUT_METHOD_VND;
-export const MERCHANT_API_KEY_VND = process.env.MERCHANT_API_KEY_VND;
-
-export const MERCHANT_CODE_BDT = process.env.MERCHANT_CODE_BDT;
-export const SECRET_KEY_BDT = process.env.SECRET_KEY_BDT;
-export const DEPOSIT_METHOD_BDT = process.env.DEPOSIT_METHOD_BDT;
-export const PAYOUT_METHOD_BDT = process.env.PAYOUT_METHOD_BDT;
-export const MERCHANT_API_KEY_BDT = process.env.MERCHANT_API_KEY_BDT;
-
-export const MERCHANT_CODE_MMK = process.env.MERCHANT_CODE_MMK;
-export const SECRET_KEY_MMK = process.env.SECRET_KEY_MMK;
-export const DEPOSIT_METHOD_MMK = process.env.DEPOSIT_METHOD_MMK;
-export const PAYOUT_METHOD_MMK = process.env.PAYOUT_METHOD_MMK;
-export const MERCHANT_API_KEY_MMK = process.env.MERCHANT_API_KEY_MMK;
-
-export const MERCHANT_CODE_BRL = process.env.MERCHANT_CODE_BRL;
-export const SECRET_KEY_BRL = process.env.SECRET_KEY_BRL;
-export const DEPOSIT_METHOD_BRL = process.env.DEPOSIT_METHOD_BRL;
-export const PAYOUT_METHOD_BRL = process.env.PAYOUT_METHOD_BRL;
-export const MERCHANT_API_KEY_BRL = process.env.MERCHANT_API_KEY_BRL;
-
-export const MERCHANT_CODE_IDR = process.env.MERCHANT_CODE_IDR;
-export const SECRET_KEY_IDR = process.env.SECRET_KEY_IDR;
-export const DEPOSIT_METHOD_IDR = process.env.DEPOSIT_METHOD_IDR;
-export const PAYOUT_METHOD_IDR = process.env.PAYOUT_METHOD_IDR;
-export const MERCHANT_API_KEY_IDR = process.env.MERCHANT_API_KEY_IDR;
-
-export const MERCHANT_CODE_THB = process.env.MERCHANT_CODE_THB;
-export const SECRET_KEY_THB = process.env.SECRET_KEY_THB;
-export const DEPOSIT_METHOD_THB = process.env.DEPOSIT_METHOD_THB;
-export const PAYOUT_METHOD_THB = process.env.PAYOUT_METHOD_THB;
-export const MERCHANT_API_KEY_THB = process.env.MERCHANT_API_KEY_THB;
-
-export const MERCHANT_CODE_MXN = process.env.MERCHANT_CODE_MXN;
-export const SECRET_KEY_MXN = process.env.SECRET_KEY_MXN;
-export const DEPOSIT_METHOD_MXN = process.env.DEPOSIT_METHOD_MXN;
-export const PAYOUT_METHOD_MXN = process.env.PAYOUT_METHOD_MXN;
-export const MERCHANT_API_KEY_MXN = process.env.MERCHANT_API_KEY_MXN;
-
-export const MERCHANT_CODE_KRW = process.env.MERCHANT_CODE_KRW;
-export const SECRET_KEY_KRW = process.env.SECRET_KEY_KRW;
-export const DEPOSIT_METHOD_KRW = process.env.DEPOSIT_METHOD_KRW;
-export const PAYOUT_METHOD_KRW = process.env.PAYOUT_METHOD_KRW;
-export const MERCHANT_API_KEY_KRW = process.env.MERCHANT_API_KEY_KRW;
-
-export const MERCHANT_CODE_PHP = process.env.MERCHANT_CODE_PHP;
-export const SECRET_KEY_PHP = process.env.SECRET_KEY_PHP;
-export const DEPOSIT_METHOD_PHP = process.env.DEPOSIT_METHOD_PHP;
-export const PAYOUT_METHOD_PHP = process.env.PAYOUT_METHOD_PHP;
-export const MERCHANT_API_KEY_PHP = process.env.MERCHANT_API_KEY_PHP;
-
-export const MERCHANT_CODE_HKD = process.env.MERCHANT_CODE_HKD;
-export const SECRET_KEY_HKD = process.env.SECRET_KEY_HKD;
-export const DEPOSIT_METHOD_HKD = process.env.DEPOSIT_METHOD_HKD;
-export const PAYOUT_METHOD_HKD = process.env.PAYOUT_METHOD_HKD;
-export const MERCHANT_API_KEY_HKD = process.env.MERCHANT_API_KEY_HKD;
-
-export const PMI_WD_URL = process.env.PMI_WD_URL;
-export const PMI_DP_URL = process.env.PMI_DP_URL;
-export const PMI_AUTHORIZATION = process.env.PMI_AUTHORIZATION;
-export const MERCHANT_CODE_PMI = process.env.MERCHANT_CODE_PMI;
-export const SECRET_KEY_PMI = process.env.SECRET_KEY_PMI;
-export const DEPOSIT_METHOD_PMI = process.env.DEPOSIT_METHOD_PMI;
-export const PAYOUT_METHOD_PMI = process.env.PAYOUT_METHOD_PMI;
-export const MERCHANT_API_KEY_PMI = process.env.MERCHANT_API_KEY_PMI;
-
-const missingKeys = [];
-
-for (const [key, value] of Object.entries(process.env)) {
-    if (key.startsWith("SECRET_KEY_") && !value) {
-        console.error(`❌ ${key} is EMPTY`);
-        missingKeys.push(key);
-    }
-}
+const missingKeys = currencies.filter(curr => !process.env[`SECRET_KEY_${curr}`]);
 
 if (missingKeys.length > 0) {
-    throw new Error(`Missing SECRET_KEY(s): ${missingKeys.join(', ')}`);
+    console.error(`❌ Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
+    throw new Error(`Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
 }
 
 if (!PMI_DP_URL || !PMI_WD_URL) {
