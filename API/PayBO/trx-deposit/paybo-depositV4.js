@@ -48,7 +48,7 @@ async function sendDeposit() {
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-     const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP/HKD): ").toUpperCase();
+    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP/HKD): ").toUpperCase();
     if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
         logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
         return;
@@ -167,6 +167,7 @@ async function sendDeposit() {
 
     logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`);
     logger.info(`Merchant Code : ${config.merchantCode}`)
+    logger.info(`Transaction Code : ${transactionCode}`)
     logger.info(`Request Payload : ${payload}`);
     logger.info(`Encrypted : ${encrypted}`);
     logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
