@@ -283,7 +283,7 @@ class BatchDepositV3Service {
             } else {
                 const error = `Deposit failed: ${JSON.stringify(resultDP)}`;
                 // logger.error(`❌ Deposit failed for ${transactionCode}:`, resultDP);
-                logger.error(`❌ Deposit failed for ${transactionCode}:`);
+                logger.error(`❌ Deposit failed for ${transactionCode}: ${resultDP.message}`);
                 // logger.info(`Payload: ${payload}`);
                 
                 this.stats.failed++;
