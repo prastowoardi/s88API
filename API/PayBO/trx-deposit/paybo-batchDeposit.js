@@ -200,7 +200,7 @@ class BatchDepositV3Service {
             `transaction_code=${transactionCode}`,
             `transaction_timestamp=${timestamp}`,
             `transaction_amount=${amount}`,
-            `user_id=0`,
+            `user_id=batchDeposit`,
             `currency_code=${currency}`,
             `payment_code=${config.depositMethod}`
         ];
