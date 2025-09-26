@@ -9,7 +9,7 @@ export function generateUTR(currency) {
 
 export function randomPhoneNumber(currency = "default") {
   const formats = {
-    bdt: { prefixes: ['017', '018', '019', '016', '015'], digits: 6, pad: 6 },
+    bdt: { prefixes: ['017', '018', '019', '016', '015'], digits: 8, pad: 7 },
     brl: {
       custom: () => {
         const ddd = ['11', '21', '31', '41'];
