@@ -1,8 +1,13 @@
 node_modules
+
+# S88 Project
 .env_staging
 .env_singhapay
 .env_production
-.env_paybo
+.env_singhaStag
+
+
+# PayBO Project
 .paybo_staging
 .paybo_production
 .paybo_ezyplus
@@ -12,7 +17,11 @@ node_modules
 .paybo_bajix
 .paybo_erfolgpay
 .paybo_demo
-.env_singhaStag
 .paybo_apollo
+.paybo_commspay
+
+# src files
 old_bank.json
+
+# Log files
 log
