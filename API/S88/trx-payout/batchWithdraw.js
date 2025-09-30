@@ -41,11 +41,11 @@ const CURRENCY_CONFIG = new Map([
 ]);
 
 const CONFIG = {
-  MAX_CONCURRENT_REQUESTS: 5, // Batasi request concurrent
-  REQUEST_DELAY: 100, // Delay antar request (ms)
+  MAX_CONCURRENT_REQUESTS: 5,
+  REQUEST_DELAY: 100,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
-  BATCH_SIZE: 10 // Process dalam batch
+  BATCH_SIZE: 10
 };
 
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
@@ -58,7 +58,6 @@ async function retryWithBackoff(fn, attempts = CONFIG.RETRY_ATTEMPTS) {
       return await fn();
     } catch (error) {
       if (i === attempts - 1) throw error;
-      
       const delayTime = CONFIG.RETRY_DELAY * Math.pow(2, i);
       logger.warn(`⚠️ Attempt ${i + 1} failed, retrying in ${delayTime}ms...`);
       await delay(delayTime);
@@ -86,18 +85,15 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
   switch (currency) {
     case 'INR':
       return { ...basePayload, ifsc_code: options.ifscCode };
-      
     case 'VND':
       const randomBankCode = config.bankCodes[Math.floor(Math.random() * config.bankCodes.length)];
       return { ...basePayload, bank_code: randomBankCode };
-      
     case 'MMK':
-      return { 
+      return {
         ...basePayload, 
         bank_code: options.bankCode,
-        bank_name: "bankName" 
+        bank_name: "bankName"
       };
-      
     default:
       throw new Error(`Unsupported currency: ${currency}`);
   }
@@ -106,18 +102,13 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
 function validatePayoutRequest(currency, ifscCode = null, bankCode = null) {
   const config = CURRENCY_CONFIG.get(currency);
   
-  if (!config) {
-    throw new Error(`❌ Unsupported currency: ${currency}`);
-  }
-  
+  if (!config) throw new Error(`❌ Unsupported currency: ${currency}`);
   if (currency === 'INR' && (!ifscCode || typeof ifscCode !== "string" || ifscCode.trim() === "")) {
     throw new Error("❌ IFSC Code kosong atau tidak valid");
   }
-  
   if (currency === 'MMK' && (!bankCode || typeof bankCode !== "string" || bankCode.trim() === "")) {
     throw new Error("❌ Bank Code kosong atau tidak valid");
   }
-  
   return true;
 }
 
@@ -127,7 +118,6 @@ async function payout(userID, currency, amount, transactionCode, name, options =
     
     const config = CURRENCY_CONFIG.get(currency);
     const payload = buildPayload(userID, currency, amount, transactionCode, name, options);
-    
     const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.apiKey, config.secretKey);
 
     const result = await retryWithBackoff(async () => {
@@ -154,27 +144,18 @@ async function payout(userID, currency, amount, transactionCode, name, options =
 
     try {
       parsedResult = JSON.parse(rawResponse);
-    } catch (e) {
-      logger.error(`❌ Raw response for ${transactionCode}:`, rawResponse);
+    } catch {
       throw new Error(`❌ Gagal parse JSON untuk ${transactionCode}: ${rawResponse}`);
     }
 
-    logger.info(`✅ Withdraw (${transactionCode}): ${parsedResult.message || JSON.stringify(parsedResult)}`);
-
     if (parsedResult.encrypted_data) {
       const decryptedPayload = encryptDecryptPayout("decrypt", parsedResult.encrypted_data, config.apiKey, config.secretKey);
-      logger.info(`🔓 Decrypted Payload (${transactionCode}):`, decryptedPayload);
+      parsedResult.decrypted = decryptedPayload;
     }
 
     return { success: true, data: parsedResult };
     
   } catch (error) {
-    logger.error({
-      message: `Withdraw failed for ${transactionCode}`,
-      error: error.message,
-      stack: error.stack || 'No stack trace available'
-    });
-
     return { success: false, error: error.message || error.toString() };
   }
 }
@@ -184,14 +165,10 @@ async function batchProcess(requests) {
   
   for (let i = 0; i < requests.length; i += CONFIG.BATCH_SIZE) {
     const batch = requests.slice(i, i + CONFIG.BATCH_SIZE);
-    
     logger.info(`📦 Processing batch ${Math.floor(i / CONFIG.BATCH_SIZE) + 1}/${Math.ceil(requests.length / CONFIG.BATCH_SIZE)}`);
     
-    // Process batch dengan concurrency limit
     const batchPromises = batch.map(async (request, index) => {
-      if (index > 0) {
-        await delay(CONFIG.REQUEST_DELAY * index); // Stagger requests
-      }
+      if (index > 0) await delay(CONFIG.REQUEST_DELAY * index);
       return payout(
         request.userID,
         request.currency,
@@ -206,10 +183,9 @@ async function batchProcess(requests) {
     
     batchResults.forEach((result, index) => {
       const request = batch[index];
-      
       if (result.status === 'fulfilled') {
         if (result.value.success) {
-          logger.info(`✅ Transaction ${request.transactionCode} completed successfully`);
+          logger.info(`✅ Transaction ${request.transactionCode} completed: ${JSON.stringify(result.value.data)}`);
           results.push({ success: true, data: result.value.data, transactionCode: request.transactionCode });
         } else {
           logger.error(`❌ Transaction ${request.transactionCode} failed: ${result.value.error}`);
@@ -220,8 +196,7 @@ async function batchProcess(requests) {
         results.push({ success: false, error: result.reason.message || result.reason, transactionCode: request.transactionCode });
       }
     });
-    
-    // Delay setiap batch
+
     if (i + CONFIG.BATCH_SIZE < requests.length) {
       await delay(CONFIG.REQUEST_DELAY * 2);
     }
@@ -232,7 +207,6 @@ async function batchProcess(requests) {
 
 async function preloadIFSCCodes(count) {
   logger.info("⏳ Menyiapkan IFSC Codes untuk INR...");
-  
   const ifscCodes = [];
   const promises = [];
   
@@ -242,35 +216,21 @@ async function preloadIFSCCodes(count) {
       if (!ifsc) throw new Error(`Gagal mendapatkan IFSC untuk transaksi ke-${i + 1}`);
       return ifsc;
     });
-    
     promises.push(promise);
     
     if (promises.length >= CONFIG.MAX_CONCURRENT_REQUESTS) {
       const results = await Promise.allSettled(promises);
-      results.forEach((result, idx) => {
-        if (result.status === 'fulfilled') {
-          ifscCodes.push(result.value);
-        } else {
-          logger.error(`❌ Failed to get IFSC code ${ifscCodes.length + idx + 1}:`, result.reason);
-        }
-      });
-      promises.length = 0; // Clear array
-      
+      results.forEach(r => r.status === 'fulfilled' && ifscCodes.push(r.value));
+      promises.length = 0;
       logger.info(`📈 Progress: ${ifscCodes.length}/${count} IFSC codes loaded`);
     }
   }
-  
+
   if (promises.length > 0) {
     const results = await Promise.allSettled(promises);
-    results.forEach((result, idx) => {
-      if (result.status === 'fulfilled') {
-        ifscCodes.push(result.value);
-      } else {
-        logger.error(`❌ Failed to get IFSC code ${ifscCodes.length + idx + 1}:`, result.reason);
-      }
-    });
+    results.forEach(r => r.status === 'fulfilled' && ifscCodes.push(r.value));
   }
-  
+
   if (ifscCodes.length < count) {
     throw new Error(`❌ Hanya berhasil memuat ${ifscCodes.length}/${count} IFSC codes`);
   }
@@ -281,7 +241,6 @@ async function preloadIFSCCodes(count) {
 
 async function batchPayout() {
   const startTime = Date.now();
-  
   try {
     logger.info("======== Batch Payout Request ========");
     
@@ -289,21 +248,13 @@ async function batchPayout() {
     const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
 
     let currenciesToProcess = [];
-
-    if (input === "ALL") {
-      currenciesToProcess = availableCurrencies;
-    } else if (availableCurrencies.includes(input)) {
-      currenciesToProcess = [input];
-    } else {
-      throw new Error("❌ Currency tidak valid");
-    }
+    if (input === "ALL") currenciesToProcess = availableCurrencies;
+    else if (availableCurrencies.includes(input)) currenciesToProcess = [input];
+    else throw new Error("❌ Currency tidak valid");
 
     const jumlah = readlineSync.questionInt("Berapa Transaksi: ");
     const amount = readlineSync.questionInt("Amount: ");
-    
-    if (jumlah <= 0 || amount <= 0) {
-      throw new Error("❌ Jumlah transaksi dan amount harus lebih dari 0");
-    }
+    if (jumlah <= 0 || amount <= 0) throw new Error("❌ Jumlah transaksi dan amount harus lebih dari 0");
 
     let preloadedIFSCs = [];
     if (currenciesToProcess.includes("INR")) {
@@ -319,40 +270,22 @@ async function batchPayout() {
     }
 
     const allRequests = [];
-    
     for (const currency of currenciesToProcess) {
       for (let i = 0; i < jumlah; i++) {
         lastWithdrawTimestamp++;
         const transactionCode = `TEST-WD-${lastWithdrawTimestamp}`;
         const userID = randomInt(100, 999);
         const userName = await getRandomName();
-        
-        const options = {
-          callback_url: CALLBACK_URL
-        };
-        
-        if (currency === "INR") {
-          options.ifscCode = preloadedIFSCs[i];
-        } else if (currency === "MMK") {
-          options.bankCode = mmkBankCodes[i];
-        }
-
-        allRequests.push({
-          userID,
-          currency,
-          amount,
-          transactionCode,
-          name: userName,
-          options
-        });
+        const options = { callback_url: CALLBACK_URL };
+        if (currency === "INR") options.ifscCode = preloadedIFSCs[i];
+        else if (currency === "MMK") options.bankCode = mmkBankCodes[i];
+        allRequests.push({ userID, currency, amount, transactionCode, name: userName, options });
       }
     }
 
     logger.info(`🚀 Starting batch processing of ${allRequests.length} transactions...`);
-    
     const results = await batchProcess(allRequests);
-    
-    // Improved result analysis dengan detail error
+
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.length - successCount;
     const duration = (Date.now() - startTime) / 1000;
@@ -364,14 +297,11 @@ async function batchPayout() {
     
     if (failureCount > 0) {      
       const failedTransactions = results.filter(r => !r.success);
-      
-      // Summary error types
       const errorTypes = {};
-      failedTransactions.forEach(failure => {
-        const errorType = failure.error?.split(':')[0] || 'Unknown Error';
+      failedTransactions.forEach(f => {
+        const errorType = f.error?.split(':')[0] || 'Unknown Error';
         errorTypes[errorType] = (errorTypes[errorType] || 0) + 1;
       });
-      
       Object.entries(errorTypes).forEach(([errorType, count]) => {
         logger.info(`${errorType}: ${count} occurrences`);
       });
@@ -384,7 +314,6 @@ async function batchPayout() {
   }
 }
 
-// Graceful shutdown handler
 process.on('SIGINT', () => {
   logger.info('👋 Gracefully shutting down...');
   process.exit(0);
