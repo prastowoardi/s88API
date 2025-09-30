@@ -15,6 +15,7 @@ const envFiles = {
     PayBO_bajix: '.paybo_bajix',
     PayBO_demo: '.paybo_demo',
     PayBO_dreampay: '.paybo_dreampay',
+    PayBO_commspay: '.paybo_commspay',
     PayBO_erfolgpay: '.paybo_erfolgpay',
     PayBO_apollo: '.paybo_apollo',
     PayBO_production: '.paybo_production'

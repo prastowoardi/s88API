@@ -127,6 +127,13 @@
     "epwd:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-payout/paybo-payout.js",
     "epwdv5:prod": "cross-env NODE_ENV=PayBO_erfolgpay node API/PayBO/trx-payout/paybo-payoutV5.js",
     
+    "comv3:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-deposit.js",
+    "comv2:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-depositV2.js",
+    "comv4:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-depositV4.js",
+    "comv5:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-depositV5.js",
+    "comwd:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-payout/paybo-payout.js",
+    "comwdv5:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-payout/paybo-payoutV5.js",
+    
     "demov3:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-deposit/paybo-deposit.js",
     "demov2:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-deposit/paybo-depositV2.js",
     "demov4:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-deposit/paybo-depositV4.js",
