@@ -94,6 +94,7 @@
     "wpv2:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV2.js",
     "wpv4:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV4.js",
     "wpv5:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-depositV5.js",
+    "wpbv5:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-deposit/paybo-batchDepositV5.js",
     "wpwd:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-payout/paybo-payout.js",
     "wpwdv5:prod": "cross-env NODE_ENV=PayBO_wandpay node API/PayBO/trx-payout/paybo-payoutV5.js",
 
