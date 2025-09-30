@@ -67,8 +67,8 @@ class PayoutInput {
   async ask(question, validator = null, timeout = 30000) {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
-        this.rl.close();
-        reject(new Error('Input timeout'));
+        logger.warn("⌛ Timeout! Coba input lagi...");
+        this.ask(question, validator, timeout).then(resolve).catch(reject);
       }, timeout);
 
       this.rl.question(question, (answer) => {
@@ -78,7 +78,6 @@ class PayoutInput {
           resolve(result);
         } catch (error) {
           logger.error(error.message);
-          // Retry input for validation errors
           if (error instanceof ValidationError) {
             this.ask(question, validator, timeout).then(resolve).catch(reject);
           } else {
