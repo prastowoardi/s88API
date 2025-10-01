@@ -131,7 +131,9 @@
     "comv2:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-depositV2.js",
     "comv4:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-depositV4.js",
     "comv5:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-depositV5.js",
+    "combv5:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-deposit/paybo-batchDepositV5.js",
     "comwd:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-payout/paybo-payout.js",
+    "combwd:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-payout/paybo-batchPayout.js",
     "comwdv5:prod": "cross-env NODE_ENV=PayBO_commspay node API/PayBO/trx-payout/paybo-payoutV5.js",
     
     "demov3:prod": "cross-env NODE_ENV=PayBO_demo node API/PayBO/trx-deposit/paybo-deposit.js",
