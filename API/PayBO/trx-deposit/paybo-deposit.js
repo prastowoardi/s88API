@@ -120,7 +120,7 @@ async function sendDeposit() {
         `&user_id=${userID}` +
         `&currency_code=${currency}` +
         `&payment_code=${config.depositMethod}` +
-        `&callback_url=${config.callbackURL}`; +
+        `&callback_url=${config.callbackURL}` +
         `&ip_address=${ip}`;
         
     if (currency === "IDR" && bankCode === "OVO") {
