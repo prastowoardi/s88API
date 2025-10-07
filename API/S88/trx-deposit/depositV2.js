@@ -26,8 +26,15 @@ class DepositV2Service {
             const userID = randomInt(100, 999);
             const timestamp = Math.floor(Date.now() / 1000).toString();
 
-            const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/KRW,THB): ");
-            const currency = currencyInput.toUpperCase();
+            const envCurrency = process.env.CURRENCY;
+            
+            let currency;
+            if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+                currency = envCurrency;
+            } else {
+                const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
+                currency = this.validateCurrency(currencyInput.trim().toUpperCase());
+            }
 
             if (!SUPPORTED_CURRENCIES.includes(currency)) {
                 throw new Error(`"${currency}" Not supported yet! Supported: ${SUPPORTED_CURRENCIES.join(", ")}`);

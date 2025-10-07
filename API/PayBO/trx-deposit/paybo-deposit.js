@@ -7,6 +7,8 @@ import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNum
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD"];
+
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
         logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
@@ -45,10 +47,13 @@ async function submitUTR(currency, transactionCode) {
 async function sendDeposit() { 
     logger.info("======== DEPOSIT V3 REQUEST ========");
     
-    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP/HKD): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
-        return;
+    const envCurrency = process.env.CURRENCY;
+        
+    let currency;
+    if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+        currency = envCurrency;
+    } else {
+        currency = this.validateCurrency(currencyInput.trim().toUpperCase());
     }
 
     let userID = randomInt(100, 999);

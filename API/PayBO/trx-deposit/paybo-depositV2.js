@@ -8,6 +8,7 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
 dotenv.config();
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD"];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -23,13 +24,14 @@ async function depositV2() {
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-    const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/HKD): ");
-    const currency = currencyInput.trim().toUpperCase();
-
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
-        rl.close();
-        return;
+    const envCurrency = process.env.CURRENCY;
+        
+    let currency;
+    if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+        currency = envCurrency;
+    } else {
+        const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
+        currency = this.validateCurrency(currencyInput.trim().toUpperCase());
     }
 
     const amountInput = await ask("Masukkan Amount: ");
@@ -145,7 +147,7 @@ async function depositV2() {
     logger.info("======== DEPOSIT V2 REQUEST ========");
     logger.info(`Currency : ${currency}`);
     logger.info(`Amount : ${amount}`);
-    logger.info(`Request Payload : ${payload}`);
+    logger.info(`Request Payload : ${payload}\n`);
     logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
     logger.info("\n=============== CLICK LINK TO FINISHED THIS REQUEST ===============\n\n");
   } catch (err) {

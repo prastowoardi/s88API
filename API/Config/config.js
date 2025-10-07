@@ -79,7 +79,3 @@ if (!PMI_AUTHORIZATION) {
 if (!API_NINJAS_KEY) {
     throw new Error("API Key for get user is empty.");
 }
-
-console.log(`Loaded environment: ${envFile}`);
-console.log("BASE_URL =", BASE_URL);
-console.log("CALLBACK_URL =", CALLBACK_URL);

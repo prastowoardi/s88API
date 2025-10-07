@@ -7,6 +7,8 @@ import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generate
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD"];
+
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
         logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
@@ -48,12 +50,16 @@ async function sendDeposit() {
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
-    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT/MMK/BRL/THB/IDR/MXN/KRW/PHP/HKD): ").toUpperCase();
-    if (!["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD"].includes(currency)) {
-        logger.error("❌ Invalid currency. Masukkan INR, VND, BDT, MMK, BRL, THB, MXN, KRW, PHP, HKD atau IDR.");
-        return;
+    const envCurrency = process.env.CURRENCY;
+        
+    let currency;
+    if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+        currency = envCurrency;
+    } else {
+        const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
+        currency = this.validateCurrency(currencyInput.trim().toUpperCase());
     }
-    
+
     const amount = readlineSync.question("Masukkan Amount: ");
     
     if (isNaN(amount) || Number(amount) <= 0) {
@@ -160,17 +166,6 @@ async function sendDeposit() {
         payloadObject.bank_account_number = cardNumber;
     }
 
-    // Uncomment for Erfolgpay
-    // if (currency === "INR") {
-    //     payloadObject.product_name="pillow"
-    //     payloadObject.cust_name="pillow"
-    //     payloadObject.cust_email="pillow@mail.com"
-    //     payloadObject.cust_phone="9876371231"
-    //     payloadObject.cust_city="Mumbai"
-    //     payloadObject.cust_country="India"
-    //     payloadObject.zip_code="21323"
-    // }
-
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
@@ -179,7 +174,7 @@ async function sendDeposit() {
     logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`);
     logger.info(`Merchant Code : ${config.merchantCode}`)
     logger.info(`Transaction Code : ${transactionCode}`)
-    logger.info(`Request Payload : ${payload}`);
+    logger.info(`Request Payload : ${payload}\n`);
     logger.info(`Encrypted : ${encrypted}`);
     logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
 
