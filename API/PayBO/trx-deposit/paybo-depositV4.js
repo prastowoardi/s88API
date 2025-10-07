@@ -160,6 +160,17 @@ async function sendDeposit() {
         payloadObject.bank_account_number = cardNumber;
     }
 
+    // Uncomment for Erfolgpay
+    // if (currency === "INR") {
+    //     payloadObject.product_name="pillow"
+    //     payloadObject.cust_name="pillow"
+    //     payloadObject.cust_email="pillow@mail.com"
+    //     payloadObject.cust_phone="9876371231"
+    //     payloadObject.cust_city="Mumbai"
+    //     payloadObject.cust_country="India"
+    //     payloadObject.zip_code="21323"
+    // }
+
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
