@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { fileURLToPath } from 'url';
@@ -68,7 +68,7 @@ const addINRSpecificFields = async (payload) => {
   return {
     ...payload,
     ifsc_code: ifscCode,
-    bank_account_number: "11133322",
+    bank_account_number: `${getAccountNumber(6)}`,
     bank_code: bank,
     bank_name: bank,
   };

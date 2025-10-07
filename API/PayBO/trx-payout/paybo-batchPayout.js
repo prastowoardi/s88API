@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout, getRandomName } from "../../helpers/utils.js";
+import { encryptDecryptPayout, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL,
   SECRET_KEY_INR, SECRET_KEY_VND, 
@@ -37,7 +37,7 @@ async function payout(userID, currency, amount, transactionCode, name, ifscCode 
       transaction_amount: amount,
       user_id: userID.toString(),
       currency_code: currency,
-      bank_account_number: "11133322",
+      bank_account_number: `${getAccountNumber(6)}`,
       ifsc_code: ifscCode,
       account_name: name,
       payout_code: payoutMethod,

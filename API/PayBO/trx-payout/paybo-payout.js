@@ -2,14 +2,14 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP"];
 const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"];
-const DEFAULT_BANK_ACCOUNT = "11133322";
+const BANK_ACCOUNT_NUMBER = getAccountNumber(6) || "11133322";
 
 class PayoutService {
   constructor() {
@@ -71,7 +71,7 @@ class PayoutService {
       const bank = ifscCode.substring(0, 4);
       Object.assign(payload, {
         ifsc_code: ifscCode,
-        bank_account_number: DEFAULT_BANK_ACCOUNT,
+        bank_account_number: BANK_ACCOUNT_NUMBER,
         bank_code: bank,
         bank_name: bank,
       });

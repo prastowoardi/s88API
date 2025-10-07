@@ -107,15 +107,15 @@ export function signVerify(action, data, secretkey) {
 }
 
 export function stableStringify(obj) {
-  if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
-  const keys = Object.keys(obj).sort();
-  let result = '{';
-  keys.forEach((key, i) => {
-    if (i) result += ',';
-    result += JSON.stringify(key) + ':' + stableStringify(obj[key]);
-  });
-  result += '}';
-  return result;
+    if (typeof obj !== 'object' || obj === null) return JSON.stringify(obj);
+    const keys = Object.keys(obj).sort();
+    let result = '{';
+    keys.forEach((key, i) => {
+        if (i) result += ',';
+        result += JSON.stringify(key) + ':' + stableStringify(obj[key]);
+    });
+    result += '}';
+    return result;
 }
 
 export function verifySign(bizContent, sign, secretKey) {
@@ -174,4 +174,13 @@ export async function getRandomName() {
         console.error("❌ Gagal mengambil random user:", error.message);
         return "Andre Stainless";
     }
+}
+
+export function getAccountNumber(length = 8) {
+    if (!Number.isInteger(length) || length <= 0) return '';
+    let s = '';
+    for (let i = 0; i < length; i++) {
+        s += Math.floor(Math.random() * 10); // 0..9
+    }
+    return s;
 }

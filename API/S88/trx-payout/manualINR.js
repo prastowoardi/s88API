@@ -10,14 +10,14 @@ const ifscCode = await getValidIFSC();
 console.log(`IFSC Code: ${ifscCode}`);
 
 async function sendPayout() {
-  logger.info("======== INR - MANUAL PAYOUT REQUEST ========");
+    logger.info("======== INR - MANUAL PAYOUT REQUEST ========");
 
-  const amount = readlineSync.question("Masukkan Amount: ");
-  logger.info(`Amount input: ${amount}`);
-  if (isNaN(amount) || Number(amount) <= 0) {
-    console.error("❌ Amount tidak valid.");
-    return;
-  }
+    const amount = readlineSync.question("Masukkan Amount: ");
+    logger.info(`Amount input: ${amount}`);
+    if (isNaN(amount) || Number(amount) <= 0) {
+        console.error("❌ Amount tidak valid.");
+        return;
+    }
 
     // Input semua data
     // const userID = readlineSync.question("Masukkan User ID: ");

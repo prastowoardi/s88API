@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecryptPayout, getRandomName } from "../../helpers/utils.js";
+import { encryptDecryptPayout, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import {
   BASE_URL, CALLBACK_URL,
   SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_MMK,
@@ -19,7 +19,7 @@ const CURRENCY_CONFIG = new Map([
     apiKey: MERCHANT_API_KEY_INR,
     secretKey: SECRET_KEY_INR,
     requiresIfsc: true,
-    bankAccount: "11133322"
+    bankAccount: `${getAccountNumber(6)}`
   }],
   ['VND', {
     merchantCode: MERCHANT_CODE_VND,
@@ -36,7 +36,7 @@ const CURRENCY_CONFIG = new Map([
     apiKey: MERCHANT_API_KEY_MMK,
     secretKey: SECRET_KEY_MMK,
     requiresIfsc: false,
-    bankAccount: "11133311"
+    bankAccount: `${getAccountNumber(6)}`
   }]
 ]);
 

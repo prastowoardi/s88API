@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 
@@ -18,7 +18,7 @@ const CONFIG = {
 const BANK_CONFIG = {
   THB: { bank_name: "Siam Commercial Bank" },
   VND: { bank_account_number: "2206491508" },
-  INR: { bank_account_number: "11133322" }
+  INR: { bank_account_number: `${getAccountNumber(6)}` }
 };
 
 class ValidationError extends Error {
