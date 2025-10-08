@@ -196,7 +196,8 @@ class PayoutService {
       logger.info("======== REQUEST DONE ========\n");
       
     } catch (error) {
-      logger.error(`❌ Error: ${error.message}`);
+      // logger.error(`❌ Error: ${error.message}`);
+      throw error;
     } finally {
       this.cleanup();
     }
