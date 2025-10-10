@@ -12,6 +12,10 @@ import {
 } from "../../Config/config.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 
+const CONFIG = {
+  SUPPORTED_CURRENCIES: ["INR", "VND"],
+}
+
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
 
 async function payout(userID, currency, amount, transactionCode, name, ifscCode = null, callback_url = null) {
@@ -108,17 +112,19 @@ async function sendPayoutBatch({ userID, currency, amount, transactionCode, name
 
 async function batchPayout() {
   logger.info("======== Batch Payout Request ========");
+
   const availableCurrencies = ["INR", "VND"];
-  const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
+  const envCurrency = process.env.CURRENCY;
+  let currencies = [];
 
-  let currenciesToProcess = [];
-
-  if (input === "ALL") {
-    currenciesToProcess = availableCurrencies;
-  } else if (availableCurrencies.includes(input)) {
-    currenciesToProcess = [input];
+  if (envCurrency && CONFIG.SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
+    currencies = [envCurrency.toUpperCase()];
+    logger.info(`Currency: ${currencies[0]}`);
+  } else if (envCurrency?.toUpperCase() === "ALL") {
+    currencies = availableCurrencies;
+    logger.info(`Currency: ALL (${currencies.join(", ")})`);
   } else {
-    logger.error("❌ Currency tidak valid.");
+    logger.error("❌ Currency tidak valid atau belum diset dari pilihan environment.");
     return;
   }
 
@@ -126,7 +132,7 @@ async function batchPayout() {
 
   const preloadedIFSCs = [];
 
-  if (currenciesToProcess.includes("INR")) {
+  if (currencies.includes("INR")) {
     logger.info("⏳ Menyiapkan IFSC Codes untuk INR...");
 
     for (let i = 0; i < jumlah; i++) {
@@ -139,25 +145,21 @@ async function batchPayout() {
     }
 
     logger.info(`✅ ${preloadedIFSCs.length} IFSC Code berhasil disiapkan`);
-
-    preloadedIFSCs.forEach((code, idx) => {
-      logger.info(`IFSC ${idx + 1}: ${code}`);
-    });
+    preloadedIFSCs.forEach((code, idx) => logger.info(`IFSC ${idx + 1}: ${code}`));
   }
 
-  for (const currency of currenciesToProcess) {
+  for (const cur of currencies) {
     for (let i = 0; i < jumlah; i++) {
       lastWithdrawTimestamp++;
       const transactionCode = `TEST-WD-${lastWithdrawTimestamp}`;
       const userID = randomInt(100, 999);
       const userName = await getRandomName();
-      const ifscCode = currency === "INR" ? preloadedIFSCs[i] : null;
-
-      const amount = readlineSync.questionInt(`Masukkan amount untuk transaksi ke-${i + 1} (${currency}): `);
+      const ifscCode = cur === "INR" ? preloadedIFSCs[i] : null;
+      const amount = readlineSync.questionInt(`Masukkan amount untuk transaksi ke-${i + 1} (${cur}): `);
 
       await sendPayoutBatch({
         userID,
-        currency,
+        currency: cur,
         amount,
         transactionCode,
         name: userName,

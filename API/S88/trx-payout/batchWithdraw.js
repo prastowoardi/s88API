@@ -41,6 +41,7 @@ const CURRENCY_CONFIG = new Map([
 ]);
 
 const CONFIG = {
+  SUPPORTED_CURRENCIES: ["INR", "VND", "MMK"],
   MAX_CONCURRENT_REQUESTS: 5,
   REQUEST_DELAY: 100,
   RETRY_ATTEMPTS: 3,
@@ -245,24 +246,31 @@ async function batchPayout() {
     logger.info("======== Batch Payout Request ========");
     
     const availableCurrencies = Array.from(CURRENCY_CONFIG.keys());
-    const input = readlineSync.question(`Pilih currency (${availableCurrencies.join("/")}, atau 'ALL'): `).toUpperCase();
+    const envCurrency = process.env.CURRENCY;
+    let currencies = [];
 
-    let currenciesToProcess = [];
-    if (input === "ALL") currenciesToProcess = availableCurrencies;
-    else if (availableCurrencies.includes(input)) currenciesToProcess = [input];
-    else throw new Error("❌ Currency tidak valid");
+    if (envCurrency && CONFIG.SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
+      currencies = [envCurrency.toUpperCase()];
+      logger.info(`Currency: ${currencies[0]}`);
+    } else if (envCurrency?.toUpperCase() === "ALL") {
+      currencies = availableCurrencies;
+      logger.info(`Currency: ALL (${currencies.join(", ")})`);
+    } else {
+      logger.error("❌ Currency tidak valid atau belum diset dari pilihan environment.");
+      return;
+    }
 
     const jumlah = readlineSync.questionInt("Berapa Transaksi: ");
     const amount = readlineSync.questionInt("Amount: ");
     if (jumlah <= 0 || amount <= 0) throw new Error("❌ Jumlah transaksi dan amount harus lebih dari 0");
 
     let preloadedIFSCs = [];
-    if (currenciesToProcess.includes("INR")) {
+    if (currencies.includes("INR")) {
       preloadedIFSCs = await preloadIFSCCodes(jumlah);
     }
 
     const mmkBankCodes = [];
-    if (currenciesToProcess.includes("MMK")) {
+    if (currencies.includes("MMK")) {
       for (let i = 0; i < jumlah; i++) {
         const bankCode = readlineSync.question(`Masukkan Bank Code untuk transaksi MMK ke-${i + 1}: `).toUpperCase();
         mmkBankCodes.push(bankCode);
@@ -270,7 +278,7 @@ async function batchPayout() {
     }
 
     const allRequests = [];
-    for (const currency of currenciesToProcess) {
+    for (const currency of currencies) {
       for (let i = 0; i < jumlah; i++) {
         lastWithdrawTimestamp++;
         const transactionCode = `TEST-WD-${lastWithdrawTimestamp}`;

@@ -141,7 +141,7 @@ class DepositService {
 
             logger.info(`URL: ${url}`);
             logger.info(`Merchant Code: ${config.merchantCode}`);
-            logger.info(`Request Payload: ${payload}`);
+            logger.info(`Request Payload: ${payload}\n`);
             logger.info(`Encrypted: ${encrypted}`);
             
             try {
@@ -309,8 +309,15 @@ class DepositService {
     }
 
     async getUserInput() {
-        const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
-        const currency = this.validateCurrency(currencyInput.trim().toUpperCase());
+        const envCurrency = process.env.CURRENCY;
+        
+        let currency;
+        if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+            currency = envCurrency;
+        } else {
+            const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
+            currency = this.validateCurrency(currencyInput.trim().toUpperCase());
+        }
 
         const amountInput = await this.ask("Masukkan Amount: ");
         const amount = this.validateAmount(amountInput.trim());

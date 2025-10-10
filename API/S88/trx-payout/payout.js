@@ -350,21 +350,25 @@ class PayoutOrchestrator {
     try {
       logger.info("======== PAYOUT REQUEST ========");
 
-      const currency = await this.inputHandler.ask(
-        `Masukkan Currency (${CONFIG.SUPPORTED_CURRENCIES.join('/')}): `,
-        validators.currency
-      );
+      const envCurrency = process.env.CURRENCY;
+      let currency;
 
-      const amount = await this.inputHandler.ask(
-        "Masukkan Amount: ",
-        validators.amount
-      );
+      let amount;
+      amount = await this.inputHandler.ask("Masukkan Amount: ", validators.amount);
+
+      if (envCurrency && CONFIG.SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
+        currency = envCurrency.toUpperCase();
+        logger.info(`Currency: ${currency}`);
+      } else {
+        currency = await this.inputHandler.ask(
+          `Masukkan Currency (${CONFIG.SUPPORTED_CURRENCIES.join(", ")}): `,
+          validators.currency
+        );
+      }
 
       const userID = randomInt(100, 999);
       const transactionCode = utils.generateTransactionCode();
       const name = await getRandomName();
-      
-      logger.info(`Currency: ${currency}`);
       logger.info(`Amount: ${amount}`);
       logger.info(`Transaction Code: ${transactionCode}`);
       logger.info(`User ID: ${userID}`);

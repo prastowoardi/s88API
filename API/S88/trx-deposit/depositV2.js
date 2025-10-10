@@ -23,11 +23,16 @@ class DepositV2Service {
         );
 
         try {
+            logger.info("======== DEPOSIT V2 REQUEST ========");
             const userID = randomInt(100, 999);
             const timestamp = Math.floor(Date.now() / 1000).toString();
 
-            const currencyInput = await ask("Masukkan Currency (INR/VND/BDT/MMK/KRW,THB): ");
-            const currency = currencyInput.toUpperCase();
+            const envCurrency = process.env.CURRENCY;
+            
+            let currency;
+            if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+                currency = envCurrency;
+            }
 
             if (!SUPPORTED_CURRENCIES.includes(currency)) {
                 throw new Error(`"${currency}" Not supported yet! Supported: ${SUPPORTED_CURRENCIES.join(", ")}`);
@@ -100,7 +105,6 @@ class DepositV2Service {
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
             const paymentURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
 
-            logger.info("======== DEPOSIT V2 REQUEST ========");
             logger.info(`Request Payload: ${payload}\n`);
             logger.info(`PayURL: ${paymentURL}`);
             logger.info("======== REQUEST DONE ========\n\n");

@@ -18,7 +18,8 @@ const envFiles = {
     PayBO_commspay: '.paybo_commspay',
     PayBO_erfolgpay: '.paybo_erfolgpay',
     PayBO_apollo: '.paybo_apollo',
-    PayBO_production: '.paybo_production'
+    PayBO_production: '.paybo_production',
+    PayBO_xcpay: '.paybo_xcpay'
 };
 
 const envFile = envFiles[process.env.NODE_ENV] || '.env_staging';
@@ -79,7 +80,3 @@ if (!PMI_AUTHORIZATION) {
 if (!API_NINJAS_KEY) {
     throw new Error("API Key for get user is empty.");
 }
-
-console.log(`Loaded environment: ${envFile}`);
-console.log("BASE_URL =", BASE_URL);
-console.log("CALLBACK_URL =", CALLBACK_URL);

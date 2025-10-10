@@ -177,10 +177,16 @@ class PayoutService {
   async run() {
     try {
       logger.info("======== PAYOUT REQUEST ========");
-      
+
+      const envCurrency = process.env.CURRENCY;
+          
+      let currency;
+      if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+          currency = envCurrency;
+          logger.info(`Currency: ${currency}`);
+      }
+
       const userID = randomInt(100, 999);
-      const currencyInput = await this.ask("Masukkan Currency (INR/VND/BRL/IDR/MXN/THB/BDT/KRW/PHP): ");
-      const currency = this.validateCurrency(currencyInput);
       const bankCode = await this.promptForBankCode(currency);
       const amountInput = await this.ask("Masukkan Amount: ");
       const amount = this.validateAmount(amountInput);
