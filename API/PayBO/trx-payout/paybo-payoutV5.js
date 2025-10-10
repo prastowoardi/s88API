@@ -168,7 +168,6 @@ async function handleResponse(response, config) {
 }
 
 async function collectInputs() {
-  const currencyInput = await ask("Enter Currency (INR/VND/BRL/IDR/MXN/THB/BDT/KRW/PHP): ");
   const currency = validateCurrency(currencyInput);
 
   let bankCode = "";
@@ -180,18 +179,51 @@ async function collectInputs() {
   const amountInput = await ask("Enter Amount: ");
   const amount = validateAmount(amountInput);
 
-  return { currency, bankCode, amount };
+  return { bankCode, amount };
 }
 
 async function sendPayout() {
   try {
     logger.info("======== PAYOUT REQUEST ========");
 
+    const envCurrency = process.env.CURRENCY;
+    let currency;
+
+    if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
+      currency = envCurrency.toUpperCase();
+      logger.info(`Currency diambil dari ENV: ${currency}`);
+    } else {
+      const { currency: inputCurrency, bankCode, amount } = await collectInputs();
+      currency = inputCurrency;
+
+      const userID = randomInt(100, 999);
+      const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
+      const name = await getRandomName();
+
+      logger.info(`Currency: ${currency}`);
+      logger.info(`Amount: ${amount}`);
+      logger.info(`User ID: ${userID}`);
+      logger.info(`Transaction Code: ${transactionCode}`);
+      logger.info(`Account Name: ${name}`);
+
+      const result = await payout(userID, currency, amount, transactionCode, name, bankCode, null);
+
+      logger.info("======== REQUEST DONE ========\n");
+      return result;
+    }
+
+    let bankCode = "";
+    if (BANK_CODE_REQUIRED.includes(currency)) {
+      bankCode = await ask(`Enter Bank Code for ${currency}: `);
+      validateBankCode(bankCode, currency);
+    }
+
+    const amountInput = await ask("Enter Amount: ");
+    const amount = validateAmount(amountInput);
+
     const userID = randomInt(100, 999);
     const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
     const name = await getRandomName();
-
-    const { currency, bankCode, amount } = await collectInputs();
 
     logger.info(`Currency: ${currency}`);
     logger.info(`Amount: ${amount}`);
@@ -200,12 +232,12 @@ async function sendPayout() {
     logger.info(`Account Name: ${name}`);
 
     const result = await payout(userID, currency, amount, transactionCode, name, bankCode, null);
-    
+
     logger.info("======== REQUEST DONE ========\n");
-    
     return result;
+
   } catch (error) {
-    // logger.error(`❌ Payout failed: ${error.message}`);
+    logger.error(`❌ Payout failed: ${error.message}`);
     throw error;
   } finally {
     rl.close();

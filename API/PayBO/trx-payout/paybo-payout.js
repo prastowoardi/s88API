@@ -177,7 +177,14 @@ class PayoutService {
   async run() {
     try {
       logger.info("======== PAYOUT REQUEST ========");
-      
+
+      const envCurrency = process.env.CURRENCY;
+          
+      let currency;
+      if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
+          currency = envCurrency;
+      }
+
       const userID = randomInt(100, 999);
       const bankCode = await this.promptForBankCode(currency);
       const amountInput = await this.ask("Masukkan Amount: ");
