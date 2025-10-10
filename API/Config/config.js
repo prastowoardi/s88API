@@ -18,7 +18,8 @@ const envFiles = {
     PayBO_commspay: '.paybo_commspay',
     PayBO_erfolgpay: '.paybo_erfolgpay',
     PayBO_apollo: '.paybo_apollo',
-    PayBO_production: '.paybo_production'
+    PayBO_production: '.paybo_production',
+    PayBO_xcpay: '.paybo_xcpay'
 };
 
 const envFile = envFiles[process.env.NODE_ENV] || '.env_staging';

@@ -27,6 +27,7 @@ const ENV_CONFIGS = {
   PayBO_commspay: { file: ".paybo_commspay", label: "PayBO Commspay" },
   PayBO_demo: { file: ".paybo_demo", label: "PayBO Demo" },
   PayBO_apollo: { file: ".paybo_apollo", label: "PayBO Apollo" },
+  PayBO_xcpay: { file: ".paybo_xcpay", label: "PayBO XCPay" },
 };
 
 // Script Actions
@@ -43,8 +44,8 @@ const SCRIPT_ACTIONS = {
   batchWithdraw: { path: "API/S88/trx-payout/batchWithdraw.js", label: "Batch Withdraw", type: "S88" },
 
   // PayBO Scripts
-  payboDeposit: { path: "API/PayBO/trx-deposit/paybo-deposit.js", label: "PayBO Deposit V3", type: "PayBO" },
   payboDepositV2: { path: "API/PayBO/trx-deposit/paybo-depositV2.js", label: "PayBO Deposit V2", type: "PayBO" },
+  payboDeposit: { path: "API/PayBO/trx-deposit/paybo-deposit.js", label: "PayBO Deposit V3", type: "PayBO" },
   payboDepositV4: { path: "API/PayBO/trx-deposit/paybo-depositV4.js", label: "PayBO Deposit V4", type: "PayBO" },
   payboDepositV5: { path: "API/PayBO/trx-deposit/paybo-depositV5.js", label: "PayBO Deposit V5", type: "PayBO" },
   payboPayout: { path: "API/PayBO/trx-payout/paybo-payout.js", label: "PayBO Payout", type: "PayBO" },
