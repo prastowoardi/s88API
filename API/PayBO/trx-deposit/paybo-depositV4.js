@@ -55,9 +55,6 @@ async function sendDeposit() {
     let currency;
     if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
         currency = envCurrency;
-    } else {
-        const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
-        currency = this.validateCurrency(currencyInput.trim().toUpperCase());
     }
 
     const amount = readlineSync.question("Masukkan Amount: ");
@@ -174,9 +171,9 @@ async function sendDeposit() {
     logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`);
     logger.info(`Merchant Code : ${config.merchantCode}`)
     logger.info(`Transaction Code : ${transactionCode}`)
+    logger.info(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
     logger.info(`Request Payload : ${payload}\n`);
     logger.info(`Encrypted : ${encrypted}`);
-    logger.debug(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
 
     try {
         const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`, {
@@ -193,7 +190,7 @@ async function sendDeposit() {
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
             logger.error("❌ Response bukan JSON. Content-Type:", contentType);
-            logger.error("Response Body:", responseBody);
+            logger.error(`Response Body: ${responseBody}`);
             return;
         }
 

@@ -20,6 +20,8 @@ function ask(question) {
 }
 
 async function depositV2() {
+  logger.info("======== DEPOSIT V2 REQUEST ========");
+
   try {
     let userID = randomInt(100, 999);
     const timestamp = Math.floor(Date.now() / 1000).toString();
@@ -29,9 +31,6 @@ async function depositV2() {
     let currency;
     if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
         currency = envCurrency;
-    } else {
-        const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
-        currency = this.validateCurrency(currencyInput.trim().toUpperCase());
     }
 
     const amountInput = await ask("Masukkan Amount: ");
@@ -144,7 +143,6 @@ async function depositV2() {
     
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
-    logger.info("======== DEPOSIT V2 REQUEST ========");
     logger.info(`Currency : ${currency}`);
     logger.info(`Amount : ${amount}`);
     logger.info(`Request Payload : ${payload}\n`);

@@ -10,7 +10,7 @@ import { CALLBACK_URL } from "./API/Config/config.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 🌍 Environment Configurations
+// Environment Configurations
 const ENV_CONFIGS = {
   staging: { file: ".env_staging", label: "Seapay Staging" },
   production: { file: ".env_production", label: "Seapay Production" },
@@ -29,7 +29,7 @@ const ENV_CONFIGS = {
   PayBO_apollo: { file: ".paybo_apollo", label: "PayBO Apollo" },
 };
 
-// 📝 Script Actions
+// Script Actions
 const SCRIPT_ACTIONS = {
   // S88 Scripts
   deposit: { path: "API/S88/trx-deposit/deposit.js", label: "Deposit V3", type: "S88" },
@@ -61,19 +61,18 @@ const SCRIPT_ACTIONS = {
 };
 
 async function main() {
-  console.log("🚀 Universal Script Runner\n");
-
-  // 1️⃣ Select Environment
-  const envChoices = Object.entries(ENV_CONFIGS).map(([key, config]) => ({
-    name: config.label,
+  // Select Environment
+  const envChoices = Object.entries(ENV_CONFIGS).map(([key, config], index) => ({
+    name: `${index + 1}. ${config.label}`,
     value: key,
+    short: config.label
   }));
 
   const { environment } = await inquirer.prompt([
     {
       type: "list",
       name: "environment",
-      message: "🌍 Pilih Environment:",
+      message: "Pilih Environment:",
       choices: envChoices,
     },
   ]);
@@ -93,26 +92,30 @@ async function main() {
   }
   process.env.NODE_ENV = environment;
 
-  console.log(`✅ Loaded environment: ${envConfig.label}\n`);
-
-  // 2️⃣ Select Script Type
+  // Select Script Type
   const scriptTypes = [...new Set(Object.values(SCRIPT_ACTIONS).map(s => s.type))];
-
+  
+  const scriptTypeChoices = scriptTypes.map((type, index) => ({
+    name: `${index + 1}. ${type}`,
+    value: type,
+    short: type
+  }));
+  
   const { scriptType } = await inquirer.prompt([
     {
       type: "list",
       name: "scriptType",
       message: "Pilih Jenis Script:",
-      choices: scriptTypes,
+      choices: scriptTypeChoices,
     },
   ]);
 
-  // 3️⃣ Select Action
   const actionChoices = Object.entries(SCRIPT_ACTIONS)
     .filter(([_, config]) => config.type === scriptType)
-    .map(([key, config]) => ({
-      name: config.label,
+    .map(([key, config], index) => ({
+      name: `${index + 1}. ${config.label}`,
       value: key,
+      short: config.label
     }));
 
   const { action } = await inquirer.prompt([
@@ -126,7 +129,6 @@ async function main() {
 
   const scriptConfig = SCRIPT_ACTIONS[action];
 
-  // 4️⃣ Currency & Merchant Selection
   const needsCurrency = [
     "deposit", "depositV2", "depositV4", "payout", "batchDeposit", "batchDepositV2", "batchWithdraw",
     "payboDeposit", "payboDepositV2", "payboDepositV4", "payboDepositV5",
@@ -147,25 +149,38 @@ async function main() {
     for (const line of lines) {
       const trimmed = line.trim();
 
-      if (trimmed.startsWith("#")) {
-        // Ambil nama merchant dari komentar (contoh: "# KevinINR Merchant")
-        const name = trimmed.replace(/^#\s*/, "").replace(/\s+Merchant$/i, "");
+      if (trimmed.startsWith("#") || trimmed.startsWith(";")) {
+        const name = trimmed.replace(/^[#;]\s*/, "").replace(/\s+Merchant$/i, "").trim();
         currentMerchant = name;
-        merchants[currentMerchant] = {};
-      } else if (trimmed && currentMerchant && trimmed.includes("=")) {
+      } 
+      else if (trimmed && trimmed.includes("=") && !trimmed.startsWith("#") && !trimmed.startsWith(";")) {
         const [key, ...valParts] = trimmed.split("=");
-        const value = valParts.join("=");
-        // Filter hanya var yang relevan dengan currency
-        if (key.toUpperCase().includes(`_${currency}`)) {
-          merchants[currentMerchant][key] = value;
+        const cleanKey = key.trim();
+        
+        if (cleanKey.toUpperCase().includes(`_${currency}`) && currentMerchant) {
+          if (!merchants[currentMerchant]) {
+            merchants[currentMerchant] = {};
+          }
+          
+          const value = valParts.join("=").trim();
+          merchants[currentMerchant][cleanKey] = value;
         }
       }
     }
 
-    return merchants;
+    const validMerchants = {};
+    for (const [merchantName, vars] of Object.entries(merchants)) {
+      const hasMerchantCode = Object.keys(vars).some(k => k.includes(`MERCHANT_CODE_${currency}`));
+      const hasSecretKey = Object.keys(vars).some(k => k.includes(`SECRET_KEY_${currency}`));
+      
+      if (hasMerchantCode && hasSecretKey) {
+        validMerchants[merchantName] = vars;
+      }
+    }
+
+    return validMerchants;
   }
 
-  // Fix: Create `merchantNames` after parsing the merchants from `.env`
   if (needsCurrency) {
     const { currencyInput } = await inquirer.prompt([
       {
@@ -178,10 +193,7 @@ async function main() {
 
     currency = currencyInput.toUpperCase();
 
-    // Parse merchants from the environment file
     const merchants = parseMerchantsFromEnv(envPath, currency);
-
-    // Extract merchant names (keys of the `merchants` object)
     const merchantNames = Object.keys(merchants);
 
     if (merchantNames.length === 0) {
@@ -189,14 +201,24 @@ async function main() {
       process.exit(1);
     }
 
-    let selectedMerchant;
+    if (merchantNames.length === 0) {
+      console.error(`❌ Tidak ada merchant untuk ${currency} di ${envConfig.label}`);
+      process.exit(1);
+    }
+
     if (merchantNames.length > 1) {
+      const merchantChoices = merchantNames.map((name, index) => ({
+        name: `${index + 1}. ${name}`,
+        value: name,
+        short: name
+      }));
+
       const { merchantChoice } = await inquirer.prompt([
         {
           type: "list",
           name: "merchantChoice",
           message: `Pilih merchant untuk ${currency}:`,
-          choices: merchantNames,
+          choices: merchantChoices,
         },
       ]);
       selectedMerchant = merchantChoice;
@@ -215,7 +237,7 @@ async function main() {
   }
 
 
-  // 5️⃣ Run the script
+  // Run the script
   const scriptPath = path.join(__dirname, scriptConfig.path);
 
   if (!fs.existsSync(scriptPath)) {
@@ -224,8 +246,7 @@ async function main() {
   }
 
   console.log(`\n▶️ Menjalankan ${scriptConfig.label}...`);
-  console.log(`   Environment : ${envConfig.label}`);
-  console.log(`   NODE_ENV    : ${environment}`);
+  console.log(`   Environment : ${environment}`);
   if (currency) {
     console.log(`   Currency    : ${currency}`);
     console.log(`   Merchant    : ${selectedMerchant}`);
@@ -240,10 +261,6 @@ async function main() {
     shell: true,
   });
 
-  // child.on("close", (code) => {
-  //   console.log(`\n✅ Selesai (exit code: ${code})`);
-  // });
-
   child.on("error", (err) => {
     console.error(`❌ Error menjalankan script: ${err.message}`);
     process.exit(1);
@@ -254,3 +271,4 @@ main().catch((err) => {
   console.error("❌ Error:", err.message);
   process.exit(1);
 });
+

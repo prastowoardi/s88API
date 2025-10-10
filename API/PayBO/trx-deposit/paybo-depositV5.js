@@ -61,9 +61,6 @@ async function sendDeposit() {
     let currency;
     if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
         currency = envCurrency;
-    } else {
-        const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
-        currency = this.validateCurrency(currencyInput.trim().toUpperCase());
     }
     
     const amount = readlineSync.question("Masukkan Amount: ");
@@ -215,7 +212,7 @@ async function sendDeposit() {
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
             logger.error(`❌ Response bukan JSON. Content-Type: ${contentType}`);
-            logger.error("Response Body:", responseBody);
+            logger.error(`Response Body: ${responseBody}`);
             return;
         }
 

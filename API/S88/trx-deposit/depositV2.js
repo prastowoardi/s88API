@@ -23,6 +23,7 @@ class DepositV2Service {
         );
 
         try {
+            logger.info("======== DEPOSIT V2 REQUEST ========");
             const userID = randomInt(100, 999);
             const timestamp = Math.floor(Date.now() / 1000).toString();
 
@@ -31,9 +32,6 @@ class DepositV2Service {
             let currency;
             if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
                 currency = envCurrency;
-            } else {
-                const currencyInput = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
-                currency = this.validateCurrency(currencyInput.trim().toUpperCase());
             }
 
             if (!SUPPORTED_CURRENCIES.includes(currency)) {
@@ -107,7 +105,6 @@ class DepositV2Service {
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
             const paymentURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
 
-            logger.info("======== DEPOSIT V2 REQUEST ========");
             logger.info(`Request Payload: ${payload}\n`);
             logger.info(`PayURL: ${paymentURL}`);
             logger.info("======== REQUEST DONE ========\n\n");

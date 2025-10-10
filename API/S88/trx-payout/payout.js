@@ -350,11 +350,6 @@ class PayoutOrchestrator {
     try {
       logger.info("======== PAYOUT REQUEST ========");
 
-      const currency = await this.inputHandler.ask(
-        `Masukkan Currency (${CONFIG.SUPPORTED_CURRENCIES.join('/')}): `,
-        validators.currency
-      );
-
       const amount = await this.inputHandler.ask(
         "Masukkan Amount: ",
         validators.amount
