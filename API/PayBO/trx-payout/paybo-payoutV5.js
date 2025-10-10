@@ -191,7 +191,7 @@ async function sendPayout() {
 
     if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
       currency = envCurrency.toUpperCase();
-      logger.info(`Currency diambil dari ENV: ${currency}`);
+      logger.info(`Currency: ${currency}`);
     } else {
       const { currency: inputCurrency, bankCode, amount } = await collectInputs();
       currency = inputCurrency;
