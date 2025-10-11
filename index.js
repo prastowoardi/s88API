@@ -36,9 +36,9 @@ const SCRIPT_ACTIONS = {
   deposit: { path: "API/S88/trx-deposit/deposit.js", label: "Deposit V3", type: "S88" },
   depositV2: { path: "API/S88/trx-deposit/depositV2.js", label: "Deposit V2", type: "S88" },
   depositV4: { path: "API/S88/trx-deposit/depositV4.js", label: "Deposit V4", type: "S88" },
-  payout: { path: "API/S88/trx-payout/payout.js", label: "Payout", type: "S88" },
-  manualINR: { path: "API/S88/trx-payout/manualINR.js", label: "Manual INR", type: "S88" },
-  manualVND: { path: "API/S88/trx-payout/manualVND.js", label: "Manual VND", type: "S88" },
+  payout: { path: "API/S88/trx-payout/payout.js", label: "Withdraw", type: "S88" },
+  manualINR: { path: "API/S88/trx-payout/manualINR.js", label: "Manual Withdraw INR", type: "S88" },
+  manualVND: { path: "API/S88/trx-payout/manualVND.js", label: "Manual Withdraw VND", type: "S88" },
   batchDeposit: { path: "API/S88/trx-deposit/batchDeposit.js", label: "Batch Deposit", type: "S88" },
   batchDepositV2: { path: "API/S88/trx-deposit/batchDepositV2.js", label: "Batch Deposit V2", type: "S88" },
   batchWithdraw: { path: "API/S88/trx-payout/batchWithdraw.js", label: "Batch Withdraw", type: "S88" },
@@ -48,17 +48,17 @@ const SCRIPT_ACTIONS = {
   payboDeposit: { path: "API/PayBO/trx-deposit/paybo-deposit.js", label: "PayBO Deposit V3", type: "PayBO" },
   payboDepositV4: { path: "API/PayBO/trx-deposit/paybo-depositV4.js", label: "PayBO Deposit V4", type: "PayBO" },
   payboDepositV5: { path: "API/PayBO/trx-deposit/paybo-depositV5.js", label: "PayBO Deposit V5", type: "PayBO" },
-  payboPayout: { path: "API/PayBO/trx-payout/paybo-payout.js", label: "PayBO Payout", type: "PayBO" },
-  payboPayoutV5: { path: "API/PayBO/trx-payout/paybo-payoutV5.js", label: "PayBO Payout V5", type: "PayBO" },
   payboBatchDeposit: { path: "API/PayBO/trx-deposit/paybo-batchDeposit.js", label: "PayBO Batch Deposit", type: "PayBO" },
   payboBatchDepositV5: { path: "API/PayBO/trx-deposit/paybo-batchDepositV5.js", label: "PayBO Batch Deposit V5", type: "PayBO" },
-  payboBatchPayout: { path: "API/PayBO/trx-payout/paybo-batchPayout.js", label: "PayBO Batch Payout", type: "PayBO" },
-
+  payboPayout: { path: "API/PayBO/trx-payout/paybo-payout.js", label: "PayBO Withdraw", type: "PayBO" },
+  payboPayoutV5: { path: "API/PayBO/trx-payout/paybo-payoutV5.js", label: "PayBO Withdraw V5", type: "PayBO" },
+  payboBatchPayout: { path: "API/PayBO/trx-payout/paybo-batchPayout.js", label: "PayBO Batch Withdraw", type: "PayBO" },
+  
   // Other Scripts
   callback: { path: "API/manualCallback.js", label: "Manual Callback", type: "Other" },
   checkStatus: { path: "API/PayBO/additional/check-wd-status-v5.js", label: "Check WD Status V5", type: "PayBO" },
   depositEncrypt: { path: "API/encrypt_decrypt/depositEncrypt.js", label: "Deposit Encrypt", type: "Other" },
-  payoutEncrypt: { path: "API/encrypt_decrypt/payoutEncrypt.js", label: "Payout Encrypt", type: "Other" },
+  payoutEncrypt: { path: "API/encrypt_decrypt/payoutEncrypt.js", label: "Withdraw Encrypt", type: "Other" },
 };
 
 async function main() {
