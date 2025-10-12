@@ -169,11 +169,9 @@ class DepositService {
                         logger.info(`================== Trying Other URL ==================\n`);
                         lastError = new Error(`Unauthorized on ${url}`);
                         continue;
+                    } else {
+                        process.exit();
                     }
-
-                    lastError = new Error(`HTTP ${response.status} from ${url}: ${result.message || responseBody}`);
-                    logger.error(`HTTP error on ${url}: ${response.status} - ${result.message || responseBody}`);
-                    continue;
                 }
                 return { result, url: urls[i] };
             } catch (err) {
