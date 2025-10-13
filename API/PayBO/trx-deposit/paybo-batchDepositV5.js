@@ -13,7 +13,7 @@ import {
 import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { generateUTR, randomAmount } from "../../helpers/depositHelper.js";
 
-const AVAILABLE_CURRENCIES = ["INR", "BDT", "VND"];
+const SUPPORTED_CURRENCIES = ["INR", "BDT", "VND"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;
@@ -21,7 +21,7 @@ const REQUEST_TIMEOUT = 30000; // 30 seconds
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 1000; // 1 second base delay
 
-class BatchDepositV3Service {
+class BatchDepositV5Service {
     constructor() {
         this.lastTransactionNumber = 0;
         this.stats = {
@@ -64,14 +64,14 @@ class BatchDepositV3Service {
     validateCurrency(input) {
         const upperInput = input.toUpperCase();
         if (upperInput === "ALL") {
-            return AVAILABLE_CURRENCIES;
+            return SUPPPORTED_CURRENCIES;
         }
         
-        if (AVAILABLE_CURRENCIES.includes(upperInput)) {
+        if (SUPPPORTED_CURRENCIES.includes(upperInput)) {
             return [upperInput];
         }
         
-        throw new Error(`Invalid currency. Available: ${AVAILABLE_CURRENCIES.join("/")}, or 'ALL'`);
+        throw new Error(`Invalid currency. Available: ${SUPPPORTED_CURRENCIES.join("/")}, or 'ALL'`);
     }
 
     validateTransactionCount(count) {
@@ -313,8 +313,15 @@ class BatchDepositV3Service {
     }
 
     getUserInput() {
-        const currencyInput = readlineSync.question(`Pilih currency (${AVAILABLE_CURRENCIES.join("/")}, atau 'ALL'): `);
-        const currenciesToProcess = this.validateCurrency(currencyInput);
+        const envCurrency = process.env.CURRENCY;
+        let currenciesToProcess;
+
+        if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency.trim())) {
+            currenciesToProcess = envCurrency.trim();
+        } else {
+            console.error(`❌ Invalid currency: ${envCurrency}`);
+            process.exit(1); // hentikan proses kalau currency tidak valid
+        }
 
         const jumlah = this.validateTransactionCount(
             readlineSync.questionInt("Berapa Transaksi: ")
@@ -342,17 +349,15 @@ class BatchDepositV3Service {
 
             const { currenciesToProcess, jumlah, amounts } = this.getUserInput();
 
-            this.stats.total = currenciesToProcess.length * jumlah;
+            this.stats.total = jumlah;
+            const currency = currenciesToProcess;
 
             const tasks = [];
-            for (const currency of currenciesToProcess) {
-                const transactionCodes = this.generateTransactionCodes(jumlah);
-                for (let i = 0; i < transactionCodes.length; i++) {
-                    const transactionCode = transactionCodes[i];
-                    const amount = amounts[i] || amounts[0];
-                    
-                    tasks.push(() => this.sendDeposit({ currency, amount, transactionCode }));
-                }
+            const transactionCodes = this.generateTransactionCodes(jumlah);
+            for (let i = 0; i < transactionCodes.length; i++) {
+                const transactionCode = transactionCodes[i];
+                const amount = amounts[i] || amounts[0];
+                tasks.push(() => this.sendDeposit({ currency, amount, transactionCode }));
             }
 
             await this.processBatch(tasks);
@@ -398,5 +403,5 @@ class BatchDepositV3Service {
     }
 }
 
-const batchService = new BatchDepositV3Service();
+const batchService = new BatchDepositV5Service();
 batchService.batchDeposit();
