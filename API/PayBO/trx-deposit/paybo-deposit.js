@@ -216,7 +216,8 @@ async function sendDeposit() {
 
         while (utr !== "YES" && utr !== "NO") {
             console.log("Invalid input! Please enter 'YES' or 'NO'.");
-            utr = readlineSync.question("Input UTR (YES/NO): ").toUpperCase();
+            utr = readlineSync.question("Input UTR (YES/NO): ");
+            utr = utr.toUpperCase();
         }
 
         if (utr === "YES" && ["INR", "BDT"].includes(currency)) {

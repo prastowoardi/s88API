@@ -320,7 +320,7 @@ class BatchDepositV5Service {
             currenciesToProcess = envCurrency.trim();
         } else {
             console.error(`❌ Invalid currency: ${envCurrency}`);
-            process.exit(1); // hentikan proses kalau currency tidak valid
+            process.exit(1);
         }
 
         const jumlah = this.validateTransactionCount(

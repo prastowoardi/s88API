@@ -355,8 +355,15 @@ class BatchDepositV3Service {
     }
 
     getUserInput() {
-        const currencyInput = readlineSync.question(`Pilih currency (${AVAILABLE_CURRENCIES.join("/")}, atau 'ALL'): `);
-        const currenciesToProcess = this.validateCurrency(currencyInput);
+        const envCurrency = process.env.CURRENCY;
+        let currenciesToProcess = [];
+
+        if (envCurrency && AVAILABLE_CURRENCIES.includes(envCurrency.trim())) {
+            currenciesToProcess = [envCurrency.trim()];
+        } else {
+            console.error(`❌ Invalid currency: ${envCurrency}`);
+            process.exit(1);
+        }
 
         const jumlah = this.validateTransactionCount(
             readlineSync.questionInt("Berapa Transaksi: ")

@@ -300,10 +300,11 @@ class DepositService {
 
         let utr = await this.ask("Input UTR (YES/NO): ")
         utr = utr.toUpperCase();
-        
+
         while (utr !== "YES" && utr !== "NO") {
             console.log("Invalid input! Please enter 'YES' or 'NO'.");
-            utr = await this.ask("Input UTR (YES/NO): ").toUpperCase();
+            utr = await this.ask("Input UTR (YES/NO): ");
+            utr = utr.toUpperCase();
         }
 
         if (utr === "YES" && UTR_CURRENCIES.includes(currency)) {

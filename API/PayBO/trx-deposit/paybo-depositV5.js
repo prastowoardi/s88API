@@ -233,11 +233,13 @@ async function sendDeposit() {
         logger.info(`Response Status: ${response.status}`);
         logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
 
-        let utr = readlineSync.question("Input UTR (YES/NO): ").toUpperCase();
+        let utr = readlineSync.question("Input UTR (YES/NO): ");
+        utr = utr.toUpperCase();
 
         while (utr !== "YES" && utr !== "NO") {
             console.log("Invalid input! Please enter 'YES' or 'NO'.");
-            utr = readlineSync.question("Input UTR (YES/NO): ").toUpperCase();
+            utr = readlineSync.question("Input UTR (YES/NO): ");
+            utr = utr.toUpperCase();
         }
 
         if (utr === "YES" && ["INR", "BDT"].includes(currency)) {
