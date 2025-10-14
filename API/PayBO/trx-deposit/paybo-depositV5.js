@@ -233,8 +233,18 @@ async function sendDeposit() {
         logger.info(`Response Status: ${response.status}`);
         logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
 
-        if (["INR", "BDT"].includes(currency)) {
+        let utr = readlineSync.question("Input UTR (YES/NO): ").toUpperCase();
+
+        while (utr !== "YES" && utr !== "NO") {
+            console.log("Invalid input! Please enter 'YES' or 'NO'.");
+            utr = readlineSync.question("Input UTR (YES/NO): ").toUpperCase();
+        }
+
+        if (utr === "YES" && ["INR", "BDT"].includes(currency)) {
             await submitUTR(currency, transactionCode);
+        } else {
+            logger.info("Skip Submit UTR");
+            process.exit(0);
         }
 
     } catch (err) {
