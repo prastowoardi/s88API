@@ -251,7 +251,7 @@ class DepositService {
         }
 
         if (utr === "YES" && UTR_CURRENCIES.includes(currency)) {
-            await this.submitUTR(currency, transactionCode, successfulURL);
+            await this.submitUTR(currency, transactionCode);
         } else {
             logger.info("Skip Submit UTR");
             process.exit(0);
