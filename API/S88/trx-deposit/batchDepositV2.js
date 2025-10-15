@@ -133,39 +133,6 @@ class BatchDepositV2Service {
         return payloadParts.join('&');
     }
 
-    async submitUTR(currency, transactionCode, config, retries = 3) {
-        if (!UTR_CURRENCIES.includes(currency)) {
-            return;
-        }
-
-        const utr = generateUTR(currency);
-        const utrPayload = `transaction_code=${transactionCode}&utr=${utr}`;
-        const encryptedUTR = encryptDecrypt("encrypt", utrPayload, config.merchantAPI, config.secretKey);
-
-        for (let attempt = 1; attempt <= retries; attempt++) {
-            try {
-                const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: encryptedUTR }),
-                    timeout: 10000 // 10 seconds timeout
-                });
-
-                const result = await response.text();
-                logger.info(`Submit UTR Result (${transactionCode}): ${result}`);
-                return;
-
-            } catch (err) {
-                if (attempt === retries) {
-                    logger.error(`❌ Submit UTR Failed after ${retries} attempts (${transactionCode}):`, err.message);
-                } else {
-                    logger.warn(`⚠️ Submit UTR attempt ${attempt} failed (${transactionCode}), retrying...`);
-                    await this.delay(1000 * attempt); // Exponential backoff
-                }
-            }
-        }
-    }
-
     async createDepositV2({ currency, amount, transactionCode, bankCode }) {
         try {
             const config = getCurrencyConfig(currency);
@@ -191,11 +158,6 @@ class BatchDepositV2Service {
             const payURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
 
             logger.info(`🔗 PayURL (${transactionCode}): ${payURL}`);
-
-            // Submit UTR if required
-            if (UTR_CURRENCIES.includes(currency)) {
-                await this.submitUTR(currency, transactionCode, config);
-            }
 
             this.stats.success++;
             return { success: true, payURL };
