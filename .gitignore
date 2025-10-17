@@ -20,6 +20,7 @@ node_modules
 .paybo_apollo
 .paybo_commspay
 .paybo_xcpay
+.paybo_tiger
 
 # src files
 old_bank.json

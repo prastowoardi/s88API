@@ -11,6 +11,7 @@ import {
   MERCHANT_CODE_MXN, SECRET_KEY_MXN, MERCHANT_API_KEY_MXN, DEPOSIT_METHOD_MXN,
   MERCHANT_CODE_KRW, SECRET_KEY_KRW, MERCHANT_API_KEY_KRW, DEPOSIT_METHOD_KRW,
   MERCHANT_CODE_PHP, SECRET_KEY_PHP, MERCHANT_API_KEY_PHP, DEPOSIT_METHOD_PHP,
+  MERCHANT_CODE_JPY, SECRET_KEY_JPY, MERCHANT_API_KEY_JPY, DEPOSIT_METHOD_JPY,
   MERCHANT_CODE_HKD, SECRET_KEY_HKD, MERCHANT_API_KEY_HKD, DEPOSIT_METHOD_HKD,
 } from "../Config/config.js";
 
@@ -28,8 +29,9 @@ const currencyConfigs = {
   IDR: { merchantCode: MERCHANT_CODE_IDR, depositMethod: DEPOSIT_METHOD_IDR, secretKey: SECRET_KEY_IDR, merchantAPI: MERCHANT_API_KEY_IDR, requiresBankCode: true },
   THB: { merchantCode: MERCHANT_CODE_THB, depositMethod: DEPOSIT_METHOD_THB, secretKey: SECRET_KEY_THB, merchantAPI: MERCHANT_API_KEY_THB, requiresBankCode: true, cardNumber: true },
   MXN: { merchantCode: MERCHANT_CODE_MXN, depositMethod: DEPOSIT_METHOD_MXN, secretKey: SECRET_KEY_MXN, merchantAPI: MERCHANT_API_KEY_MXN, requiresBankCode: true },
-  KRW: { merchantCode: MERCHANT_CODE_KRW, depositMethod: DEPOSIT_METHOD_KRW, secretKey: SECRET_KEY_KRW, merchantAPI: MERCHANT_API_KEY_KRW, requiresBankCode: false },
+  KRW: { merchantCode: MERCHANT_CODE_KRW, depositMethod: DEPOSIT_METHOD_KRW, secretKey: SECRET_KEY_KRW, merchantAPI: MERCHANT_API_KEY_KRW, requiresBankCode: false},
   PHP: { merchantCode: MERCHANT_CODE_PHP, depositMethod: DEPOSIT_METHOD_PHP, secretKey: SECRET_KEY_PHP, merchantAPI: MERCHANT_API_KEY_PHP, requiresBankCode: true },
+  JPY: { merchantCode: MERCHANT_CODE_JPY, depositMethod: DEPOSIT_METHOD_JPY, secretKey: SECRET_KEY_JPY, merchantAPI: MERCHANT_API_KEY_JPY, requiresBankCode: true },
   HKD: { merchantCode: MERCHANT_CODE_HKD, depositMethod: DEPOSIT_METHOD_HKD, secretKey: SECRET_KEY_HKD, merchantAPI: MERCHANT_API_KEY_HKD }
 };
 
