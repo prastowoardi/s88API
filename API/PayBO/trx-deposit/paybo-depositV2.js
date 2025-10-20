@@ -8,7 +8,7 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
 dotenv.config();
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY"];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -110,6 +110,10 @@ async function depositV2() {
 
     if (phone && !(currency === "IDR" && bankCode === "OVO")) {
         payload += `&phone=${phone}`;
+    }
+
+    if (currency === "JPY") {
+        payload += `&cust_name=${await getRandomName()}`;
     }
 
     if (cardNumber) payload += `&card_number=${cardNumber}`;

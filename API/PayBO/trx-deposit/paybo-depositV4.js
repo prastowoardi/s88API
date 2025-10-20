@@ -7,7 +7,7 @@ import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generate
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY"];
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -142,6 +142,10 @@ async function sendDeposit() {
         payloadObject.card_number = `${cardNumber}`;
     }
 
+    if (currency === "JPY") {
+        payloadObject.cust_name = await getRandomName();
+    }
+
     if (cardNumber) payloadObject.card_number = cardNumber;
 
     if (currency === "HKD") {
@@ -210,21 +214,26 @@ async function sendDeposit() {
 
         logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
         logger.info(`Response Status: ${response.status}`);
-
-        let utr = readlineSync.question("Input UTR (YES/NO): ")
-        utr = utr.toUpperCase();
-
-        while (utr !== "YES" && utr !== "NO") {
-            console.log("Invalid input! Please enter 'YES' or 'NO'.");
+        
+        let utr = "NO";
+        if (currency === "INR" || currency === "BDT") {
             utr = readlineSync.question("Input UTR (YES/NO): ");
             utr = utr.toUpperCase();
-        }
 
-        if (utr === "YES" && ["INR", "BDT"].includes(currency)) {
-            await submitUTR(currency, transactionCode);
-        } else {
-            logger.info("Skip Submit UTR");
-            process.exit(0);
+            while (utr !== "YES" && utr !== "NO") {
+                console.log("Invalid input! Please enter 'YES' or 'NO'.");
+                utr = readlineSync.question("Input UTR (YES/NO): ");
+                utr = utr.toUpperCase();
+            }
+
+            console.log(`UTR : ${utr}`);
+
+            if (utr === "YES" && ["INR", "BDT"].includes(currency)) {
+                await submitUTR(currency, transactionCode);
+            } else {
+                logger.info("Skip Submit UTR");
+                process.exit(0);
+            }
         }
 
     } catch (err) {
