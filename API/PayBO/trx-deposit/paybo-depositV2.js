@@ -2,10 +2,9 @@ import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
-import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
 dotenv.config();
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY"];
@@ -130,7 +129,8 @@ async function depositV2() {
         payload += 
             `&bank_code=${bankCode}` +
             `&card_holder_name=중국공상은행` +
-            `&card_number=${cardNumber}`;
+            `&card_number=${cardNumber}` +
+            `&cust_name=${await getRandomName()}`;
     }
 
     if (currency === "THB") {

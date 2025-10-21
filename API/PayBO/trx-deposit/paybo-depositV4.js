@@ -5,7 +5,6 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
-import { createKrwCustomer } from "../../helpers/krwHelper.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY"];
 
@@ -96,23 +95,6 @@ async function sendDeposit() {
         logger.info(`Card Number: ${cardNumber}`);
     }
 
-    // if (currency === "KRW") {
-    //     const result = await createKrwCustomer(config);
-
-    //     if (!result || result.success !== true) {
-    //         logger.error("❌ Gagal create customer KRW. API tidak success.");
-    //         return;
-    //     }
-
-    //     const user_id = result.data?.user_id;
-    //     if (!user_id) {
-    //         logger.error("❌ Tidak ada user_id di response create-customer KRW.");
-    //         return;
-    //     }
-
-    //     userID = user_id;
-    //     logger.info(`user_id from API create-customer KRW: ${userID}`);
-    // }
     const name = getRandomName();
 
     const payloadObject = {
@@ -138,7 +120,7 @@ async function sendDeposit() {
 
     if (currency === "KRW") {
         payloadObject.bank_code = `${bankCode}`;
-        payloadObject.card_holder_name = "ANJILI";
+        payloadObject.cust_name = await getRandomName();
         payloadObject.card_number = `${cardNumber}`;
     }
 
