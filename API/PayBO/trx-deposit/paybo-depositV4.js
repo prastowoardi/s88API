@@ -119,16 +119,16 @@ async function sendDeposit() {
     }
 
     if (currency === "KRW") {
-        payloadObject.bank_code = `${bankCode}`;
         payloadObject.cust_name = await getRandomName();
-        payloadObject.card_number = `${cardNumber}`;
     }
 
     if (currency === "JPY") {
         payloadObject.cust_name = await getRandomName();
     }
 
-    if (cardNumber) payloadObject.card_number = cardNumber;
+    if (config.cardNumber) {
+        payloadObject.card_number = cardNumber;
+    }
 
     if (currency === "HKD") {
         payloadObject.card_number = "3566111111111113";
@@ -152,14 +152,11 @@ async function sendDeposit() {
     const payload = JSON.stringify(payloadObject);
     const encryptedTransactionCode = encryptDecrypt("encrypt", transactionCode, config.merchantAPI, config.secretKey);
 
-    const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-
     logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`);
     logger.info(`Merchant Code : ${config.merchantCode}`)
     logger.info(`Transaction Code : ${transactionCode}`)
     logger.info(`Encrypted Transaction Code: ${encryptedTransactionCode}`);
-    logger.info(`Request Payload : ${payload}\n`);
-    logger.info(`Encrypted : ${encrypted}`);
+    logger.info(`Request Payload : ${JSON.stringify(payloadObject, null, 2)}\n`);
 
     try {
         const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v4/generateDeposit`, {

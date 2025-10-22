@@ -132,7 +132,9 @@ async function sendDeposit() {
         payloadObject.cust_name = await getRandomName();
     }
 
-    if (cardNumber) payloadObject.card_number = `${cardNumber}`;
+    if (config.cardNumber) {
+        payloadObject.card_number = cardNumber;
+    }
 
     if (currency === "HKD") {
         payloadObject.card_number = "3566111111111113";
