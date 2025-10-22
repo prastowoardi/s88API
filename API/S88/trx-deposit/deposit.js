@@ -298,20 +298,23 @@ class DepositService {
 
         logger.info("Deposit Response: " + JSON.stringify(result, null, 2));
 
-        let utr = await this.ask("Input UTR (YES/NO): ")
-        utr = utr.toUpperCase();
-
-        while (utr !== "YES" && utr !== "NO") {
-            console.log("Invalid input! Please enter 'YES' or 'NO'.");
+        let utr = "NO";
+        if (currency === "INR" || currency === "BDT") {
             utr = await this.ask("Input UTR (YES/NO): ");
-            utr = utr.toUpperCase();
-        }
+            utr = utr.trim().toUpperCase();
 
-        if (utr === "YES" && UTR_CURRENCIES.includes(currency)) {
-            await this.submitUTR(currency, transactionCode, successfulURL);
-        } else {
-            logger.info("Skip Submit UTR");
-            process.exit(0);
+            while (utr !== "YES" && utr !== "NO") {
+                console.log("Invalid input! Please enter 'YES' or 'NO'.");
+                utr = await this.ask("Input UTR (YES/NO): ");
+                utr = utr.trim().toUpperCase();
+            }
+
+            if (utr === "YES" && ["INR", "BDT"].includes(currency)) {
+                await this.submitUTR(currency, transactionCode, successfulURL);
+            } else {
+                logger.info("Skip Submit UTR");
+                process.exit(0);
+            }
         }
 
         return result;
