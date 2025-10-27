@@ -315,14 +315,32 @@ async function main() {
         }
 
         console.log(`\n▶️ Menjalankan ${scriptConfig.label}...`);
-        console.log(`   Environment : ${envConfig.label}`);
+        console.log(`   Environment     : ${envConfig.label}`);
         if (currency) {
-          console.log(`   Currency    : ${currency}`);
-          console.log(`   Merchant    : ${selectedMerchant}`);
+          console.log("   Currency        : " + currency);
+          console.log("   Merchant        : " + selectedMerchant);
+          console.log("   Merchant Code   : " + (process.env["MERCHANT_CODE_" + currency] || 'Not set'));
+
+          const depositActions = [
+            "deposit", "depositV2", "depositV4", "batchDeposit", "batchDepositV2",
+            "payboDeposit", "payboDepositV2", "payboDepositV4", "payboDepositV5",
+            "payboBatchDeposit", "payboBatchDepositV5"
+          ];
+
+          const payoutActions = [
+            "payout", "manualINR", "manualVND", "batchWithdraw",
+            "payboPayout", "payboPayoutV5", "payboBatchPayout"
+          ];
+
+          if (depositActions.includes(action)) {
+            console.log("   Deposit Method  : " + (process.env["DEPOSIT_METHOD_" + currency] || 'Not set'));
+          } else if (payoutActions.includes(action)) {
+            console.log("   Payout Method   : " + (process.env["PAYOUT_METHOD_" + currency] || 'Not set'));
+          }
         }
-        console.log(`   Base URL    : ${process.env.BASE_URL || 'Not set'}`);
-        console.log(`   Callback URL: ${CALLBACK_URL || 'Not set'}`);
-        console.log(`   Script      : ${scriptConfig.path}\n`);
+        console.log(`   Base URL        : ${process.env.BASE_URL || 'Not set'}`);
+        console.log(`   Callback URL    : ${CALLBACK_URL || 'Not set'}`);
+        console.log(`   Script          : ${scriptConfig.path}\n`);
 
         const child = spawn("node", [scriptPath], {
           stdio: "inherit",
