@@ -7,223 +7,149 @@ import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNum
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY"];
+const UTR_CURRENCIES = ["INR", "BDT"];
+const PHONE_CURRENCIES = ["INR", "BDT"];
 
-async function submitUTR(currency, transactionCode) {
-    if (!["INR", "BDT"].includes(currency)) {
-        logger.error("❌ Submit UTR hanya tersedia untuk INR & BDT.");
-        return;
+function buildPayload(config, tx, userInfo = {}) {
+    const payloadObj = {
+        merchant_api_key: config.merchantAPI,
+        merchant_code: config.merchantCode,
+        transaction_code: tx.code,
+        transaction_timestamp: tx.timestamp,
+        transaction_amount: tx.amount,
+        user_id: tx.userID,
+        currency_code: tx.currency,
+        payment_code: config.depositMethod,
+        ip_address: tx.ip,
+        ...(tx.bankCode && { bank_code: tx.bankCode }),
+        ...(tx.phone && { phone: tx.phone }),
+        ...(tx.cardNumber && { card_number: tx.cardNumber }),
+        ...(tx.currency === "THB" && {
+            depositor_name: userInfo.name,
+            depositor_bank: tx.bankCode,
+            bank_account_number: tx.cardNumber,
+            account_type: tx.accountType
+        }),
+        ...(tx.currency === "KRW" && {
+            cust_name: userInfo.name,
+            card_holder_name: "중국공상은행",
+        }),
+        ...(tx.currency === "HKD" && {
+            card_number: "3566111111111113",
+            card_date: "06/25",
+            card_cvv: "100",
+            card_holder_name: "Bob Brown"
+        }),
+        ...(tx.currency === "JPY" && { cust_name: userInfo.name }),
+        callback_url: config.callbackURL,
+    };
+
+    return Object.entries(payloadObj)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("&");
+}
+
+function getBankCode(currency, config) {
+    if (currency === "BRL") return "PIX";
+    if (currency === "MXN") return "SPEI";
+    if (config.requiresBankCode) {
+        return readlineSync.question("Masukkan Bank Code: ").trim();
+    }
+    return config.bankCodeOptions?.[Math.floor(Math.random() * config.bankCodeOptions.length)] || "";
+}
+
+function getPhoneNumber(currency, bankCode) {
+    if (currency === "BDT") return randomPhoneNumber("bdt");
+    if (currency === "MMK" && bankCode === "WAVEPAY") return randomMyanmarPhoneNumber();
+    if (currency === "IDR" && bankCode === "OVO") return randomPhoneNumber("idr");
+    return "";
+}
+
+async function handleUTR(currency, transactionCode) {
+    if (!UTR_CURRENCIES.includes(currency)) return;
+
+    let utr = readlineSync.question("Input UTR (YES/NO): ").trim().toUpperCase();
+    while (!["YES", "NO"].includes(utr)) {
+        console.log("Invalid input! Please enter 'YES' or 'NO'.");
+        utr = readlineSync.question("Input UTR (YES/NO): ").trim().toUpperCase();
     }
 
-    const utr = generateUTR(currency);
-    logger.info(`✅ UTR : ${utr}`);
-
-    const config = getCurrencyConfig(currency);
-
-    const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
-    const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
-
-    try {
-        const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ key: encryptedPayload })
-        });
-
-        const responseText = await response.text();
-        if (!response.ok) {
-            logger.error("❌ HTTP Error:", response.status);
-            logger.info(`Response : ${responseText}`);
-            return;
+    if (utr === "YES") {
+        const config = getCurrencyConfig(currency);
+        const utrCode = generateUTR(currency);
+        const payload = `transaction_code=${transactionCode}&utr=${utrCode}`;
+        const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+        try {
+            const res = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key: encrypted })
+            });
+            const result = await res.json();
+            logger.info(`Submit UTR Response : ${JSON.stringify(result, null, 2)}`);
+        } catch (err) {
+            logger.error(`❌ Submit UTR Error : ${err.message}`);
         }
-
-        const result = JSON.parse(responseText);
-        logger.info(`Submit UTR Response : ${JSON.stringify(result, null, 2)}`);        
-    } catch (err) {
-        logger.error(`❌ Submit UTR Error : ${err}`);
+    } else {
+        logger.info("Skip Submit UTR");
     }
 }
 
-async function sendDeposit() { 
+async function sendDeposit() {
     logger.info("======== DEPOSIT V3 REQUEST ========");
-    
-    const envCurrency = process.env.CURRENCY;
-        
-    let currency;
-    if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
-        currency = envCurrency;
-    } else {
-        currency = this.validateCurrency(currencyInput.trim().toUpperCase());
-    }
-
-    let userID = randomInt(100, 999);
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const transactionCode = `TEST-DP-${timestamp}`;
-    const config = getCurrencyConfig(currency);
-    
-    const amount = readlineSync.question("Masukkan Amount: ");
-    
-    if (isNaN(amount) || Number(amount) <= 0) {
-        logger.error("❌ Amount harus berupa angka lebih dari 0.");
-        return;
-    }
-
-    let bankCode = "";
-    let phone = "";
-    const cardNumber = randomCardNumber();
-    const ip = getRandomIP();
-
-    if (config.requiresBankCode) {
-        if (currency === "BRL") {
-            bankCode = "PIX";
-        } else if (currency === "MXN") {
-            bankCode = "SPEI";
-        } else {
-            bankCode = readlineSync.question("Masukkan Bank Code: ");
-        }
-    } else if (config.bankCodeOptions) {
-        bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
-    }
-
-    if (currency === "MMK" && bankCode === "WAVEPAY") {
-        phone = randomMyanmarPhoneNumber();
-        logger.info(`Phone Number for WavePay: ${phone}`);
-    }
-
-    if (currency === "BDT") {
-        phone = randomPhoneNumber("bdt");
-    }
-
-    if (config.cardNumber) {
-        logger.info(`Card Number: ${cardNumber}`);
-    }
-
-    let payload = 
-        `merchant_api_key=${config.merchantAPI}` +
-        `&merchant_code=${config.merchantCode}` +
-        `&transaction_code=${transactionCode}` +
-        `&transaction_timestamp=${timestamp}` +
-        `&transaction_amount=${amount}` +
-        `&user_id=${userID}` +
-        `&currency_code=${currency}` +
-        `&payment_code=${config.depositMethod}` +
-        `&callback_url=${config.callbackURL}` +
-        `&ip_address=${ip}`;
-        
-    if (currency === "IDR" && bankCode === "OVO") {
-        phone = randomPhoneNumber("idr");
-        payload += `&bank_account_number=${phone}`;
-        logger.info(`OVO Phone Number: ${phone}`);
-    }
-
-    if (bankCode) payload += `&bank_code=${bankCode}`;
-    
-    if (currency === "KRW") {
-        payload += `&cust_name=${await getRandomName()}`;
-    }
-
-    if (phone && !(currency === "IDR" && bankCode === "OVO")) {
-        payload += `&phone = ${phone}`;
-    }
-
-    if (cardNumber) payload += `&card_number=${cardNumber}`;
-    
-    if (currency === "JPY") {
-        payload += `&cust_name=${await getRandomName()}`;
-    }
-
-    if (currency === "HKD") {
-        payload +=
-        `&card_number=3566111111111113` +
-        `&card_date=06/25` +
-        `&card_cvv=100` +
-        `&card_holder_name=bob Brown`;
-    }
-
-    if (currency === "KRW") {
-        payload += 
-            `&bank_code=${bankCode}` +
-            `&card_holder_name=중국공상은행` +
-            `&card_number=${cardNumber}`;
-    }
-
-    if (currency === "THB") {
-        const account_type = readlineSync.question("Masukkan Account Type : ");
-        if (!/^[a-z0-9A-Z]+$/.test(account_type)) {
-            throw new Error("Depositor Bank must contain only letters");
-        }
-
-        payload += `&account_type=${account_type}`;
-        payload += `&depositor_name=${await getRandomName()}`;
-        payload += `&depositor_bank=${bankCode}`;
-        payload += `&bank_account_number=${cardNumber}`;
-    }
-
-
-    const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-    const decrypted = encryptDecrypt("decrypt", encrypted, config.merchantAPI, config.secretKey);
-
-    logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
-    logger.info(`Merchant Code : ${config.merchantCode}`)
-    logger.info(`Request Payload : ${payload}`);
-    logger.info(`Encrypted : ${encrypted}`);
-    // logger.info(`Decrypted : ${decrypted}`);
 
     try {
+        const envCurrency = process.env.CURRENCY?.trim().toUpperCase();
+        let currency = SUPPORTED_CURRENCIES.includes(envCurrency)
+            ? envCurrency
+            : readlineSync.question("Masukkan Currency: ").trim().toUpperCase();
+
+        if (!SUPPORTED_CURRENCIES.includes(currency)) {
+            throw new Error(`Invalid currency. Supported: ${SUPPORTED_CURRENCIES.join(", ")}`);
+        }
+
+        const amountInput = readlineSync.question("Masukkan Amount: ");
+        const amount = Number(amountInput);
+        if (isNaN(amount) || amount <= 0) throw new Error("Amount harus berupa angka lebih dari 0.");
+
+        const userID = randomInt(100, 999);
+        const timestamp = Math.floor(Date.now() / 1000).toString();
+        const transactionCode = `TEST-DP-V3-${timestamp}`;
+        const config = getCurrencyConfig(currency);
+        const cardNumber = randomCardNumber();
+        const ip = getRandomIP();
+        const bankCode = getBankCode(currency, config);
+        const phone = getPhoneNumber(currency, bankCode);
+
+        const tx = { code: transactionCode, timestamp, amount, userID, currency, ip, bankCode, phone, cardNumber };
+
+        if (currency === "THB") {
+            const accountType = readlineSync.question("Masukkan Account Type: ").trim();
+            tx.accountType = accountType;
+        }
+
+        const userInfo = { name: await getRandomName(), accountNumber: cardNumber };
+        const payload = buildPayload(config, tx, userInfo);
+        const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+
+        logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);
+        logger.info(`Request Payload : ${payload}`);
+        logger.info(`Encrypted : ${encrypted}`);
+
         const response = await fetch(`${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ key: encrypted })
         });
 
-        const contentType = response.headers.get("content-type");
-        const responseBody = await response.text();
-
-        if (!contentType || !contentType.includes("application/json")) {
-            logger.error("❌ Response bukan JSON. Content-Type: " + contentType);
-            logger.error(`Response body: ${responseBody}`);
-            return;
-        }
-
-        let resultDP;
-        try {
-            resultDP = JSON.parse(responseBody);
-        } catch (parseError) {
-            logger.error("❌ Gagal parse JSON:", parseError.message);
-            console.log("Raw response body:", responseBody);
-            return;
-        }
-
-        if (!response.ok) {
-            logger.error("❌ Deposit gagal:\n" + JSON.stringify(resultDP, null, 2));
-            return;
-        }
-
-        logger.info("Deposit Response: " + JSON.stringify(resultDP, null, 2));
+        const responseBody = await response.json();
+        logger.info("Deposit Response: " + JSON.stringify(responseBody, null, 2));
         logger.info(`Response Status: ${response.status}`);
 
-        let utr = "NO";
-        if (currency === "INR" || currency === "BDT") {
-            utr = readlineSync.question("Input UTR (YES/NO): ");
-            utr = utr.toUpperCase();
-
-            while (utr !== "YES" && utr !== "NO") {
-                console.log("Invalid input! Please enter 'YES' or 'NO'.");
-                utr = readlineSync.question("Input UTR (YES/NO): ");
-                utr = utr.toUpperCase();
-            }
-
-            console.log(`UTR : ${utr}`);
-            
-            if (utr === "YES" && ["INR", "BDT"].includes(currency)) {
-                await submitUTR(currency, transactionCode);
-            } else {
-                logger.info("Skip Submit UTR");
-                process.exit(0);
-            }
-        }
+        await handleUTR(currency, transactionCode);
 
     } catch (err) {
-        logger.error(`❌ Deposit Error : ${err}\n`);
+        logger.error(`❌ Deposit Error: ${err.message}`);
     }
 
     logger.info("======== REQUEST DONE ========\n\n");
