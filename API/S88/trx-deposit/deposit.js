@@ -123,26 +123,28 @@ class DepositService {
 
     async makeDepositRequest(config, payload) {
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-        
+
         const urls = [
-            config.BASE_URL, 
-            process.env.BASE_URL_2, 
+            config.BASE_URL,
+            process.env.BASE_URL_2,
             process.env.BASE_URL_3,
         ].filter(Boolean);
 
-    for (const base of urls) {
-        const url = `${base}/api/${config.merchantCode}/v3/dopayment`;
-        logger.info(`Trying: ${url}`);
-        logger.info(`Encrypted: ${encrypted}`);
+        for (const base of urls) {
+            const url = `${base}/api/${config.merchantCode}/v3/dopayment`;
+            logger.info(`Trying: ${url}`);
+            logger.info(`Encrypted: ${encrypted}`);
 
-        try {
+            try {
                 const response = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ key: encrypted }),
                 });
+
                 const text = await response.text();
                 const json = await this.tryParseJSON(text, url);
+
                 if (!json) continue;
 
                 if (!response.ok) {
@@ -150,12 +152,14 @@ class DepositService {
                         logger.warn(`⚠️ Unauthorized at ${base}, trying next...\n`);
                         continue;
                     }
-                    throw new Error(`HTTP ${res.status}: ${text}`);
+
+                    throw new Error(`HTTP ${response.status}: ${text}`);
                 }
 
                 return { result: json, url: base };
             } catch (err) {
                 logger.error(`🚫 Network error on ${base}: ${err.message}`);
+                throw err;
             }
         }
 
