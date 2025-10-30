@@ -67,7 +67,7 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
         // Uncomment for Erfolgpay
         // case "INR":
         //     payload.product_name="pillow"
-        //     payload.cust_name="pillow"
+        //     payload.cust_name=await getRandomName("in", true)
         //     payload.cust_email="pillow@mail.com"
         //     payload.cust_phone="9876371231"
         //     payload.cust_city="Mumbai"
@@ -75,19 +75,19 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
         //     payload.zip_code="21323"
         //     break;
         case "KRW":
-            payload.cust_name = name;
+            payload.cust_name = await getRandomName("kr", true);
             payload.bank_code = bankCode;
-            payload.card_holder_name = "중국공상은행";
+            payload.card_holder_name = await getRandomName("kr", true);
             payload.card_number = cardNumber;
             break;
         case "JPY":
-            payload.cust_name = name;
+            payload.cust_name = await getRandomName("jp", true);
             break;
         case "THB":
             const account_type = readlineSync.question("Masukkan Account Type: ").trim();
             if (!/^[a-zA-Z0-9]+$/.test(account_type)) throw new Error("Account Type must contain only letters");
             payload.account_type = account_type;
-            payload.depositor_name = name;
+            payload.cust_name = await getRandomName("th", true);
             payload.depositor_bank = bankCode;
             payload.bank_account_number = cardNumber;
             break;

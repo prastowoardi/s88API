@@ -10,7 +10,7 @@ const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
-function buildPayload(config, tx, userInfo = {}) {
+async function buildPayload(config, tx, userInfo = {}) {
     const payloadObj = {
         merchant_api_key: config.merchantAPI,
         merchant_code: config.merchantCode,
@@ -25,14 +25,14 @@ function buildPayload(config, tx, userInfo = {}) {
         ...(tx.phone && { phone: tx.phone }),
         ...(tx.cardNumber && { card_number: tx.cardNumber }),
         ...(tx.currency === "THB" && {
-            depositor_name: userInfo.name,
+            cust_name: await getRandomName("th", true),
             depositor_bank: tx.bankCode,
             bank_account_number: tx.cardNumber,
             account_type: tx.accountType
         }),
         ...(tx.currency === "KRW" && {
             cust_name: userInfo.name,
-            card_holder_name: "중국공상은행",
+            card_holder_name: await getRandomName("kr", true),
         }),
         ...(tx.currency === "HKD" && {
             card_number: "3566111111111113",
@@ -40,7 +40,7 @@ function buildPayload(config, tx, userInfo = {}) {
             card_cvv: "100",
             card_holder_name: "Bob Brown"
         }),
-        ...(tx.currency === "JPY" && { cust_name: userInfo.name }),
+        ...(tx.currency === "JPY" && { cust_name: await getRandomName("jp", true) }),
         callback_url: config.callbackURL,
     };
 
@@ -129,7 +129,7 @@ async function sendDeposit() {
         }
 
         const userInfo = { name: await getRandomName(), accountNumber: cardNumber };
-        const payload = buildPayload(config, tx, userInfo);
+        const payload = await buildPayload(config, tx, userInfo);
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
         logger.info(`URL : ${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`);

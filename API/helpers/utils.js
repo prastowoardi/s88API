@@ -146,34 +146,36 @@ export function getRandomIP() {
     }
 }
 
-export async function getRandomName() {
-    try {
-        const response = await fetch(
-            'https://api.api-ninjas.com/v1/randomuser',
-            {
-                headers: {
-                    'X-Api-Key': API_NINJAS_KEY
-                }
-            }
-        );
+const localNames = {
+    th: ["สมชาย ใจดี", "สุดา นารี", "นภัทร พานิช", "ชนิดา เล็ก"],
+    cn: ["李伟", "王芳", "张伟", "陈杰"],
+    jp: ["佐藤 太郎", "中村 優希", "鈴木 彩", "田中 翔"],
+    en: ["John Smith", "Emily Brown", "Michael Johnson", "Sarah Davis"],
+    in: ["आरव शर्मा", "प्रिया सिंह", "रोहन पटेल", "अनन्या गुप्ता"],
+    bd: ["রাহিম হোসেন", "ফাতিমা আক্তার", "শাকিব আহমেদ", "নুসরাত জাহান"],
+    kr: ["김민준", "박지우", "이수진", "최현"],
+    my: ["အောင်ကျော်", "မြသုဇာ", "ထက်နိုင်", "သန္တာဝင်း"],
+    vn: ["Nguyễn Văn An", "Trần Thị Mai", "Lê Quang Huy", "Phạm Thị Lan"],
+    id: ["Andi Pratama", "Siti Nurhaliza", "Budi Santoso", "Cindy Melati"]
+};
 
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            return "Anderson Sales";
+export async function getRandomName(locale = "en", forceLocal = false) {
+    if (!forceLocal) {
+        try {
+            const response = await fetch('https://api.api-ninjas.com/v1/randomuser', {
+                headers: { 'X-Api-Key': API_NINJAS_KEY }
+            });
+            const data = await response.json();
+            if (data.name) return data.name; // pakai API
+        } catch (error) {
+            console.warn("❌ Gagal ambil dari API Ninjas:", error.message);
         }
-
-        const data = await response.json();
-
-        if (!data.name) {
-            return "Cinantya Melki";
-        }
-
-    return data.name;
-    } catch (error) {
-        console.error("❌ Gagal mengambil random user:", error.message);
-        return "Andre Stainless";
     }
+
+    // fallback lokal
+    const selectedLocale = localNames[locale.toLowerCase()] || localNames["en"];
+    const randomIndex = Math.floor(Math.random() * selectedLocale.length);
+    return selectedLocale[randomIndex];
 }
 
 export function getAccountNumber(length = 8) {

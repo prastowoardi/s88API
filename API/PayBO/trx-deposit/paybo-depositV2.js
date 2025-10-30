@@ -39,20 +39,20 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
   switch (currency) {
     case "KRW":
       payloadObj.bank_code = bankCode;
-      payloadObj.card_holder_name = "중국공상은행";
+      payloadObj.card_holder_name = await getRandomName("kr", true);
       payloadObj.card_number = cardNumber;
-      payloadObj.cust_name = userName;
+      payloadObj.cust_name = await getRandomName("kr", true);
       break;
     case "THB":
       const accountType = await ask("Masukkan Account Type: ");
       if (!/^[a-zA-Z0-9]+$/.test(accountType)) throw new Error("Depositor Bank must contain only letters");
       payloadObj.account_type = accountType;
-      payloadObj.depositor_name = userName;
+      payloadObj.cust_name = await getRandomName("th", true);
       payloadObj.depositor_bank = bankCode;
       payloadObj.bank_account_number = cardNumber;
       break;
     case "JPY":
-      payloadObj.cust_name = userName;
+      payloadObj.cust_name = await getRandomName("jp", true);
       break;
     case "HKD":
       payloadObj.card_number = "3566111111111113";
