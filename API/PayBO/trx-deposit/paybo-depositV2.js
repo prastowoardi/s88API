@@ -84,7 +84,7 @@ async function depositV2() {
     if (isNaN(amount) || amount <= 0) throw new Error("Amount harus berupa angka lebih dari 0.");
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    const transactionCode = `TEST-DP-${timestamp}`;
+    const transactionCode = `TEST-DP-V2-${timestamp}`;
     const userID = randomInt(100, 999);
     const cardNumber = randomCardNumber();
     const ip = getRandomIP();
