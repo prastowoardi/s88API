@@ -100,7 +100,7 @@ class DepositV2Service {
 
     async execute() {
         try {
-            logger.info("======== 💰 DEPOSIT V2 REQUEST ========");
+            logger.info("======== DEPOSIT V2 REQUEST ========");
 
             const currencyEnv = process.env.CURRENCY;
             const currency = this.validateCurrency(currencyEnv);

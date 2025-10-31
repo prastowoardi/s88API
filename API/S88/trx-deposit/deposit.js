@@ -218,7 +218,7 @@ class DepositService {
         const payload = await this.buildPayload(config, transactionData, userInfo);
         const { result, url } = await this.makeDepositRequest(config, payload);
 
-        logger.info(`💰 Deposit Response:\n${JSON.stringify(result, null, 2)}`);
+        logger.info(`Deposit Response:\n${JSON.stringify(result, null, 2)}`);
 
         if (["INR", "BDT"].includes(currency)) {
             const wantUTR = await this.askYesNo("Input UTR?");
@@ -245,7 +245,7 @@ class DepositService {
 
     async sendDeposit() {
         try {
-            logger.info("======== 🚀 START DEPOSIT REQUEST ========");
+            logger.info("======== DEPOSIT V3 REQUEST ========");
             const { currency, amount } = await this.getUserInput();
             const config = getCurrencyConfig(currency);
             const transactionCode = this.generateTransactionCode();
@@ -256,7 +256,7 @@ class DepositService {
                 await this.processStandardDeposit(currency, amount, config, transactionCode);
             }
 
-            logger.info("======== ✅ REQUEST DONE ========\n");
+            logger.info("======== REQUEST DONE ========\n");
         } catch (err) {
             logger.error(`❌ Error: ${err.message}`);
         } finally {
