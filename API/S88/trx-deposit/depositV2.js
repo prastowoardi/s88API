@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
 dotenv.config();
 
@@ -95,7 +96,13 @@ class DepositV2Service {
             });
         }
 
-        return new URLSearchParams(params).toString();
+        // return new URLSearchParams(params).toString();
+        return Object.entries(params)
+            .map(([k, v]) => {
+                if (k === "depositor_name" || k === "callback_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                return `${k}=${encodeURIComponent(v)}`;
+            })
+            .join("&");
     }
 
     async execute() {
@@ -112,7 +119,7 @@ class DepositV2Service {
 
             const user = {
                 id: randomInt(100, 999),
-                name: await getRandomName(),
+                name: await getRandomName(localCurrency[currency], true),
                 accountNumber: randomCardNumber(),
             };
 

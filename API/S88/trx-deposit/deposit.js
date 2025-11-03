@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP,  getRandomName } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
@@ -109,7 +110,13 @@ class DepositService {
             });
         }
 
-        return new URLSearchParams(payload).toString();
+        // return new URLSearchParams(payload).toString();
+        return Object.entries(payload)
+            .map(([k, v]) => {
+                if (k === "depositor_name" || k === "callback_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                return `${k}=${encodeURIComponent(v)}`;
+            })
+            .join("&");
     }
 
     async tryParseJSON(text, url) {
@@ -133,6 +140,7 @@ class DepositService {
         for (const base of urls) {
             const url = `${base}/api/${config.merchantCode}/v3/dopayment`;
             logger.info(`Trying: ${url}`);
+            logger.info(`Payload: ${payload}\n`);
             logger.info(`Encrypted: ${encrypted}`);
 
             try {
@@ -200,7 +208,7 @@ class DepositService {
 
     async processStandardDeposit(currency, amount, config, transactionCode) {
         const userInfo = {
-            name: await getRandomName(),
+            name: await getRandomName(localCurrency[currency], true),
             accountNumber: randomCardNumber(),
         };
 
