@@ -37,6 +37,16 @@ function getPhone(currency, bankCode) {
 async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber) {
   const userName = await getRandomName();
   switch (currency) {
+    // Uncomment for Erfolgpay
+    // case "INR":
+    //   payloadObj.product_name="pillow"
+    //   payloadObj.cust_name=await getRandomName("in", true)
+    //   payloadObj.cust_email="pillow@mail.com"
+    //   payloadObj.cust_phone="9876371231"
+    //   payloadObj.cust_city="Mumbai"
+    //   payloadObj.cust_country="India"
+    //   payloadObj.zip_code="21323"
+    //   break;
     case "KRW":
       payloadObj.bank_code = bankCode;
       payloadObj.card_holder_name = await getRandomName("kr", true);

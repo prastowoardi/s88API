@@ -41,6 +41,16 @@ async function buildPayload(config, tx, userInfo = {}) {
             card_holder_name: "Bob Brown"
         }),
         ...(tx.currency === "JPY" && { cust_name: await getRandomName("jp", true) }),
+        // Uncomment for Erfolgpay
+        // ...(tx.currency === "INR" && {
+        //     product_name: "pillow",
+        //     cust_name: await getRandomName(),
+        //     cust_email: "pillow@mail.com",
+        //     cust_phone: "9876371231",
+        //     cust_city: "Mumbai",
+        //     cust_country: "India",
+        //     zip_code: "21323"
+        // }),
         callback_url: config.callbackURL,
     };
 
