@@ -46,5 +46,5 @@ export function getCurrencyConfig(currency) {
     console.error(`Config untuk currency '${currency}' tidak ditemukan.`);
     throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
   }
-  return config;
+  return { ...config, currency };
 }
