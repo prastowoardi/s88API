@@ -83,18 +83,18 @@ class DepositService {
 
     async buildPayload(config, tx, user) {
         const payload = {
-        merchant_api_key: config.merchantAPI,
-        merchant_code: config.merchantCode,
-        transaction_code: tx.transactionCode,
-        transaction_timestamp: tx.timestamp,
-        transaction_amount: tx.amount,
-        user_id: tx.userID,
-        currency_code: tx.currency,
-        payment_code: config.depositMethod,
-        ip_address: tx.ip,
-        callback_url: config.callbackURL,
-        ...(tx.bankCode && { bank_code: tx.bankCode }),
-        ...(tx.phone && { phone: tx.phone }),
+            merchant_api_key: config.merchantAPI,
+            merchant_code: config.merchantCode,
+            transaction_code: tx.transactionCode,
+            transaction_timestamp: tx.timestamp,
+            transaction_amount: tx.amount,
+            user_id: tx.userID,
+            currency_code: tx.currency,
+            payment_code: config.depositMethod,
+            ip_address: tx.ip,
+            ...(tx.bankCode && { bank_code: tx.bankCode }),
+            ...(tx.phone && { phone: tx.phone }),
+            callback_url: config.callbackURL,
         };
 
         // THB only
@@ -110,10 +110,14 @@ class DepositService {
             });
         }
 
+        if (tx.currency === "KRW") {
+            payload.depositor_name = user.name;
+        }
+
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
@@ -138,7 +142,12 @@ class DepositService {
         ].filter(Boolean);
 
         for (const base of urls) {
-            const url = `${base}/api/${config.merchantCode}/v3/dopayment`;
+            const endpoint =
+                String(config.currency).toUpperCase() === "KRW"
+                    ? `/api/${config.merchantCode}/v3/krw-payment`
+                    : `/api/${config.merchantCode}/v3/dopayment`;
+
+            const url = `${base}${endpoint}`;
             logger.info(`Trying: ${url}`);
             logger.info(`Payload: ${payload}\n`);
             logger.info(`Encrypted: ${encrypted}`);
@@ -166,7 +175,7 @@ class DepositService {
 
                 return { result: json, url: base };
             } catch (err) {
-                logger.error(`🚫 Network error on ${base}: ${err.message}`);
+                // logger.error(`🚫 Network error on ${base}: ${err.message}`);
                 throw err;
             }
         }

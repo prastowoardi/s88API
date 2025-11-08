@@ -99,7 +99,7 @@ class DepositV2Service {
         // return new URLSearchParams(params).toString();
         return Object.entries(params)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");

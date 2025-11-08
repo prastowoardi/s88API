@@ -95,8 +95,11 @@ class DepositService {
         };
 
         return Object.entries(basePayload)
-        .map(([k, v]) => `${k}=${v}`)
-        .join("&");
+            .map(([k, v]) => {
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                return `${k}=${encodeURIComponent(v)}`;
+            })
+            .join("&");
     }
 
     async sendEncryptedRequest(url, key) {
