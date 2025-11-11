@@ -54,7 +54,8 @@ const SCRIPT_ACTIONS = {
   payboBatchDeposit: { path: "API/PayBO/trx-deposit/paybo-batchDeposit.js", label: "PayBO Batch Deposit", type: "PayBO" },
   payboBatchDepositV5: { path: "API/PayBO/trx-deposit/paybo-batchDepositV5.js", label: "PayBO Batch Deposit V5", type: "PayBO" },
   payboBatchPayout: { path: "API/PayBO/trx-payout/paybo-batchPayout.js", label: "PayBO Batch Withdraw", type: "PayBO" },
-
+  payboBatchPayoutV5: { path: "API/PayBO/trx-payout/paybo-batchPayoutV5.js", label: "PayBO Batch Withdraw V5", type: "PayBO" },
+  
   // Other Scripts
   callback: { path: "API/manualCallback.js", label: "Manual Callback", type: "Other" },
   checkStatus: { path: "API/PayBO/additional/check-wd-status-v5.js", label: "Check WD Status V5", type: "PayBO" },
@@ -267,7 +268,7 @@ async function main() {
           "deposit", "depositV2", "depositV4", "payout", "batchDeposit", "batchDepositV2", "batchWithdraw",
           "payboDeposit", "payboDepositV2", "payboDepositV4", "payboDepositV5",
           "payboPayout", "payboPayoutV5",
-          "payboBatchDeposit", "payboBatchDepositV5", "payboBatchPayout"
+          "payboBatchDeposit", "payboBatchDepositV5", "payboBatchPayout", "payboBatchPayoutV5"
         ].includes(action);
 
         let currency = null;
