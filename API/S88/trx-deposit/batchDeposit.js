@@ -182,7 +182,7 @@ class BatchDepositV3Service {
             }
         }
 
-        return { success: false, error: "Max retries exceeded" };
+        return { success: false, error: "Max retries exceeded", utr: utrValue };
     }
 
     // async sendCallbackSafe(callbackData, transactionCode) {
@@ -280,18 +280,21 @@ class BatchDepositV3Service {
 
             if (resultDP.status === "success") {
                 const transactionNo = resultDP.transaction_no;
-                const utr = generateUTR(currency);
-                
+                let utrValue = " ";
+
+                if (UTR_CURRENCIES.includes(currency)) {
+                    const utrSubmitted = await this.submitUTR(currency, transactionCode);
+                    if (utrSubmitted.success) {
+                        utrValue = utrSubmitted.utr;
+                    }
+                }
+
                 let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency})`;
-                if (currency === "INR") logMsg += ` | UTR: ${utr}`;
+                if (currency === "INR") logMsg += ` | UTR: ${utrValue}`;
                 logMsg += ` | Success: ${resultDP.message}`;
                 logger.info(logMsg);
 
                 this.stats.success++;
-
-                if (UTR_CURRENCIES.includes(currency)) {
-                    await this.submitUTR(currency, transactionCode);
-                }
 
                 // if (transactionNo) {
                 //     await this.sendCallbackSafe({
