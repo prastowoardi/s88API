@@ -49,7 +49,10 @@ async function buildPayload(config, tx, userInfo = {}) {
         //     cust_phone: "9876371231",
         //     cust_city: "Mumbai",
         //     cust_country: "India",
-        //     zip_code: "21323"
+        //     zip_code: "21323",
+        //     cust_pan_number: "01234567",
+        //     cust_address: "mumbai",
+        //     cust_website_url: "aa.com"
         // }),
         callback_url: config.callbackURL,
     };

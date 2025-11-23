@@ -81,6 +81,9 @@ async function applyCurrencySpecifics(payload, currency, bankCode, cardNumber) {
         //     payload.cust_city="Mumbai"
         //     payload.cust_country="India"
         //     payload.zip_code="21323"
+        //     payload.cust_pan_number="HWULX6881T",
+        //     payload.cust_address="mumbai",
+        //     payload.cust_website_url="aa.com"
         //     break;
         case "KRW":
             payload.bank_code = bankCode;
