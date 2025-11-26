@@ -79,6 +79,7 @@ class DepositV2Service {
             ip_address: tx.ip,
             ...(tx.bankCode && { bank_code: tx.bankCode }),
             ...(tx.phone && { phone: tx.phone }),
+            redirect_url: "kaskus.id",
             callback_url: config.callbackURL,
         };
 
@@ -95,6 +96,20 @@ class DepositV2Service {
                 depositor_account_number: user.accountNumber,
             });
         }
+
+        // Only for Erfolg provider
+        // if (tx.currency === "INR") {
+        //     product_name="pillow"
+        //     depositor_name=await getRandomName("in", true)
+        //     email="pillow@mail.com"
+        //     phone="9876371231"
+        //     depositor_city="Mumbai"
+        //     depositor_country="India"
+        //     depositor_zip_code="21323"
+        //     depositor_pan_number="HWULX6881T",
+        //     depositor_address="mumbai",
+        //     depositor_merchant_url="aa.com"
+        // }
 
         // return new URLSearchParams(params).toString();
         return Object.entries(params)

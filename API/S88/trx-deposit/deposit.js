@@ -94,6 +94,7 @@ class DepositService {
             ip_address: tx.ip,
             ...(tx.bankCode && { bank_code: tx.bankCode }),
             ...(tx.phone && { phone: tx.phone }),
+            redirect_url: "kaskus.id",
             callback_url: config.callbackURL,
         };
 
@@ -113,6 +114,20 @@ class DepositService {
         if (tx.currency === "KRW") {
             payload.depositor_name = user.name;
         }
+
+        // Only for Erfolg provider
+        // if (tx.currency === "INR") {
+        //     payload.product_name="pillow"
+        //     payload.name=await getRandomName("in", true)
+        //     payload.email="pillow@mail.com"
+        //     payload.depositor_phone="9876371231"
+        //     payload.depositor_city="Mumbai"
+        //     payload.depositor_country="India"
+        //     payload.depositor_zip_code="21323"
+        //     payload.depositor_pan_number="HWULX6881T",
+        //     payload.depositor_address="mumbai",
+        //     payload.depositor_merchant_url="aa.com"
+        // }
 
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
