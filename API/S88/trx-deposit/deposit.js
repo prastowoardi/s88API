@@ -94,7 +94,6 @@ class DepositService {
             ip_address: tx.ip,
             ...(tx.bankCode && { bank_code: tx.bankCode }),
             ...(tx.phone && { phone: tx.phone }),
-            redirect_url: "kaskus.id",
             callback_url: config.callbackURL,
         };
 
