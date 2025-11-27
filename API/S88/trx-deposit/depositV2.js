@@ -79,7 +79,7 @@ class DepositV2Service {
             ip_address: tx.ip,
             ...(tx.bankCode && { bank_code: tx.bankCode }),
             ...(tx.phone && { phone: tx.phone }),
-            redirect_url: "kaskus.id",
+            redirect_url: "https://kaskus.id",
             callback_url: config.callbackURL,
         };
 
@@ -114,7 +114,7 @@ class DepositV2Service {
         // return new URLSearchParams(params).toString();
         return Object.entries(params)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "redirect_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
