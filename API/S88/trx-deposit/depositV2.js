@@ -67,7 +67,7 @@ class DepositV2Service {
     }
 
     async buildPayload(config, tx, user) {
-        const params = {
+        const payload = {
             merchant_api_key: config.merchantAPI,
             merchant_code: config.merchantCode,
             transaction_code: tx.code,
@@ -90,7 +90,7 @@ class DepositV2Service {
                 throw new Error("Depositor Bank must contain only letters");
             }
 
-            Object.assign(params, {
+            Object.assign(payload, {
                 depositor_bank: depositorBank,
                 depositor_name: user.name,
                 depositor_account_number: user.accountNumber,
@@ -99,22 +99,24 @@ class DepositV2Service {
 
         // Only for Erfolg provider
         // if (tx.currency === "INR") {
-        //     product_name="pillow"
-        //     depositor_name=await getRandomName("in", true)
-        //     email="pillow@mail.com"
-        //     phone="9876371231"
-        //     depositor_city="Mumbai"
-        //     depositor_country="India"
-        //     depositor_zip_code="21323"
-        //     depositor_pan_number="HWULX6881T",
-        //     depositor_address="mumbai",
-        //     depositor_merchant_url="aa.com"
+        //     Object.assign(payload, {
+        //         product_name: "pillow",
+        //         depositor_name: await getRandomName("in", true),
+        //         email: "pillow@mail.com",
+        //         phone: "9876371231",
+        //         depositor_city: "Mumbai",
+        //         depositor_country: "India",
+        //         depositor_zip_code: "21323",
+        //         depositor_pan_number: "HWULX6881T",
+        //         depositor_address: "mumbai",
+        //         depositor_merchant_url: "aa.com"
+        //     });
         // }
 
-        // return new URLSearchParams(params).toString();
-        return Object.entries(params)
+        // return new URLSearchParams(payload).toString();
+        return Object.entries(payload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "redirect_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "redirect_url" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");

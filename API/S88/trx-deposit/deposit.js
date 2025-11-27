@@ -116,22 +116,24 @@ class DepositService {
 
         // Only for Erfolg provider
         // if (tx.currency === "INR") {
-        //     payload.product_name="pillow"
-        //     payload.name=await getRandomName("in", true)
-        //     payload.email="pillow@mail.com"
-        //     payload.depositor_phone="9876371231"
-        //     payload.depositor_city="Mumbai"
-        //     payload.depositor_country="India"
-        //     payload.depositor_zip_code="21323"
-        //     payload.depositor_pan_number="HWULX6881T",
-        //     payload.depositor_address="mumbai",
-        //     payload.depositor_merchant_url="aa.com"
+        //     Object.assign(payload, {
+        //         product_name: "tofu",
+        //         depositor_name: await getRandomName("in", true),
+        //         email: "tofu@mail.com",
+        //         phone: "9876373331",
+        //         depositor_city: "Mumbai",
+        //         depositor_country: "India",
+        //         depositor_zip_code: "81818",
+        //         depositor_pan_number: "HWULX6881T",
+        //         depositor_address: "mumbai",
+        //         depositor_merchant_url: "x.com"
+        //     });
         // }
 
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
