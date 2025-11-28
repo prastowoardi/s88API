@@ -13,6 +13,7 @@ import {
   MERCHANT_CODE_PHP, SECRET_KEY_PHP, MERCHANT_API_KEY_PHP, DEPOSIT_METHOD_PHP,
   MERCHANT_CODE_JPY, SECRET_KEY_JPY, MERCHANT_API_KEY_JPY, DEPOSIT_METHOD_JPY,
   MERCHANT_CODE_HKD, SECRET_KEY_HKD, MERCHANT_API_KEY_HKD, DEPOSIT_METHOD_HKD,
+  MERCHANT_CODE_KHR, SECRET_KEY_KHR, MERCHANT_API_KEY_KHR, DEPOSIT_METHOD_KHR,
 } from "../Config/config.js";
 
 const defaultConfig = {
@@ -32,7 +33,8 @@ const currencyConfigs = {
   KRW: { merchantCode: MERCHANT_CODE_KRW, depositMethod: DEPOSIT_METHOD_KRW, secretKey: SECRET_KEY_KRW, merchantAPI: MERCHANT_API_KEY_KRW, requiresBankCode: false},
   PHP: { merchantCode: MERCHANT_CODE_PHP, depositMethod: DEPOSIT_METHOD_PHP, secretKey: SECRET_KEY_PHP, merchantAPI: MERCHANT_API_KEY_PHP, requiresBankCode: true },
   JPY: { merchantCode: MERCHANT_CODE_JPY, depositMethod: DEPOSIT_METHOD_JPY, secretKey: SECRET_KEY_JPY, merchantAPI: MERCHANT_API_KEY_JPY, requiresBankCode: true },
-  HKD: { merchantCode: MERCHANT_CODE_HKD, depositMethod: DEPOSIT_METHOD_HKD, secretKey: SECRET_KEY_HKD, merchantAPI: MERCHANT_API_KEY_HKD }
+  HKD: { merchantCode: MERCHANT_CODE_HKD, depositMethod: DEPOSIT_METHOD_HKD, secretKey: SECRET_KEY_HKD, merchantAPI: MERCHANT_API_KEY_HKD },
+  KHR: { merchantCode: MERCHANT_CODE_KHR, depositMethod: DEPOSIT_METHOD_KHR, secretKey: SECRET_KEY_KHR, merchantAPI: MERCHANT_API_KEY_KHR }
 };
 
 const currencyConfigMap = Object.keys(currencyConfigs).reduce((map, currency) => {

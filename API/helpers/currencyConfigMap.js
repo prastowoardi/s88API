@@ -9,4 +9,5 @@ export const localCurrency = {
     IDR: "id",
     CNY: "cn",
     JPY: "jp",
+    KHR: "kh"
 };

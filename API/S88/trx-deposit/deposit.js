@@ -7,7 +7,7 @@ import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNum
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -115,20 +115,20 @@ class DepositService {
         }
 
         // Only for Erfolg provider
-        // if (tx.currency === "INR") {
-        //     Object.assign(payload, {
-        //         product_name: "tofu",
-        //         depositor_name: await getRandomName("in", true),
-        //         email: "tofu@mail.com",
-        //         phone: "9876373331",
-        //         depositor_city: "Mumbai",
-        //         depositor_country: "India",
-        //         depositor_zip_code: "81818",
-        //         depositor_pan_number: "HWULX6881T",
-        //         depositor_address: "mumbai",
-        //         depositor_merchant_url: "x.com"
-        //     });
-        // }
+        if (tx.currency === "INR") {
+            Object.assign(payload, {
+                product_name: "tofu",
+                depositor_name: await getRandomName("in", true),
+                email: "tofu@mail.com",
+                phone: "9876373331",
+                depositor_city: "Mumbai",
+                depositor_country: "India",
+                depositor_zip_code: "81818",
+                depositor_pan_number: "HWULX6881T",
+                depositor_address: "mumbai",
+                depositor_merchant_url: "x.com"
+            });
+        }
 
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
