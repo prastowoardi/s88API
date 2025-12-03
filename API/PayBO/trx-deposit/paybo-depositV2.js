@@ -119,6 +119,7 @@ async function depositV2() {
       ...(bankCode && { bank_code: bankCode }),
       ...(phone && { phone }),
       ...(cardNumber && { card_number: cardNumber }),
+      redirect_url:"https://kaskus.id",
       callback_url: config.callbackURL,
     };
 

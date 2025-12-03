@@ -140,7 +140,8 @@ async function sendDeposit() {
             user_id: userID,
             currency_code: currency,
             callback_url: config.callbackURL,
-            ip_address: ip
+            ip_address: ip,
+            redirect_url:"https://kaskus.id",
         };
 
         if (bankCode) payload.bank_code = bankCode;
