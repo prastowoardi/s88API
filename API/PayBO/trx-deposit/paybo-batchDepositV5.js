@@ -4,16 +4,16 @@ import logger from "../../logger.js";
 import { encryptDecrypt, signVerify, getRandomIP } from "../../helpers/utils.js";
 import {
     BASE_URL, CALLBACK_URL,
-    SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT,
-    DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT,
-    MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT,
-    MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT
+    SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK,
+    DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, DEPOSIT_METHOD_MMK,
+    MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK,
+    MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK, 
 } from "../../Config/config.js";
 
 import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { generateUTR, randomAmount } from "../../helpers/depositHelper.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "BDT", "VND"];
+const SUPPORTED_CURRENCIES = ["INR", "BDT", "VND", "MMK"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;
@@ -57,6 +57,13 @@ class BatchDepositV5Service {
                 secretKey: SECRET_KEY_BDT,
                 merchantAPI: MERCHANT_API_KEY_BDT,
                 bankCodeOptions: ["1002", "1001", "1004", "1003"]
+            },
+            MMK: {
+                merchantCode: MERCHANT_CODE_MMK,
+                depositMethod: DEPOSIT_METHOD_MMK,
+                secretKey: SECRET_KEY_MMK,
+                merchantAPI: MERCHANT_API_KEY_MMK,
+                bankCodeOptions: ["KBZ", "AYA"]
             }
         };
     }
@@ -251,9 +258,10 @@ class BatchDepositV5Service {
             }
 
             if (resultDP.success === true) {
-                const transactionNo = resultDP.data.additional.transaction_no;
+                const transactionNo = resultDP.data.transaction_no;
+                const remark = resultDP?.data?.additional?.remark || "-";
                 
-                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency})`;
+                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark}`;
                 if (UTR_CURRENCIES.includes(currency)) {
                     const utrResult = await this.submitUTR(currency, transactionCode);
                     if (utrResult.success && utrResult.utr) {

@@ -267,8 +267,9 @@ class BatchDepositV3Service {
             if (resultDP.status === "success") {
                 const transactionNo = resultDP.transaction_no;
                 const utr = generateUTR(currency);
-                
-                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency})`;
+                const remark = resultDP?.data?.additional?.remark || "-";
+
+                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark}`;
                 if (currency === "INR") logMsg += ` | UTR: ${utr}`;
                 logMsg += ` | Success: ${resultDP.message}`;
                 logger.info(logMsg);                
