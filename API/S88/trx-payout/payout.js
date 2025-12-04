@@ -270,11 +270,11 @@ class regularPayout {
   }
 
   static async send(userID, currency, amount, transactionCode, name, config, inputHandler) {
-      const url = `${config.BASE_URL}/api/v1/payout/${config.merchantCode}`;
+    const url = `${config.BASE_URL}/api/v1/payout/${config.merchantCode}`;
 
-      try {
+    try {
       logger.info("🚀 Creating payout payload...");
-      
+
       let payload = await regularPayout.createBasePayload(
         userID, currency, amount, transactionCode, name, config
       );
@@ -283,7 +283,7 @@ class regularPayout {
         payload, currency, config, inputHandler
       );
 
-      logger.info(`URL: ${url}`)
+      logger.info(`URL: ${url}`);
       logger.info(`Payout request:\n${JSON.stringify(payload, null, 2)}`);
 
       const encryptedPayload = encryptDecryptPayout(
@@ -306,35 +306,35 @@ class regularPayout {
         });
 
         const resultText = await response.text();
-        
+
         let parsedResult;
         try {
           parsedResult = JSON.parse(resultText);
         } catch (e) {
-          throw new Error(`Invalid JSON response: ${resultText}`);
+          throw { message: `Invalid JSON response`, resultText };
         }
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${parsedResult.message || response.statusText}`);
+          throw { message: parsedResult.message || `HTTP ${response.status}`, resultText };
         }
 
-        return parsedResult;
+        return { parsedResult, resultText };
       });
 
-      if (result.encrypted_data) {
+      if (result.parsedResult.encrypted_data) {
         try {
-          const decrypted = encryptDecrypt("decrypt", result.encrypted_data, config.merchantAPI, config.secretKey);
+          const decrypted = encryptDecrypt("decrypt", result.parsedResult.encrypted_data, config.merchantAPI, config.secretKey);
           logger.info("🔓 Decrypted Response:", decrypted);
         } catch (decryptError) {
           logger.warn("⚠️ Failed to decrypt response:", decryptError.message);
         }
       }
 
-      return { success: true, data: result };
+      return { success: true, data: result.parsedResult, resultText: result.resultText };
 
     } catch (error) {
       // logger.error(`❌ Regular Payout Error: ${error.message}`);
-      return { success: false, error: error.message };
+      return { success: false, error: error.message, resultText: error.resultText || null };
     }
   }
 }
@@ -395,7 +395,9 @@ class PayoutOrchestrator {
       logger.info(`Duration: ${duration.toFixed(2)}s`);
       
       if (!result.success) {
-        logger.error(`Error: ${result.error}`);
+        if(result.resultText) {
+          logger.error(`Error: ${result.resultText}`);
+        }
       }
 
       return result;
