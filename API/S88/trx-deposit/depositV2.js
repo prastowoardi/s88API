@@ -92,7 +92,7 @@ class DepositV2Service {
 
             Object.assign(payload, {
                 depositor_bank: depositorBank,
-                depositor_name: user.name,
+                depositor_name: await getRandomName(),
                 depositor_account_number: user.accountNumber,
             });
         }
