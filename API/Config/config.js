@@ -18,6 +18,7 @@ const envFiles = {
     PayBO_commspay: '.paybo_commspay',
     PayBO_erfolgpay: '.paybo_erfolgpay',
     PayBO_apollo: '.paybo_apollo',
+    PayBO_apollo_INR: '.paybo_apollo_inr',
     PayBO_production: '.paybo_production',
     PayBO_xcpay: '.paybo_xcpay'
 };
