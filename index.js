@@ -30,6 +30,7 @@ const ENV_CONFIGS = {
   PayBO_apollo_INR: { file: ".paybo_apollo_inr", label: "PayBO Apollo INR" },
   PayBO_xcpay: { file: ".paybo_xcpay", label: "PayBO XCPay" },
   PayBO_tiger: { file: ".paybo_tiger", label: "PayBO Tiger2378" },
+  PayBO_next8: { file: ".paybo_next8", label: "PayBO Next8" }
 };
 
 // Script Actions
