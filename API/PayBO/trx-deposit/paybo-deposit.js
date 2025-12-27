@@ -162,7 +162,7 @@ async function sendDeposit() {
         await handleUTR(currency, transactionCode);
 
     } catch (err) {
-        logger.error(`❌ Deposit Error: ${err.message}`);
+        logger.error(`❌ Deposit Error: `,err.message);
     }
 
     logger.info("======== REQUEST DONE ========\n\n");
