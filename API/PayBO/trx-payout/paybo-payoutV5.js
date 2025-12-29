@@ -197,7 +197,7 @@ async function sendPayout() {
 
     if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
       currency = envCurrency.toUpperCase();
-      logger.info(`Currency: ${currency}`);
+      // logger.info(`Currency: ${currency}`);
     } else {
       const { currency: inputCurrency, bankCode, amount } = await collectInputs();
       currency = inputCurrency;
@@ -244,7 +244,7 @@ async function sendPayout() {
 
   } catch (error) {
     logger.error(`❌ Payout failed: ${error.message}`);
-    throw error;
+    // throw error;
   } finally {
     rl.close();
   }

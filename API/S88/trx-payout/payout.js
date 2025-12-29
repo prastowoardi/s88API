@@ -356,7 +356,7 @@ class PayoutOrchestrator {
 
       if (envCurrency && CONFIG.SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
         currency = envCurrency.toUpperCase();
-        logger.info(`Currency: ${currency}`);
+        // logger.info(`Currency: ${currency}`);
       } else {
         currency = await this.inputHandler.ask(
           `Masukkan Currency (${CONFIG.SUPPORTED_CURRENCIES.join(", ")}): `,

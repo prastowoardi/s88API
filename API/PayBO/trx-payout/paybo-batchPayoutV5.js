@@ -7,8 +7,8 @@ import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { fileURLToPath } from 'url';
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY"];
-const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK"];
+const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
 const MAX_BATCH_SIZE = 1000;
 const MAX_CONCURRENT_REQUESTS = 10;

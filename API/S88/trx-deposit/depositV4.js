@@ -212,8 +212,8 @@ class DepositService {
         const amountInput = await this.ask("Masukkan Amount: ");
         const amount = this.validateAmount(amountInput.trim());
 
-        logger.info(`Currency: ${currency}`);
-        logger.info(`Amount: ${amount}`);
+        // logger.info(`Currency: ${currency}`);
+        // logger.info(`Amount: ${amount}`);
 
         return { currency, amount };
     }

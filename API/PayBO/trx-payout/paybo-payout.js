@@ -189,7 +189,7 @@ class PayoutService {
       let currency;
       if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
           currency = envCurrency;
-          logger.info(`Currency: ${currency}`);
+          // logger.info(`Currency: ${currency}`);
       }
 
       const userID = randomInt(100, 999);
