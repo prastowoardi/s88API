@@ -7,7 +7,7 @@ import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 
 const CONFIG = {
-  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "PMI"],
+  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "PMI", "MYR"],
   REQUEST_TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
@@ -273,8 +273,6 @@ class regularPayout {
     const url = `${config.BASE_URL}/api/v1/payout/${config.merchantCode}`;
 
     try {
-      logger.info("🚀 Creating payout payload...");
-
       let payload = await regularPayout.createBasePayload(
         userID, currency, amount, transactionCode, name, config
       );
@@ -369,10 +367,6 @@ class PayoutOrchestrator {
       const userID = randomInt(100, 999);
       const transactionCode = utils.generateTransactionCode();
       const name = await getRandomName();
-      logger.info(`Amount: ${amount}`);
-      logger.info(`Transaction Code: ${transactionCode}`);
-      logger.info(`User ID: ${userID}`);
-      logger.info(`Account Name: ${name}`);
 
       const config = getPayoutConfig(currency);
       if (!config) {

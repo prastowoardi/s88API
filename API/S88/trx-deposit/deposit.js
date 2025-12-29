@@ -7,7 +7,7 @@ import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNum
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -108,6 +108,10 @@ class DepositService {
                 depositor_bank: depositorBank,
                 depositor_account_number: user.accountNumber,
             });
+        }
+
+        if (tx.currency === "MYR") {
+            payload.bank_code = "DUITNOW";
         }
 
         if (tx.currency === "KRW") {

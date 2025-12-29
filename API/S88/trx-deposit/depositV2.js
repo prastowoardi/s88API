@@ -9,7 +9,7 @@ import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
 dotenv.config();
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
 class DepositV2Service {

@@ -12,6 +12,7 @@ import {
     PAYOUT_METHOD_KRW, MERCHANT_CODE_KRW, MERCHANT_API_KEY_KRW, SECRET_KEY_KRW,
     PAYOUT_METHOD_PHP, MERCHANT_CODE_PHP, MERCHANT_API_KEY_PHP, SECRET_KEY_PHP,
     PAYOUT_METHOD_HKD, MERCHANT_CODE_HKD, MERCHANT_API_KEY_HKD, SECRET_KEY_HKD,
+    PAYOUT_METHOD_MYR, MERCHANT_CODE_MYR, MERCHANT_API_KEY_MYR, SECRET_KEY_MYR
 } from "../Config/config.js";
 
 const defaultInternalConfig = {
@@ -95,6 +96,13 @@ const internalCurrencies = {
       payoutMethod: PAYOUT_METHOD_HKD,
       secretKey: SECRET_KEY_HKD,
       merchantAPI: MERCHANT_API_KEY_HKD,
+      requiresBankCode: true,
+  },
+  MYR: {
+      merchantCode: MERCHANT_CODE_MYR,
+      payoutMethod: PAYOUT_METHOD_MYR,
+      secretKey: SECRET_KEY_MYR,
+      merchantAPI: MERCHANT_API_KEY_MYR,
       requiresBankCode: true,
     }
 };
