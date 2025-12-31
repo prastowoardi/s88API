@@ -21,6 +21,7 @@ const ENV_CONFIGS = {
   PayBO_ezyplus: { file: ".paybo_ezyplus", label: "PayBO Ezyplus" },
   PayBO_wandpay: { file: ".paybo_wandpay", label: "PayBO Wandpay" },
   PayBO_swftx: { file: ".paybo_swftx", label: "PayBO Swftx" },
+  PayBO_rangoon: { file: ".paybo_rangoon", label: "PayBO Rangoon" },
   PayBO_bajix: { file: ".paybo_bajix", label: "PayBO Bajix" },
   PayBO_dreampay: { file: ".paybo_dreampay", label: "PayBO Dreampay" },
   PayBO_erfolgpay: { file: ".paybo_erfolgpay", label: "PayBO Erfolgpay" },

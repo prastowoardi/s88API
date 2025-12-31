@@ -12,6 +12,7 @@ const envFiles = {
     PayBO_ezyplus: '.paybo_ezyplus',
     PayBO_wandpay: '.paybo_wandpay',
     PayBO_swftx: '.paybo_swftx',
+    PayBO_rangoon: '.paybo_rangoon',
     PayBO_bajix: '.paybo_bajix',
     PayBO_demo: '.paybo_demo',
     PayBO_dreampay: '.paybo_dreampay',
