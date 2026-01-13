@@ -67,15 +67,15 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
         // Uncomment for Erfolgpay
         // case "INR":
         //     payload.product_name="pillow"
-        //     payload.cust_name=await getRandomName("in", true)
-        //     payload.cust_email="pillow@mail.com"
-        //     payload.cust_phone="9876371231"
+        //     payload.cust_name="Percival Parlay Peacock"
+        //     payload.cust_email="percival_peacock@test.com"
+        //     payload.cust_phone="9812763405"
         //     payload.cust_city="Mumbai"
         //     payload.cust_country="India"
         //     payload.zip_code="21323",
-        //     payload.cust_pan_number="HWULX6881T",
-        //     payload.cust_address="mumbai",
-        //     payload.cust_website_url="aa.com"
+        //     payload.cust_pan_number="VIPPA1236A",
+        //     payload.cust_address="The Stacks, Columbus, Ohio",
+        //     payload.cust_website_url="https://api.mins31.com"
         //     break;
         case "KRW":
             payload.cust_name = await getRandomName("kr", true);

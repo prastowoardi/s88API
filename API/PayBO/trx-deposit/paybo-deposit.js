@@ -43,16 +43,16 @@ async function buildPayload(config, tx, userInfo = {}) {
         ...(tx.currency === "JPY" && { cust_name: await getRandomName("jp", true) }),
         // Uncomment for Erfolgpay
         // ...(tx.currency === "INR" && {
-        //     product_name: "pillow",
-        //     cust_name: await getRandomName(),
-        //     cust_email: "pillow@mail.com",
-        //     cust_phone: "9876371231",
-        //     cust_city: "Mumbai",
-        //     cust_country: "India",
-        //     zip_code: "21323",
-        //     cust_pan_number: "01234567",
-        //     cust_address: "mumbai",
-        //     cust_website_url: "aa.com"
+        //     product_name:"pillow",
+        //     cust_name:"Percival Parlay Peacock",
+        //     cust_email:"percival_peacock@test.com",
+        //     cust_phone:"9812763405",
+        //     cust_city:"Mumbai",
+        //     cust_country:"India",
+        //     zip_code:"21323",
+        //     cust_pan_number:"VIPPA1236A",
+        //     cust_address:"The Stacks, Columbus, Ohio",
+        //     cust_website_url:"https://api.mins31.com"
         // }),
         callback_url: config.callbackURL,
     };
