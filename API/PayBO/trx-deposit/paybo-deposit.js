@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -32,6 +32,8 @@ async function buildPayload(config, tx, userInfo = {}) {
         }),
         ...(tx.currency === "KRW" && {
             cust_name: userInfo.name,
+            bank_account_number: await getAccountNumber(5),
+            bank_name: tx.bankCode,
             card_holder_name: await getRandomName("kr", true),
         }),
         ...(tx.currency === "HKD" && {
@@ -162,7 +164,7 @@ async function sendDeposit() {
         await handleUTR(currency, transactionCode);
 
     } catch (err) {
-        logger.error(`❌ Deposit Error: `,err.message);
+        logger.error(`❌ Deposit Error: ${err.message}`, err);
     }
 
     logger.info("======== REQUEST DONE ========\n\n");

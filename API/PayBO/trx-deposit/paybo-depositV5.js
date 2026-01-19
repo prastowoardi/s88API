@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -79,9 +79,11 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
         //     break;
         case "KRW":
             payload.cust_name = await getRandomName("kr", true);
+            payload.bank_name = bankCode;
             payload.bank_code = bankCode;
+            payload.bank_account_number = await getAccountNumber(5);
             payload.card_holder_name = await getRandomName("kr", true);
-            payload.card_number = cardNumber;
+            // payload.card_number = cardNumber;
             break;
         case "JPY":
             payload.cust_name = await getRandomName("jp", true);

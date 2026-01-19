@@ -2,7 +2,7 @@ import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -55,6 +55,8 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       payloadObj.card_holder_name = await getRandomName("kr", true);
       payloadObj.card_number = cardNumber;
       payloadObj.cust_name = await getRandomName("kr", true);
+      payloadObj.bank_account_number = await getAccountNumber(5);
+      payloadObj.bank_name = bankCode;
       break;
     case "THB":
       const accountType = await ask("Masukkan Account Type: ");
@@ -133,7 +135,7 @@ async function depositV2() {
     logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
     logger.info("\n=============== CLICK LINK TO FINISHED THIS REQUEST ===============\n\n");
   } catch (err) {
-    logger.error(`❌ Error: ${err.message}`);
+    logger.error(`❌ Error: ${err.message}`, err);
   } finally {
     rl.close();
   }

@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -86,9 +86,11 @@ async function applyCurrencySpecifics(payload, currency, bankCode, cardNumber) {
         //     payload.cust_website_url="https://api.mins31.com"
         //     break;
         case "KRW":
+            payload.bank_name = bankCode;
             payload.bank_code = bankCode;
+            payload.bank_account_number = await getAccountNumber(5);
             payload.card_holder_name = await getRandomName("kr", true);
-            payload.card_number = cardNumber;
+            // payload.card_number = cardNumber;
             payload.cust_name = await getRandomName("kr", true);
             break;
         case "THB":

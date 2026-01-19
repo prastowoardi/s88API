@@ -91,6 +91,7 @@ class PayoutService {
 
       if (currency === "KRW") {
         payload.bank_name = "우리은행";
+        payload.cust_name = await getRandomName("kr", true);
       }
     }
 
