@@ -454,7 +454,7 @@ class BatchDepositV3Service {
                 .sort(([,a], [,b]) => b - a)
                 .slice(0, 5)
                 .forEach(([error, count]) => {
-                    logger.info(`${count} transactions: ${error.substring(0, 100)}${error.length > 100 ? '...' : ''}`);
+                    logger.info(`${count} transactions: ${error}`);
                 });
         }
 
