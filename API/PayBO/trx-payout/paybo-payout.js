@@ -6,8 +6,8 @@ import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAc
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK"];
-const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
+const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"];
 const BANK_ACCOUNT_NUMBER = getAccountNumber(6) || "11133322";
 
@@ -103,6 +103,12 @@ class PayoutService {
       Object.assign(payload, {
         bank_name: bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY"
       })
+    }
+
+    if (currency === "USDT") {
+      Object.assign(payload, {
+        rate: readlineSync.question("Masukkan Rate: ").trim()
+      });
     }
   }
 

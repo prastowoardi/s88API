@@ -1,6 +1,7 @@
 import CryptoJS from 'crypto-js';
 import logger from "../logger.js";
 import { API_NINJAS_KEY } from "../Config/config.js";
+import CoinKey from 'coinkey';
 
 export const encryptDecrypt = (action, data, apikey, secretkey) => {
     const key = CryptoJS.SHA256(apikey); 
@@ -191,4 +192,47 @@ export function getAccountNumber(length = 8) {
         s += Math.floor(Math.random() * 10); // 0..9
     }
     return s;
+}
+
+export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "USDT", type = "withdraw") {
+    const wallet = CoinKey.createRandom();
+    // console.log("SAVE BUT DO NOT SHARE THIS:", wallet.privateKey.toString('hex'));
+    // console.log("Address:", wallet.publicAddress);
+
+    try {
+        const encryptedMerchant = encryptDecrypt("encrypt", config.merchantCode, config.merchantAPI, config.secretKey);
+        const url = `${config.BASE_URL}/api/${config.merchantCode}/v4/crypto-rate`;
+        
+        const requestBody = {
+            amount: amount.toString(),
+            type: type,
+            from: fromCurrency,
+            to: toCurrency,
+            address: wallet.publicAddress
+        };
+
+        logger.info(`Requesting Rate: ${fromCurrency} -> ${toCurrency} (${type})`);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Encrypted-MerchantCode': encryptedMerchant,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            return result.data;
+        }
+        
+        logger.error(`❌ API Error: ${result.message || 'Unknown Error'}`);
+        return null;
+
+    } catch (error) {
+        logger.error(`❌ System Error: ${error.message}`);
+        return null;
+    }
 }

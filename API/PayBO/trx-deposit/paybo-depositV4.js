@@ -6,7 +6,7 @@ import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName } from "..
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY"];
+const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT"];
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -109,6 +109,10 @@ async function applyCurrencySpecifics(payload, currency, bankCode, cardNumber) {
             payload.card_date = "06/25";
             payload.card_cvv = "100";
             payload.card_holder_name = "bob Brown";
+            break;
+        case "USDT":
+            payload.rate = readlineSync.question("Masukkan Rate: ").trim();
+            payload.bank_code = bankCode;
             break;
     }
     return payload;

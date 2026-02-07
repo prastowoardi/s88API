@@ -81,6 +81,7 @@ const addBankCodeFields = (payload, bankCode, currency) => {
 
   if (currency === "KRW") updatedPayload.bank_name = "우리은행";
   if (currency === "THB") updatedPayload.bank_name = "SCB";
+  if (currency === "MMK") updatedPayload.bank_name = `${bankCode}`;
 
   return updatedPayload;
 };

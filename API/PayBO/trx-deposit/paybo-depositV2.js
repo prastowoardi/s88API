@@ -7,7 +7,7 @@ import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 dotenv.config();
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT"];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -74,6 +74,10 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       payloadObj.card_date = "06/25";
       payloadObj.card_cvv = "100";
       payloadObj.card_holder_name = "Bob Brown";
+      break;
+    case "USDT":
+      payloadObj.rate = await ask("Masukkan Rate: ");
+      payloadObj.bank_code = bankCode;
       break;
   }
   return payloadObj;

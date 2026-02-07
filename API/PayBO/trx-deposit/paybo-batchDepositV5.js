@@ -260,8 +260,9 @@ class BatchDepositV5Service {
             if (resultDP.success === true) {
                 const transactionNo = resultDP.data.transaction_no;
                 const remark = resultDP?.data?.additional?.remark || "-";
-                
-                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark}`;
+                const pageUrl = resultDP.data.page_url || "No URL";
+
+                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark} | URL: ${pageUrl}`;
                 if (UTR_CURRENCIES.includes(currency)) {
                     const utrResult = await this.submitUTR(currency, transactionCode);
                     if (utrResult.success && utrResult.utr) {

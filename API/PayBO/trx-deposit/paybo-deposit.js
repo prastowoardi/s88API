@@ -6,7 +6,7 @@ import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber } from "..
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -56,6 +56,10 @@ async function buildPayload(config, tx, userInfo = {}) {
         //     cust_address:"The Stacks, Columbus, Ohio",
         //     cust_website_url:"https://api.mins31.com"
         // }),
+        ...(tx.currency === "USDT" && {
+            rate: readlineSync.question("Masukkan Rate: ").trim(),
+            bank_code: tx.bankCode
+        }),
         callback_url: config.callbackURL,
     };
 

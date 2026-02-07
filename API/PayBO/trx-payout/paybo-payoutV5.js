@@ -2,13 +2,14 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber, getCryptoRate } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { fileURLToPath } from 'url';
+import { read } from "fs";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK"];
-const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
+const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
 
 const rl = readline.createInterface({
@@ -53,7 +54,8 @@ const buildBasePayload = async (userID, currency, amount, transactionCode, name,
     user_id: String(userID),
     currency_code: currency,
     payout_code: config.payoutMethod,
-    account_name: name,
+    // account_name: name,
+    account_name: "Ram Kumar",
     ip_user: getRandomIP(),
     callback_url: callbackURL || config.callbackURL,
     ...(currency === "KRW" && { cust_name: await getRandomName("kr", true) }),
@@ -103,20 +105,56 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
   if (currency === "INR" && config.requiresIFSC) payload = await addINRSpecificFields(payload);
   if (BANK_CODE_REQUIRED.includes(currency)) payload = addBankCodeFields(payload, bankCode, currency);
 
+  if (currency === "USDT") {
+      const fromCurrency = await ask("Masukkan Fiat Asal (contoh: USD/INR/IDR): ");
+      const fiat = fromCurrency.toUpperCase().trim() || "USD";
+
+      logger.info(`Fetching Crypto Rate: ${fiat} -> USDT...`);
+      
+      const cryptoData = await getCryptoRate(amount, fiat, config, "USDT", "withdraw");
+      
+      if (cryptoData && cryptoData.forex) {
+        logger.info(`Rate Found: ${cryptoData.forex}`);
+        payload.rate = String(cryptoData.forex);
+          
+        if (cryptoData.token) {
+          payload.token = cryptoData.token; 
+          logger.info(`✅ Token Attached: ${payload.token}`);
+        } else {
+          logger.warn("⚠️ Warning: API Rate sukses tapi tidak memberikan TOKEN.");
+        }
+
+        const estimasi = (amount / cryptoData.forex).toFixed(2);
+        logger.info(`Estimasi Crypto yang diterima: ${estimasi} USDT`);
+      } else {
+        throw new Error("Gagal mendapatkan rate crypto dari server.");
+      }
+
+      const inputCrypto = await ask("Masukkan Crypto Amount (Enter untuk pakai Amount awal): ");
+      payload.crypto_amount = inputCrypto.trim() || String(amount);
+      
+      if (!payload.bank_account_number || payload.bank_account_number.length > 15) {
+          const address = await ask("Masukkan Wallet Address USDT: ");
+          payload.bank_account_number = address.trim();
+      }
+  }
+
   return await executePayoutRequest(payload, config);
 }
 
 async function executePayoutRequest(payload, config) {
   const apiUrl = `${config.BASE_URL}/api/${config.merchantCode}/v5/payout`;
 
-  logger.info(`API URL: ${apiUrl}`);
-  logger.info(`Request Payload: ${JSON.stringify(payload, null, 2)}`);
+  const cleanedPayload = Object.fromEntries(
+    Object.entries(payload).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+  );
 
-  const rawPayload = stableStringify(payload);
-  const signature = signVerify("sign", payload, config.secretKey);
-  logger.info(`Signature: ${signature}`);
+  logger.info(`Request Payload: ${JSON.stringify(cleanedPayload, null, 2)}`);
 
-  const isValid = signVerify("verify", { payload, signature }, config.secretKey);
+  const rawPayload = stableStringify(cleanedPayload);
+  const signature = signVerify("sign", cleanedPayload, config.secretKey);
+
+  const isValid = signVerify("verify", { payload: cleanedPayload, signature }, config.secretKey);
   if (!isValid) throw new Error("Signature verification failed before sending");
 
   const response = await fetch(apiUrl, {

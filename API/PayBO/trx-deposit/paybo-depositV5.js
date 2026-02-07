@@ -6,7 +6,7 @@ import { encryptDecrypt, signVerify, getRandomIP, getRandomName, getAccountNumbe
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY"];
+const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT"];
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -42,7 +42,7 @@ async function submitUTR(currency, transactionCode) {
         const result = JSON.parse(text);
         logger.info(`Submit UTR Response: ${JSON.stringify(result, null, 2)}`);
     } catch (err) {
-        logger.error(`❌ Submit UTR Error: ${err}`);
+        logger.error(`❌ Submit UTR Error: ${err}`, { stack: err.stack });
     }
 }
 
@@ -66,17 +66,17 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
     switch(currency) {
         // Uncomment for Erfolgpay
         // case "INR":
-        //     payload.product_name="pillow"
-        //     payload.cust_name="Percival Parlay Peacock"
-        //     payload.cust_email="percival_peacock@test.com"
-        //     payload.cust_phone="9812763405"
-        //     payload.cust_city="Mumbai"
-        //     payload.cust_country="India"
-        //     payload.zip_code="21323",
-        //     payload.cust_pan_number="VIPPA1236A",
-        //     payload.cust_address="The Stacks, Columbus, Ohio",
-        //     payload.cust_website_url="https://api.mins31.com"
-        //     break;
+            // payload.product_name="pillow"
+            // payload.cust_name="Percival Parlay Peacock"
+            // payload.cust_email="percival_peacock@test.com"
+            // payload.cust_phone="9812763405"
+            // payload.cust_city="Mumbai"
+            // payload.cust_country="India"
+            // payload.zip_code="21323",
+            // payload.cust_pan_number="VIPPA1236A",
+            // payload.cust_address="The Stacks, Columbus, Ohio",
+            // payload.cust_website_url="https://api.mins31.com"
+            // break;
         case "KRW":
             payload.cust_name = await getRandomName("kr", true);
             payload.bank_name = bankCode;
@@ -101,6 +101,10 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
             payload.card_date = "06/25";
             payload.card_cvv = "100";
             payload.card_holder_name = "bob Brown";
+            break;
+        case "USDT":
+            payload.rate = readlineSync.question("Masukkan Rate: ").trim();
+            payload.bank_code = bankCode;
             break;
     }
     return payload;
