@@ -227,12 +227,28 @@ class DepositService {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ key: encrypted }),
             });
-            const text = await response.text();
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${text}`);
-                logger.info(`Submit UTR Response: ${text}`);
-            } catch (err) {
-                logger.error(`❌ Submit UTR Error: ${err.message}`);
+
+            const responseText = await response.text();
+
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch {
+                result = responseText;
             }
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${JSON.stringify(result)}`);
+            }
+
+            logger.info(
+                `Submit UTR Response:\n${JSON.stringify(result, null, 2)}`
+            );
+
+        } catch (err) {
+            logger.error(`❌ Submit UTR Error: ${err.message}`);
+        }
+
     }
 
     async processStandardDeposit(currency, amount, config, transactionCode) {

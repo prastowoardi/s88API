@@ -159,7 +159,7 @@ class DepositService {
             const result = await this.sendEncryptedRequest(url, encrypted);
             logger.info(`Submit UTR Response: ${JSON.stringify(result, null, 2)}`);
         } catch (err) {
-            logger.error(`❌ Submit UTR Error: ${err.message}`);
+            logger.error(`❌ Submit UTR Error: ${JSON.stringify(err.message, null, 2)}`);
         }
     }
 
