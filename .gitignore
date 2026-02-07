@@ -24,6 +24,7 @@ node_modules
 .paybo_tiger
 .paybo_next8
 .paybo_rangoon
+.paybo_cosmospay
 
 # src files
 old_bank.json
