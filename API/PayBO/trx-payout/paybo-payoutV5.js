@@ -6,6 +6,7 @@ import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { fileURLToPath } from 'url';
+import CoinKey from 'coinkey';
 import { read } from "fs";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
@@ -71,8 +72,8 @@ const addINRSpecificFields = async (payload) => {
     ...payload,
     ifsc_code: ifscCode,
     bank_account_number: `${getAccountNumber(6)}`,
-    bank_code: bank,
-    bank_name: bank,
+    bank_code: bank || "",
+    bank_name: bank || "",
   };
 };
 
@@ -112,19 +113,24 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
       logger.info(`Fetching Crypto Rate: ${fiat} -> USDT...`);
       
       const cryptoData = await getCryptoRate(amount, fiat, config, "USDT", "withdraw");
-      
-      if (cryptoData && cryptoData.forex) {
-        logger.info(`Rate Found: ${cryptoData.forex}`);
-        payload.rate = String(cryptoData.forex);
-          
-        if (cryptoData.token) {
-          payload.token = cryptoData.token; 
+
+      if (cryptoData) {
+        const { forex, token, usedAddress } = cryptoData;
+
+        logger.info(`Rate Found: ${forex}`);
+        payload.rate = String(forex);
+
+        if (token) {
+          payload.token = token;
           logger.info(`✅ Token Attached: ${payload.token}`);
         } else {
           logger.warn("⚠️ Warning: API Rate sukses tapi tidak memberikan TOKEN.");
         }
 
-        const estimasi = (amount / cryptoData.forex).toFixed(2);
+        payload.bank_account_number = cryptoData.usedAddress; 
+        logger.info(`✅ Address: ${payload.bank_account_number}`);
+        
+        const estimasi = (amount / forex).toFixed(2);
         logger.info(`Estimasi Crypto yang diterima: ${estimasi} USDT`);
       } else {
         throw new Error("Gagal mendapatkan rate crypto dari server.");
@@ -134,7 +140,9 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
       payload.crypto_amount = inputCrypto.trim() || String(amount);
       
       if (!payload.bank_account_number || payload.bank_account_number.length > 15) {
-          const address = await ask("Masukkan Wallet Address USDT: ");
+          const wallet = CoinKey.createRandom(); 
+          const address = wallet.publicAddress;
+          
           payload.bank_account_number = address.trim();
       }
   }

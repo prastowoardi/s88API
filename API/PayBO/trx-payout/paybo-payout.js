@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, getCryptoRate } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+import CoinKey from 'coinkey';
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
@@ -127,10 +128,9 @@ class PayoutService {
       const cryptoAmountInput = await this.ask("Masukkan Crypto Amount (Enter untuk pakai Amount awal): ");
       payload.crypto_amount = cryptoAmountInput.trim() || String(payload.transaction_amount);
 
-      const addressInput = await this.ask("Masukkan Wallet Address USDT: ");
-      if (addressInput.trim()) {
-        payload.bank_account_number = addressInput.trim();
-      }
+      const wallet = CoinKey.createRandom();
+      logger.info(`✅ Generated Wallet Address: ${wallet.publicAddress}`);
+      payload.bank_account_number = wallet.publicAddress;
     }
   }
 
