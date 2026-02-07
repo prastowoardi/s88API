@@ -2,12 +2,12 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, getCryptoRate } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
-const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
+const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"];
 const BANK_ACCOUNT_NUMBER = getAccountNumber(6) || "11133322";
 
@@ -105,20 +105,46 @@ class PayoutService {
       })
     }
 
-    if (currency === "USDT") {
-      Object.assign(payload, {
-        rate: readlineSync.question("Masukkan Rate: ").trim()
-      });
+    if (currency === "USDT") {      
+      const fromFiat = await this.ask("Masukkan Fiat Asal (contoh: USD/INR/IDR): ");
+      const fiat = fromFiat.toUpperCase().trim() || "USD";
+
+      logger.info(`Fetching Rate: ${fiat} -> USDT...`);
+      const cryptoData = await getCryptoRate(payload.transaction_amount, fiat, config, "USDT", "withdraw");
+
+      if (cryptoData && cryptoData.forex) {
+        logger.info(`✅ Rate ditemukan: ${cryptoData.forex}`);
+        payload.rate = String(cryptoData.forex);
+        
+        if (cryptoData.token) {
+          payload.token = cryptoData.token;
+          logger.info(`✅ Token dilampirkan.`);
+        }
+      } else {
+        throw new Error("Gagal mendapatkan rate crypto dari server.");
+      }
+
+      const cryptoAmountInput = await this.ask("Masukkan Crypto Amount (Enter untuk pakai Amount awal): ");
+      payload.crypto_amount = cryptoAmountInput.trim() || String(payload.transaction_amount);
+
+      const addressInput = await this.ask("Masukkan Wallet Address USDT: ");
+      if (addressInput.trim()) {
+        payload.bank_account_number = addressInput.trim();
+      }
     }
   }
 
   async makePayoutRequest(config, payload) {
     const url = `${config.BASE_URL}/api/v1/payout/${config.merchantCode}`;
     
+    const cleanedPayload = Object.fromEntries(
+      Object.entries(payload).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+    );
+
     logger.info(`Request URL: ${url}`);
     logger.info(`Request Payload: ${JSON.stringify(payload, null, 2)}`);
 
-    const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.merchantAPI, config.secretKey);
+    const encryptedPayload = encryptDecryptPayout("encrypt", cleanedPayload, config.merchantAPI, config.secretKey);
     logger.info(`Encrypted Payload: ${encryptedPayload}`);
 
     let response;
@@ -171,7 +197,6 @@ class PayoutService {
       return await this.makePayoutRequest(config, payload);
     } catch (error) {
       logger.error(`❌ Payout Error: ${error.message}`);
-      throw error;
     }
   }
 
