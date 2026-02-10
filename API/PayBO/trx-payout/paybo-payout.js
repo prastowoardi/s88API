@@ -65,9 +65,7 @@ class PayoutService {
   async addCurrencySpecificFields(payload, currency, bankCode, config) {
     if (currency === "INR" && config.requiresIFSC) {
       const ifscCode = await getValidIFSC();
-      if (!ifscCode) {
-        throw new Error("IFSC code tidak ditemukan");
-      }
+      if (!ifscCode) throw new Error("IFSC code tidak ditemukan");
 
       const bank = ifscCode.substring(0, 4);
       Object.assign(payload, {
@@ -75,13 +73,14 @@ class PayoutService {
         bank_account_number: BANK_ACCOUNT_NUMBER,
         bank_code: bank,
         bank_name: bank,
+        // Hanya untuk Erfolg Flowpay
+        cust_email: `user${randomInt(1000, 9999)}@example.com`,
+        cust_phone: `+91765${randomInt(1000000, 9999999)}`,
       });
     }
 
     if (CURRENCIES_REQUIRING_BANK_CODE.includes(currency)) {
-      if (!bankCode) {
-        throw new Error(`Bank Code wajib diisi untuk ${currency}!`);
-      }
+      if (!bankCode) throw new Error(`Bank Code wajib diisi untuk ${currency}!`);
       
       payload.bank_code = bankCode;
       payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
@@ -96,14 +95,9 @@ class PayoutService {
       }
     }
 
-    if (currency === "THB") {
-      payload.bank_name = "SCB";
-    }
-
+    if (currency === "THB") payload.bank_name = "SCB";
     if (currency === "MMK") {
-      Object.assign(payload, {
-        bank_name: bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY"
-      })
+      payload.bank_name = bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY";
     }
 
     if (currency === "USDT") {      
@@ -114,23 +108,26 @@ class PayoutService {
       const cryptoData = await getCryptoRate(payload.transaction_amount, fiat, config, "USDT", "withdraw");
 
       if (cryptoData && cryptoData.forex) {
-        logger.info(`✅ Rate ditemukan: ${cryptoData.forex}`);
-        payload.rate = String(cryptoData.forex);
+        const { forex, token, usedAddress } = cryptoData;
+
+        logger.info(`✅ Rate: ${forex} | Address: ${usedAddress}`);
         
-        if (cryptoData.token) {
-          payload.token = cryptoData.token;
+        payload.rate = String(forex);
+        payload.bank_account_number = usedAddress;
+        
+        if (token) {
+          payload.token = token;
           logger.info(`✅ Token dilampirkan.`);
         }
+
+        const estimasi = (Number(payload.transaction_amount) / Number(forex)).toFixed(2);
+        logger.info(`Estimasi Crypto: ${estimasi} USDT`);
       } else {
         throw new Error("Gagal mendapatkan rate crypto dari server.");
       }
 
       const cryptoAmountInput = await this.ask("Masukkan Crypto Amount (Enter untuk pakai Amount awal): ");
       payload.crypto_amount = cryptoAmountInput.trim() || String(payload.transaction_amount);
-
-      const wallet = CoinKey.createRandom();
-      logger.info(`✅ Generated Wallet Address: ${wallet.publicAddress}`);
-      payload.bank_account_number = wallet.publicAddress;
     }
   }
 

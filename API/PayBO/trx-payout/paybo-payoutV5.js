@@ -103,48 +103,43 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
 
   let payload = await buildBasePayload(userID, currency, amount, transactionCode, name, callbackURL, config);
   
-  if (currency === "INR" && config.requiresIFSC) payload = await addINRSpecificFields(payload);
-  if (BANK_CODE_REQUIRED.includes(currency)) payload = addBankCodeFields(payload, bankCode, currency);
+  if (currency === "INR") {
+    if (config.requiresIFSC) payload = await addINRSpecificFields(payload);
+    // Only for Erfolg Flowpay
+    payload.cust_email = `user${randomInt(1000, 9999)}@example.com`;
+    payload.cust_phone = `+91765${randomInt(1000000, 9999999)}`;
+  }
+
+  if (BANK_CODE_REQUIRED.includes(currency)) {
+    payload = addBankCodeFields(payload, bankCode, currency);
+  }
 
   if (currency === "USDT") {
-      const fromCurrency = await ask("Masukkan Fiat Asal (contoh: USD/INR/IDR): ");
-      const fiat = fromCurrency.toUpperCase().trim() || "USD";
+    const fiatInput = await ask("Masukkan Fiat Asal (Default: USD): ");
+    const fiat = fiatInput.toUpperCase().trim() || "USD";
 
-      logger.info(`Fetching Crypto Rate: ${fiat} -> USDT...`);
-      
-      const cryptoData = await getCryptoRate(amount, fiat, config, "USDT", "withdraw");
+    logger.info(`Fetching Crypto Rate: ${fiat} -> USDT...`);
+    const cryptoData = await getCryptoRate(amount, fiat, config, "USDT", "withdraw");
 
-      if (cryptoData) {
-        const { forex, token, usedAddress } = cryptoData;
+    if (!cryptoData) throw new Error("Gagal mendapatkan rate crypto dari server.");
 
-        logger.info(`Rate Found: ${forex}`);
-        payload.rate = String(forex);
+    const { forex, token, usedAddress } = cryptoData;
 
-        if (token) {
-          payload.token = token;
-          logger.info(`✅ Token Attached: ${payload.token}`);
-        } else {
-          logger.warn("⚠️ Warning: API Rate sukses tapi tidak memberikan TOKEN.");
-        }
+    logger.info(`Rate Found: ${forex} | Address: ${usedAddress}`);
+    
+    payload.rate = String(forex);
+    payload.bank_account_number = usedAddress;
+    
+    if (token) {
+      payload.token = token;
+      logger.info(`✅ Token Attached`);
+    }
 
-        payload.bank_account_number = cryptoData.usedAddress; 
-        logger.info(`✅ Address: ${payload.bank_account_number}`);
-        
-        const estimasi = (amount / forex).toFixed(2);
-        logger.info(`Estimasi Crypto yang diterima: ${estimasi} USDT`);
-      } else {
-        throw new Error("Gagal mendapatkan rate crypto dari server.");
-      }
+    const estimasi = (Number(amount) / Number(forex)).toFixed(2);
+    logger.info(`Estimasi: ${estimasi} USDT`);
 
-      const inputCrypto = await ask("Masukkan Crypto Amount (Enter untuk pakai Amount awal): ");
-      payload.crypto_amount = inputCrypto.trim() || String(amount);
-      
-      if (!payload.bank_account_number || payload.bank_account_number.length > 15) {
-          const wallet = CoinKey.createRandom(); 
-          const address = wallet.publicAddress;
-          
-          payload.bank_account_number = address.trim();
-      }
+    const inputCrypto = await ask(`Masukkan Crypto Amount (Enter untuk ${amount}): `);
+    payload.crypto_amount = inputCrypto.trim() || String(amount);
   }
 
   return await executePayoutRequest(payload, config);
