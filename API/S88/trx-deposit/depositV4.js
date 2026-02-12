@@ -44,7 +44,7 @@ class DepositService {
     validateBankCode(bankCode, currency) {
         if (!/^[a-zA-Z0-9]+$/.test(bankCode))
         throw new Error("Bank Code must contain only letters and numbers");
-        return currency === "MMK" ? bankCode.toUpperCase() : bankCode.toLowerCase();
+        return bankCode;
     }
 
     generateTransactionCode() {
@@ -74,7 +74,7 @@ class DepositService {
         return "";
     }
 
-    buildPayload(config, tx, userInfo) {
+    async buildPayload(config, tx, userInfo) {
         const basePayload = {
             merchant_api_key: config.merchantAPI,
             merchant_code: config.merchantCode,
@@ -93,6 +93,13 @@ class DepositService {
             }),
             callback_url: config.callbackURL,
         };
+
+        if (tx.currency === "THB") {
+            const depositorBank = await this.ask("Masukkan Depositor Bank: ");
+            if (!/^[a-z0-9A-Z]+$/.test(depositorBank))
+                throw new Error("Depositor Bank must contain only letters");
+                basePayload.depositor_bank = depositorBank;
+        }
 
         return Object.entries(basePayload)
             .map(([k, v]) => {
@@ -153,7 +160,14 @@ class DepositService {
             config.merchantAPI,
             config.secretKey
         );
-        const url = `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`;
+
+        let url;
+
+        if (config.BASE_URL.includes("singhapay")) {
+            url = `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`;
+        } else {
+            url = `${config.BASE_URL}/api/${config.merchantCode}/v4/submit-utr`;
+        }
 
         try {
             const result = await this.sendEncryptedRequest(url, encrypted);
@@ -181,7 +195,7 @@ class DepositService {
             accountNumber: randomCardNumber(),
         };
 
-        const payload = this.buildPayload(config, tx, userInfo);
+        const payload = await this.buildPayload(config, tx, userInfo);
         const result = await this.makeDepositRequest(config, payload);
 
         logger.info(`Deposit Response:\n${JSON.stringify(result, null, 2)}`);
@@ -230,9 +244,9 @@ class DepositService {
             }
 
             const transactionCode = this.generateTransactionCode();
-            logger.info(`Transaction Code: ${transactionCode}`);
-
             await this.processStandardDeposit(currency, amount, config, transactionCode);
+
+            logger.info(`Transaction Code: ${transactionCode}`)
 
             logger.info("======== REQUEST DONE ========\n");
         } catch (err) {
