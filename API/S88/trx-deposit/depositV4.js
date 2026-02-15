@@ -135,7 +135,7 @@ class DepositService {
         );
         const url = `${config.BASE_URL}/api/${config.merchantCode}/v4/dopayment`;
 
-        logger.info(`\n🔹 Sending Deposit Request`);
+        logger.info(`🔹 Sending Deposit Request`);
         logger.info(`URL: ${url}`);
         logger.info(`Payload: ${payload}`);
         logger.info(`Encrypted: ${encrypted}`);
@@ -165,15 +165,17 @@ class DepositService {
 
         if (config.BASE_URL.includes("singhapay")) {
             url = `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`;
+            console.log("Endpoint: ", url);
         } else {
             url = `${config.BASE_URL}/api/${config.merchantCode}/v4/submit-utr`;
+            console.log("Endpoint: ", url);
         }
 
         try {
             const result = await this.sendEncryptedRequest(url, encrypted);
             logger.info(`Submit UTR Response: ${JSON.stringify(result, null, 2)}`);
         } catch (err) {
-            logger.error(`❌ Submit UTR Error: ${JSON.stringify(err.message, null, 2)}`);
+            logger.error(`❌ Submit UTR Error: `, err);
         }
     }
 
@@ -245,8 +247,6 @@ class DepositService {
 
             const transactionCode = this.generateTransactionCode();
             await this.processStandardDeposit(currency, amount, config, transactionCode);
-
-            logger.info(`Transaction Code: ${transactionCode}`)
 
             logger.info("======== REQUEST DONE ========\n");
         } catch (err) {
