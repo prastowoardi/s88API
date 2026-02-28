@@ -88,7 +88,7 @@ class DepositService {
             ...(tx.bankCode && { bank_code: tx.bankCode }),
             ...(tx.phone && { phone: tx.phone }),
             ...(tx.currency === "THB" && {
-                depositor_name: userInfo.name,
+                depositor_name: await getRandomName('th', true),
                 depositor_account_number: userInfo.accountNumber,
             }),
             callback_url: config.callbackURL,
