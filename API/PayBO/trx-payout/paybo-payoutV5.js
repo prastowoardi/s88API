@@ -90,6 +90,7 @@ const addBankCodeFields = (payload, bankCode, currency) => {
 
   if (currency === "KRW") updatedPayload.bank_name = "우리은행";
   if (currency === "THB") updatedPayload.bank_name = "SCB";
+  if (currency === "JPY") updatedPayload.branch_code = "MIZUHO BANK";
   if (currency === "MMK") {
     updatedPayload.bank_name = bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY";
   }
@@ -226,7 +227,7 @@ async function sendPayout() {
     const envCurrency = process.env.CURRENCY;
     const { currency, bankCode, amount } = await collectInputs(envCurrency);
 
-    const userID = randomInt(1000, 9999);
+    const userID = "NASHEED";
     const transactionCode = `TEST-WD-${Date.now()}`;
     const name = await getRandomName();
 

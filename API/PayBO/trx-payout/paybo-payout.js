@@ -50,7 +50,7 @@ class PayoutService {
       transaction_code: transactionCode,
       transaction_timestamp: timestamp,
       transaction_amount: Number(amount),
-      user_id: userID.toString(),
+      user_id: "NASHEED",
       currency_code: currency,
       payout_code: config.payoutMethod,
       callback_url: callbackURL || config.callbackURL,
@@ -96,11 +96,12 @@ class PayoutService {
     }
 
     if (currency === "THB") payload.bank_name = "SCB";
+    if (currency === "JPY") payload.branch_code = "MIZUHO BANK";
     if (currency === "MMK") {
       payload.bank_name = bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY";
     }
 
-    if (currency === "USDT") {      
+    if (currency === "USDT") {
       const fromFiat = await this.ask("Masukkan Fiat Asal (contoh: USD/INR/IDR): ");
       const fiat = fromFiat.toUpperCase().trim() || "USD";
 
