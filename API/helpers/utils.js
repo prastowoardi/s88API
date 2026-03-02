@@ -324,17 +324,20 @@ export async function registerCustomerJPY(config, customerId) {
         });
 
         const resText = await response.text();
+        const resData = JSON.parse(resText);
         if (!response.ok) {
             logger.error(`❌ API Response (${response.status}): ${JSON.stringify(JSON.parse(resText), null, 2)}`);
+            return resData;
         } else {
             logger.info(`✅ KYC Registration Successful for ${payload.customer_id}: ${JSON.stringify(JSON.parse(resText), null, 2)}`);
+            return resData;
         }
 
         // FOR DEBUGGING PURPOSES ONLY - LOG RAW RESPONSE
         // const resultJson = JSON.parse(resText);
         // logger.info(`⛹ User ID Registered: ${payload.customer_id}`);
         // logger.info(`🔍 Encrypted User ID: ${encryptedCustomerId}`);
-        return payload;
+        // return payload;
 
     } catch (error) {
         console.error("DEBUG ERROR REGISTER:", error); 
