@@ -4,7 +4,7 @@ import logger from "../logger.js";
 import { API_NINJAS_KEY } from "../Config/config.js";
 import CoinKey from 'coinkey';
 import { v4 as uuidv4 } from 'uuid';
-import { faker } from '@faker-js/faker';
+import { fakerJA as faker } from '@faker-js/faker';
 import fs from 'fs';
 import FormData from 'form-data';
 
@@ -243,19 +243,42 @@ export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "
 }
 
 export const generateRandomJPYData = async (customerID) => {
+    const bankKanjis = ["みずほ銀行", "三菱UFJ銀行", "三井住友銀行", "りそな銀行", "楽天銀行", "ゆうちょ銀行", "PayPay銀行"];
+    const selectedBank = faker.helpers.arrayElement(bankKanjis);
+
+    const branchName = faker.location.city(); 
+    const branchCode = faker.string.numeric(3);
+    const fullBranchFormat = `${branchName}支店(${branchCode})`;
+
+    const lastNameKanji = faker.person.lastName();
+    const firstNameKanji = faker.person.firstName();
+    const fullNameKanji = `${lastNameKanji} ${firstNameKanji}`;
+
+
+    const katakanaChars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+    const randomKatakana = (len) => Array.from({ length: len }, () => katakanaChars[Math.floor(Math.random() * katakanaChars.length)]).join('');
+
+    let lastNameKana = faker.person.lastName({ variant: 'katakana' });
+    let firstNameKana = faker.person.firstName({ variant: 'katakana' });
+    if (/[一-龠]/.test(lastNameKana)) {
+        lastNameKana = randomKatakana(4);
+        firstNameKana = randomKatakana(3);
+    }
+    const fullNameFurigana = `${lastNameKana} ${firstNameKana}`;
+    
     const birthDate = faker.date.between({ from: '1970-01-01', to: '2000-12-31' })
                         .toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
 
     return {
         customer_id: customerID || `CUST-JP-${faker.string.numeric(5)}`,
-        recipient_name: await getRandomName("jp", true),
-        full_bank_name: faker.helpers.arrayElement(["MUFG Bank", "Mizuho Bank", "Sumitomo Mitsui Bank", "Japan Post Bank"]),
-        swift_code: faker.finance.bic(),
-        user_name_kanji: "佐藤 太郎", 
-        user_name_furigana: "サトウ タロウ", 
+        recipient_name: fullNameKanji, 
+        full_bank_name: selectedBank,
+        swift_code: fullBranchFormat,
+        user_name_kanji: fullNameKanji, 
+        user_name_furigana: fullNameFurigana, 
         birth_date: birthDate,
         nationality: "JAPAN",
-        address: faker.location.streetAddress() + ", Tokyo",
+        address: `${faker.location.state()}${faker.location.city()}${faker.location.streetAddress()}`,
         phone: "81" + faker.string.numeric(9),
         email: faker.internet.email(),
         income_source1: "1",
@@ -272,6 +295,30 @@ export async function registerCustomerJPY(config, customerId) {
     const url = `${BASE_URL}/api/kyc/register/${merchantCode}`;
 
     try {
+        logger.info(`🔍 Pre-checking status for: ${customerId}...`);
+        const checkRes = await pollKYCStatus(customerId, config);
+        
+        const resDataCheck = checkRes?.data;
+        const currentStatus = Array.isArray(resDataCheck) ? resDataCheck[0]?.status : resDataCheck?.status;
+
+        if (currentStatus) {
+            const statusUpper = currentStatus.toUpperCase();
+            
+            if (statusUpper === "APPROVED") {
+                logger.warn(`✅ User ${customerId} is already APPROVED. Skipping registration.`);
+                return { success: true, message: "Already Approved", data: resDataCheck };
+            } 
+            
+            if (statusUpper === "PENDING" || statusUpper === "PROCESSING") {
+                logger.warn(`⏳ User ${customerId} is still PENDING. Skipping registration.`);
+                return { success: true, message: "Already Pending", data: resDataCheck };
+            }
+
+            if (statusUpper === "REJECTED") {
+                logger.info(`♻️ User ${customerId} was REJECTED. Re-registering with new data...`);
+            }
+        }
+
         const payload = await generateRandomJPYData(customerId); 
         const nationalityCode = "JAPAN"; 
         const encryptedCustomerId = encryptDecrypt("encrypt", payload.customer_id, merchantAPI, secretKey);
@@ -304,6 +351,35 @@ export async function registerCustomerJPY(config, customerId) {
         form.append('attachment2', fs.createReadStream(fileBelakang));
 
         logger.info(`📤 Sending KYC with Real Images: ${payload.customer_id}`);
+
+        const logFormData = (formData) => {
+            logger.info("--- 📦 Payload Register User ---");
+
+            const streams = formData._streams || [];
+
+            for (let i = 0; i < streams.length; i++) {
+                const item = streams[i];
+                
+                if (typeof item === 'string' && item.includes('name="')) {
+                    const nameMatch = item.match(/name="([^"]+)"/);
+                    if (nameMatch) {
+                        const fieldName = nameMatch[1];
+                        const value = streams[i + 1]; // Value biasanya ada di indeks setelah header
+
+                        if (typeof value === 'string' || typeof value === 'number') {
+                            logger.info(`Field [${fieldName}]: ${value}`);
+                        } else if (value && value.path) {
+                            logger.info(`Field [${fieldName}]: 📄 File (${value.path})`);
+                        } else {
+                            logger.info(`Field [${fieldName}]: [Binary/Buffer]`);
+                        }
+                    }
+                }
+            }
+            logger.info("---------------------------------");
+        };
+
+        logFormData(form);
 
         const bodyBuffer = await new Promise((resolve, reject) => {
             const chunks = [];
