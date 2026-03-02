@@ -9,12 +9,19 @@ async function manualKYC() {
     logger.info("   🇯🇵 MANUAL KYC JPY DEBUGGER TOOL    ");
     logger.info("========================================");
     
-    // 1. Setup Config & Override
     const config = getCurrencyConfig("JPY");
-    config.BASE_URL = "https://api-dev-p1.paybo.io";
-    config.merchantCode = "SKU20240827065024";
-    config.merchantAPI = "eZHpPLtyPIMTCqyNxbmSPw%3D%3D";
-    config.secretKey = "Y1J05DxNRmHxZRZxECyfF8wloIJcnuXocfupUKNmeb0%3D";
+
+    // Staging
+    // config.BASE_URL = "https://api-dev-p1.paybo.io";
+    // config.merchantCode = "SKU20240827065024";
+    // config.merchantAPI = "eZHpPLtyPIMTCqyNxbmSPw%3D%3D";
+    // config.secretKey = "Y1J05DxNRmHxZRZxECyfF8wloIJcnuXocfupUKNmeb0%3D";
+    
+    // Production
+    config.BASE_URL = "https://pmt-api.next8solution.com";
+    config.merchantCode = "SKU20260106031805";
+    config.merchantAPI = "wYIRVAjKGxR8haArdrCU%2BQ%3D%3D";
+    config.secretKey = "4OXqR1S4qpx8ghK49T%2BN9gZ9X0fUK%2F%2F8narM9DxwQ7o%3D";
 
 
     console.log("\n[1] Register New Customer");
