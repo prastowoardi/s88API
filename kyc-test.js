@@ -30,14 +30,14 @@ async function manualKYC() {
             const regRes = await registerCustomerJPY(config, userID);
             
             // Log response mentah jika terjadi error 400/422
-            if (regRes && regRes.success) {
-                // logger.info("✅ Registration Sent Successfully!");
-                // console.log("Data:", JSON.stringify(regRes.data || regRes, null, 2));
-            } else {
-                logger.error("❌ Registration Failed.");
-                console.log("Server Response:", JSON.stringify(regRes, null, 2));
-                if (choice === "3") return; 
-            }
+            // if (regRes && regRes.success) {
+            //     logger.info("✅ Registration Sent Successfully!");
+            //     console.log("Data:", JSON.stringify(regRes.data || regRes, null, 2));
+            // } else {
+            //     logger.error("❌ Registration Failed.");
+            //     console.log("Server Response:", JSON.stringify(regRes, null, 2));
+            //     if (choice === "3") return; 
+            // }
         }
 
         // --- PROSES POLLING ---
