@@ -1,7 +1,12 @@
+import fetch from "node-fetch";
 import CryptoJS from 'crypto-js';
 import logger from "../logger.js";
 import { API_NINJAS_KEY } from "../Config/config.js";
 import CoinKey from 'coinkey';
+import { v4 as uuidv4 } from 'uuid';
+import { faker } from '@faker-js/faker';
+import fs from 'fs';
+import FormData from 'form-data';
 
 export const encryptDecrypt = (action, data, apikey, secretkey) => {
     const key = CryptoJS.SHA256(apikey); 
@@ -158,7 +163,7 @@ const localNames = {
     vn: ["Nguyễn Văn An", "Trần Thị Mai", "Lê Quang Huy", "Phạm Thị Lan", "Hoàng Đức Minh", "Vũ Thị Hằng", "Đặng Quốc Toàn", "Bùi Thị Hương", "Đỗ Văn Long", "Trịnh Ngọc Ánh"],
     id: ["Andi Pratama", "Siti Nurhaliza", "Budi Santoso", "Cindy Melati", "Rizky Hidayat", "Dewi Lestari", "Ahmad Fauzan", "Tania Putri", "Doni Saputra", "Laras Wulandari"],
     en: ["John Smith", "Emily Brown", "Michael Johnson", "Sarah Davis", "David Miller", "Jessica Wilson", "Daniel Taylor", "Olivia Moore", "James Anderson", "Sophia Thomas"]
-};
+}
 
 export async function getRandomName(locale = "en", forceLocal = false) {
     const normalizedLocale = locale.toLowerCase();
@@ -234,5 +239,126 @@ export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "
     } catch (error) {
         logger.error(`❌ System Error: ${error.message}`);
         return null;
+    }
+}
+
+export const generateRandomJPYData = async (customerID) => {
+    const birthDate = faker.date.between({ from: '1970-01-01', to: '2000-12-31' })
+                        .toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+
+    return {
+        customer_id: customerID || `CUST-JP-${faker.string.numeric(5)}`,
+        recipient_name: await getRandomName("jp", true),
+        full_bank_name: faker.helpers.arrayElement(["MUFG Bank", "Mizuho Bank", "Sumitomo Mitsui Bank", "Japan Post Bank"]),
+        swift_code: faker.finance.bic(),
+        user_name_kanji: "佐藤 太郎", 
+        user_name_furigana: "サトウ タロウ", 
+        birth_date: birthDate,
+        nationality: "JAPAN",
+        address: faker.location.streetAddress() + ", Tokyo",
+        phone: "81" + faker.string.numeric(9),
+        email: faker.internet.email(),
+        income_source1: "1",
+        income_source2: "0",
+        income_source3: "0",
+        income_source4: "0",
+        attachment1Path: "./file.pdf",
+        attachment2Path: "./file.pdf"
+    };
+}
+
+export async function registerCustomerJPY(config, customerId) {
+    const { merchantCode, BASE_URL, secretKey, merchantAPI } = config;
+    const url = `${BASE_URL}/api/kyc/register/${merchantCode}`;
+
+    try {
+        const payload = await generateRandomJPYData(customerId); 
+        const nationalityCode = "JAPAN"; 
+        const encryptedCustomerId = encryptDecrypt("encrypt", payload.customer_id, merchantAPI, secretKey);
+
+        const fileDepan = "./file.pdf"; 
+        const fileBelakang = "./file.pdf";
+
+        if (!fs.existsSync(fileDepan) || !fs.existsSync(fileBelakang)) {
+            throw new Error(`File gambar tidak ditemukan! Pastikan ${fileDepan} & ${fileBelakang} sudah ada.`);
+        }
+
+        const form = new FormData();
+        form.append('currency', 'JPY');
+        form.append('recipient_name', payload.recipient_name);
+        form.append('full_bank_name', payload.full_bank_name);
+        form.append('swift_code', payload.swift_code);
+        form.append('user_name_kanji', payload.user_name_kanji);
+        form.append('user_name_furigana', payload.user_name_furigana);
+        form.append('birth_date', payload.birth_date);
+        form.append('nationality', nationalityCode);
+        form.append('address', payload.address);
+        form.append('phone', payload.phone);
+        form.append('email', payload.email);
+        form.append('income_source1', "1");
+        form.append('income_source2', "0");
+        form.append('income_source3', "0");
+        form.append('income_source4', "0");
+
+        form.append('attachment1', fs.createReadStream(fileDepan));
+        form.append('attachment2', fs.createReadStream(fileBelakang));
+
+        logger.info(`📤 Sending KYC with Real Images: ${payload.customer_id}`);
+
+        const bodyBuffer = await new Promise((resolve, reject) => {
+            const chunks = [];
+            form.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+            form.on('error', (err) => reject(err));
+            form.on('end', () => resolve(Buffer.concat(chunks)));
+            form.resume(); 
+        });
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: bodyBuffer,
+            headers: {
+                ...form.getHeaders(),
+                'X-Encrypted-Customer-Id': encryptedCustomerId,
+                'Idempotency-Key': uuidv4()
+            }
+        });
+
+        const resText = await response.text();
+        if (!response.ok) {
+            logger.error(`❌ API Response (${response.status}): ${JSON.stringify(JSON.parse(resText), null, 2)}`);
+        } else {
+            logger.info(`✅ KYC Registration Successful for ${payload.customer_id}: ${JSON.stringify(JSON.parse(resText), null, 2)}`);
+        }
+
+        // FOR DEBUGGING PURPOSES ONLY - LOG RAW RESPONSE
+        // const resultJson = JSON.parse(resText);
+        // logger.info(`⛹ User ID Registered: ${payload.customer_id}`);
+        // logger.info(`🔍 Encrypted User ID: ${encryptedCustomerId}`);
+        return payload;
+
+    } catch (error) {
+        console.error("DEBUG ERROR REGISTER:", error); 
+        // logger.error(`❌ Registration Error: ${error.message}`);
+        // throw error;
+    }
+}
+
+export async function pollKYCStatus(customerId, config) {
+    const { merchantCode, BASE_URL, secretKey, merchantAPI } = config;
+    const url = `${BASE_URL}/api/kyc/poll-status/${merchantCode}`;
+    const encryptedCustomerId = encryptDecrypt("encrypt", customerId, merchantAPI, secretKey);
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Encrypted-Customer-Id': encryptedCustomerId,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ currency: "JPY" })
+        });
+        return await response.json(); 
+    } catch (err) {
+        return { status: "ERROR", message: err.message };
     }
 }

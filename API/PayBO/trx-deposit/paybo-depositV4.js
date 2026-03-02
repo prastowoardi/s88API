@@ -1,8 +1,9 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
+import { faker } from "@faker-js/faker";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -126,13 +127,20 @@ async function sendDeposit() {
         let currency = SUPPORTED_CURRENCIES.includes(envCurrency) ? envCurrency : readlineSync.question("Masukkan Currency: ").trim().toUpperCase();
         if (!SUPPORTED_CURRENCIES.includes(currency)) throw new Error(`Currency ${currency} tidak support`);
 
+        let userID;
+        if (currency === "JPY") {
+            // userID = `CUST-JP-${faker.string.numeric(5)}`; 
+            userID = "NASHEED" // Approved user from QFPay
+        } else {
+            userID = randomInt(100, 999).toString();
+        }
+
         const amountInput = readlineSync.question("Masukkan Amount: ").trim();
         const amount = Number(amountInput);
         if (isNaN(amount) || amount <= 0) throw new Error("Amount harus berupa angka lebih dari 0.");
 
         const timestamp = Math.floor(Date.now() / 1000).toString();
         const transactionCode = `TEST-DP-V4-${timestamp}`;
-        const userID = randomInt(100, 999).toString();
         const config = getCurrencyConfig(currency);
         const ip = getRandomIP();
         const cardNumber = randomCardNumber();
@@ -153,6 +161,60 @@ async function sendDeposit() {
         if (bankCode) payload.bank_code = bankCode;
         if (phone) payload.cust_phone = phone;
         if (config.cardNumber) payload.card_number = cardNumber;
+
+        if (currency === "JPY") {
+            logger.info("🔹 Registering KYC JPY...");
+            
+            try {
+                if (typeof faker === 'undefined') {
+                    throw new Error("Library 'faker' belum di-import di file ini!");
+                }
+
+                logger.info(`Generated ID: ${userID}`);
+
+                const kycData = await registerCustomerJPY(config, userID);
+
+                if (!kycData) {
+                    logger.error("❌ Registrasi gagal (Response Kosong)");
+                    return;
+                }
+
+                let isApproved = false;
+                let attempts = 0;
+                const maxAttempts = 3;
+
+                while (!isApproved && attempts < maxAttempts) {
+                    attempts++;
+                    logger.info(`🔍 Checking status ${userID} (Attempt ${attempts}/${maxAttempts})...`);
+
+                    const pollResult = await pollKYCStatus(userID, config);
+                    
+                    const status = pollResult?.data?.status || pollResult?.status;
+
+                    if (status === "APPROVED") {
+                        isApproved = true;
+                        payload.cust_name = kycData.recipient_name;
+                        payload.user_id = userID; 
+                        logger.info("✅ KYC APPROVED!");
+                    } else if (status === "REJECTED") {
+                        logger.error("❌ KYC REJECTED oleh server.");
+                        return;
+                    } else {
+                        logger.info(`⏳ Status: ${status || 'PENDING'}. Waiting 5s...`);
+                        await new Promise(r => setTimeout(r, 5000));
+                    }
+                }
+
+                if (!isApproved) {
+                    logger.error("❌ KYC Timeout (Status masih PENDING).");
+                    return;
+                }
+
+            } catch (innerError) {
+                console.error(innerError); 
+                return;
+            }
+        }
 
         payload = await applyCurrencySpecifics(payload, currency, bankCode, cardNumber);
 
