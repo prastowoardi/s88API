@@ -34,7 +34,7 @@ const currencyConfigs = {
   MXN: { merchantCode: MERCHANT_CODE_MXN, depositMethod: DEPOSIT_METHOD_MXN, secretKey: SECRET_KEY_MXN, merchantAPI: MERCHANT_API_KEY_MXN, requiresBankCode: true },
   KRW: { merchantCode: MERCHANT_CODE_KRW, depositMethod: DEPOSIT_METHOD_KRW, secretKey: SECRET_KEY_KRW, merchantAPI: MERCHANT_API_KEY_KRW, requiresBankCode: true, cardNumber: true },
   PHP: { merchantCode: MERCHANT_CODE_PHP, depositMethod: DEPOSIT_METHOD_PHP, secretKey: SECRET_KEY_PHP, merchantAPI: MERCHANT_API_KEY_PHP, requiresBankCode: true },
-  JPY: { merchantCode: MERCHANT_CODE_JPY, depositMethod: DEPOSIT_METHOD_JPY, secretKey: SECRET_KEY_JPY, merchantAPI: MERCHANT_API_KEY_JPY, requiresBankCode: true },
+  JPY: { merchantCode: MERCHANT_CODE_JPY, depositMethod: DEPOSIT_METHOD_JPY, secretKey: SECRET_KEY_JPY, merchantAPI: MERCHANT_API_KEY_JPY, requiresBankCode: false },
   HKD: { merchantCode: MERCHANT_CODE_HKD, depositMethod: DEPOSIT_METHOD_HKD, secretKey: SECRET_KEY_HKD, merchantAPI: MERCHANT_API_KEY_HKD },
   KHR: { merchantCode: MERCHANT_CODE_KHR, depositMethod: DEPOSIT_METHOD_KHR, secretKey: SECRET_KEY_KHR, merchantAPI: MERCHANT_API_KEY_KHR },
   MYR: { merchantCode: MERCHANT_CODE_MYR, depositMethod: DEPOSIT_METHOD_MYR, secretKey: SECRET_KEY_MYR, merchantAPI: MERCHANT_API_KEY_MYR},
