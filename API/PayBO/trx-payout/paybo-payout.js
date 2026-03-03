@@ -8,7 +8,7 @@ import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import CoinKey from 'coinkey';
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
-const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
+const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"];
 const BANK_ACCOUNT_NUMBER = getAccountNumber(6) || "11133322";
 
@@ -50,7 +50,7 @@ class PayoutService {
       transaction_code: transactionCode,
       transaction_timestamp: timestamp,
       transaction_amount: Number(amount),
-      user_id: "NASHEED",
+      user_id: String(userID),
       currency_code: currency,
       payout_code: config.payoutMethod,
       callback_url: callbackURL || config.callbackURL,
@@ -127,8 +127,8 @@ class PayoutService {
         throw new Error("Gagal mendapatkan rate crypto dari server.");
       }
 
-      const cryptoAmountInput = await this.ask("Masukkan Crypto Amount (Enter untuk pakai Amount awal): ");
-      payload.crypto_amount = cryptoAmountInput.trim() || String(payload.transaction_amount);
+      const cryptoAmountInput = await this.ask(`Masukkan Crypto Amount (Enter untuk pakai estimasi amount ${estimasi}): `);
+      payload.crypto_amount = cryptoAmountInput.trim() || String(estimasi);
     }
   }
 

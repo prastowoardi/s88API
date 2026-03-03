@@ -10,7 +10,7 @@ import CoinKey from 'coinkey';
 import { read } from "fs";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
-const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
+const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
 
 const rl = readline.createInterface({
@@ -139,8 +139,8 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     const estimasi = (Number(amount) / Number(forex)).toFixed(2);
     logger.info(`Estimasi: ${estimasi} USDT`);
 
-    const inputCrypto = await ask(`Masukkan Crypto Amount (Enter untuk ${amount}): `);
-    payload.crypto_amount = inputCrypto.trim() || String(amount);
+    const inputCrypto = await ask(`Masukkan Crypto Amount (Enter untuk pakai estimasi amount ${estimasi}): `);
+    payload.crypto_amount = inputCrypto.trim() || String(estimasi);
   }
 
   return await executePayoutRequest(payload, config);
@@ -227,7 +227,7 @@ async function sendPayout() {
     const envCurrency = process.env.CURRENCY;
     const { currency, bankCode, amount } = await collectInputs(envCurrency);
 
-    const userID = "NASHEED";
+    const userID = currency === "JPY" ? "NASHEED" : randomInt(100, 999).toString();
     const transactionCode = `TEST-WD-${Date.now()}`;
     const name = await getRandomName();
 
