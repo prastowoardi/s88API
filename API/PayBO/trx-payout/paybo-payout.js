@@ -108,6 +108,8 @@ class PayoutService {
       logger.info(`Fetching Rate: ${fiat} -> USDT...`);
       const cryptoData = await getCryptoRate(payload.transaction_amount, fiat, config, "USDT", "withdraw");
 
+      let estimasi = "0";
+
       if (cryptoData && cryptoData.forex) {
         const { forex, token, usedAddress } = cryptoData;
 
@@ -121,7 +123,7 @@ class PayoutService {
           logger.info(`✅ Token dilampirkan.`);
         }
 
-        const estimasi = (Number(payload.transaction_amount) / Number(forex)).toFixed(2);
+        estimasi = (Number(payload.transaction_amount) / Number(forex)).toFixed(2);
         logger.info(`Estimasi Crypto: ${estimasi} USDT`);
       } else {
         throw new Error("Gagal mendapatkan rate crypto dari server.");

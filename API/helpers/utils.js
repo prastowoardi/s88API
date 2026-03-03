@@ -230,7 +230,11 @@ export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "
         const result = await response.json();
 
         if (result.success && result.data) {
-            return result.data;
+            // console.log(`Result Data: ${JSON.stringify(result.data, null, 2)}`);
+            return {
+                ...result.data,
+                usedAddress: wallet.publicAddress 
+            };
         }
         
         logger.error(`❌ API Error: ${result.message || 'Unknown Error'}`);
