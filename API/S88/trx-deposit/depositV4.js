@@ -92,6 +92,7 @@ class DepositService {
                 depositor_account_number: userInfo.accountNumber,
             }),
             callback_url: config.callbackURL,
+            redirect_url: "https://x.com",
         };
 
         if (tx.currency === "THB") {
@@ -103,7 +104,7 @@ class DepositService {
 
         return Object.entries(basePayload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "redirect_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
