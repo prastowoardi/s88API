@@ -7,7 +7,7 @@ import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNum
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -116,6 +116,10 @@ class DepositService {
 
         if (tx.currency === "KRW") {
             payload.depositor_name = user.name;
+        }
+
+        if (tx.currency === "JPY") {
+            payload.depositor_name = await getRandomName('jp', true);
         }
 
         // Only for Erfolg provider

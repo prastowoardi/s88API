@@ -112,7 +112,7 @@ const internalCurrencies = {
       payoutMethod: PAYOUT_METHOD_JPY,
       secretKey: SECRET_KEY_JPY,
       merchantAPI: MERCHANT_API_KEY_JPY,
-      requiresBankCode: false,
+      requiresBankCode: true,
   },
   USDT: {
       merchantCode: MERCHANT_CODE_USDT,

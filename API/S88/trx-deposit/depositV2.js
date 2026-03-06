@@ -9,7 +9,7 @@ import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
 dotenv.config();
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
 class DepositV2Service {
@@ -92,7 +92,7 @@ class DepositV2Service {
 
             Object.assign(payload, {
                 depositor_bank: depositorBank,
-                depositor_name: await getRandomName(),
+                depositor_name: await getRandomName('th', true),
                 depositor_account_number: user.accountNumber,
             });
         }

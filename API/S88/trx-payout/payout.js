@@ -5,9 +5,10 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
+import { fakerJA } from "@faker-js/faker";
 
 const CONFIG = {
-  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "PMI", "MYR"],
+  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "PMI", "MYR", "PHP", "JPY", "KRW"],
   REQUEST_TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
@@ -65,22 +66,16 @@ class PayoutInput {
     });
   }
 
-  async ask(question, validator = null, timeout = 30000) {
+  async ask(question, validator = null) {
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        logger.warn("⌛ Timeout! Coba input lagi...");
-        this.ask(question, validator, timeout).then(resolve).catch(reject);
-      }, timeout);
-
       this.rl.question(question, (answer) => {
-        clearTimeout(timer);
         try {
           const result = validator ? validator(answer) : answer;
           resolve(result);
         } catch (error) {
           logger.error(error.message);
           if (error instanceof ValidationError) {
-            this.ask(question, validator, timeout).then(resolve).catch(reject);
+            this.ask(question, validator).then(resolve).catch(reject);
           } else {
             reject(error);
           }
@@ -267,6 +262,18 @@ class regularPayout {
       enhancedPayload.bank_name = BANK_CONFIG.THB.bank_name;
     }
 
+    if (currency === "JPY") {
+      const rawBranchName = fakerJA.location.city();
+
+      enhancedPayload.branch_name = `${rawBranchName}支店`;
+      enhancedPayload.branch_code = fakerJA.string.numeric(3);
+
+      enhancedPayload.bank_account_number = getAccountNumber(5);
+      enhancedPayload.account_type = fakerJA.helpers.arrayElement([1, 2]);
+      
+      logger.info(`🇯🇵  JPY Branch: ${enhancedPayload.branch_name} (${enhancedPayload.branch_code})`);
+    }
+
     return utils.sanitizePayload(enhancedPayload);
   }
 
@@ -333,7 +340,11 @@ class regularPayout {
 
     } catch (error) {
       // logger.error(`❌ Regular Payout Error: ${error.message}`);
-      return { success: false, error: error.message, resultText: error.resultText || null };
+      const readableError = error.resultText 
+        ? error.resultText.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)))
+        : error.message;
+
+      return { success: false, error: error.message, readableError : readableError, resultText: error.resultText };
     }
   }
 }
@@ -391,7 +402,12 @@ class PayoutOrchestrator {
       
       if (!result.success) {
         if(result.resultText) {
-          logger.error(`Error: ${result.resultText}`);
+            try {
+                const errObj = JSON.parse(result.resultText);
+                logger.error(`Error Detail: ${JSON.stringify(errObj, null, 2)}`);
+            } catch (e) {
+                logger.error(`Error: ${result.resultText}`);
+            }
         }
       }
 

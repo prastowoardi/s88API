@@ -6,7 +6,7 @@ import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -100,6 +100,10 @@ class DepositService {
             if (!/^[a-z0-9A-Z]+$/.test(depositorBank))
                 throw new Error("Depositor Bank must contain only letters");
                 basePayload.depositor_bank = depositorBank;
+        }
+
+        if (tx.currency === "JPY") {
+            basePayload.depositor_name = await getRandomName('jp', true);
         }
 
         return Object.entries(basePayload)
