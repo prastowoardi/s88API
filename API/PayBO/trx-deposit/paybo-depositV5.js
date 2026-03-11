@@ -109,6 +109,9 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
             payload.rate = readlineSync.question("Masukkan Rate: ").trim();
             payload.bank_code = bankCode;
             break;
+        case "IDR":
+            payload.cust_phone = randomPhoneNumber("idr");
+            break;
     }
     return payload;
 }

@@ -80,6 +80,9 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       payloadObj.rate = await ask("Masukkan Rate: ");
       payloadObj.bank_code = bankCode;
       break;
+    case "IDR":
+      payloadObj.cust_phone = randomPhoneNumber("idr");
+      break;
   }
   return payloadObj;
 }

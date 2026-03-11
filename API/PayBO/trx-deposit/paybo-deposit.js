@@ -61,6 +61,9 @@ async function buildPayload(config, tx, userInfo = {}) {
             rate: readlineSync.question("Masukkan Rate: ").trim(),
             bank_code: tx.bankCode
         }),
+        ...(tx.currency === "IDR" && { 
+            cust_phone: randomPhoneNumber("idr") 
+        }),
         callback_url: config.callbackURL,
     };
 
