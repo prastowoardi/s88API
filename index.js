@@ -43,7 +43,7 @@ const SCRIPT_ACTIONS = {
   depositV4: { path: "API/S88/trx-deposit/depositV4.js", label: "Deposit V4", type: "S88/Singhapay" },
   payout: { path: "API/S88/trx-payout/payout.js", label: "Payout", type: "S88/Singhapay" },
   batchDepositV2: { path: "API/S88/trx-deposit/batchDepositV2.js", label: "Batch Deposit V2", type: "S88/Singhapay" },
-  batchDepositV3: { path: "API/S88/trx-deposit/batchDeposit.js", label: "Batch Deposit", type: "S88/Singhapay" },
+  batchDepositV3: { path: "API/S88/trx-deposit/batchDeposit.js", label: "Batch Deposit V3", type: "S88/Singhapay" },
   batchDepositV4: { path: "API/S88/trx-deposit/batchDepositV4.js", label: "Batch Deposit V4", type: "S88/Singhapay" },
   batchWithdraw: { path: "API/S88/trx-payout/batchWithdraw.js", label: "Batch Withdraw", type: "S88/Singhapay" },
   manualINR: { path: "API/S88/trx-payout/manualINR.js", label: "Manual Withdraw INR", type: "S88/Singhapay" },
@@ -270,8 +270,8 @@ async function main() {
         const scriptConfig = SCRIPT_ACTIONS[action];
 
         const needsCurrency = [
-          "deposit", "depositV2", "depositV4", "payout", "batchDeposit", "batchDepositV2", "batchDepositV4", "batchWithdraw",
-          "payboDeposit", "payboDepositV2", "payboDepositV4", "payboDepositV5",
+          "depositV3", "depositV2", "depositV4", "payout", "batchDeposit", "batchDepositV2", "batchDepositV4", "batchWithdraw",
+          "payboDepositV3", "payboDepositV2", "payboDepositV4", "payboDepositV5",
           "payboPayout", "payboPayoutV5",
           "payboBatchDeposit", "payboBatchDepositV5", "payboBatchPayout", "payboBatchPayoutV5"
         ].includes(action);
