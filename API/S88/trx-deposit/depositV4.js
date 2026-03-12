@@ -106,6 +106,13 @@ class DepositService {
             basePayload.depositor_name = await getRandomName('jp', true);
         }
 
+        // Only for Flowpay
+        // if (tx.currency === "INR") {
+        //     basePayload.phone = await randomPhoneNumber('in');
+        //     basePayload.depositor_name = userInfo.name;
+        //     basePayload.email = `${userInfo.name.toLowerCase().replace(/\s/g, "")}@example.com`;
+        // }
+
         return Object.entries(basePayload)
             .map(([k, v]) => {
                 if (k === "depositor_name" || k === "callback_url" || k === "redirect_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
