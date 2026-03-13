@@ -152,12 +152,13 @@ class DepositService {
             process.env.BASE_URL_3,
         ].filter(Boolean);
 
+        logger.info(`Payload: ${payload}\n`);
+        logger.info(`Encrypted: ${encrypted}\n`);
+
         for (const base of urls) {
             const url = `${base}/api/${config.merchantCode}/v4/dopayment`;
 
             logger.info(`Trying: ${url}`);
-            logger.info(`Payload: ${payload}`);
-            logger.info(`Encrypted: ${encrypted}\n`);
 
             try {
                 const response = await fetch(url, {

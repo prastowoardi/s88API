@@ -165,6 +165,9 @@ class DepositService {
             process.env.BASE_URL_3,
         ].filter(Boolean);
 
+        logger.info(`Payload: ${payload}\n`);
+        logger.info(`Encrypted: ${encrypted}\n`);
+
         for (const base of urls) {
             const endpoint =
                 String(config.currency).toUpperCase() === "KRW"
@@ -173,8 +176,6 @@ class DepositService {
 
             const url = `${base}${endpoint}`;
             logger.info(`Trying: ${url}`);
-            logger.info(`Payload: ${payload}\n`);
-            logger.info(`Encrypted: ${encrypted}`);
 
             try {
                 const response = await fetch(url, {
