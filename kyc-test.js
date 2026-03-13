@@ -63,8 +63,8 @@ async function manualKYC() {
                 const resData = pollRes?.data;
                 const status = Array.isArray(resData) ? resData[0]?.status : resData?.status;
                 const msg = pollRes?.message || "No message";
-
-                logger.info(`[Attempt ${attempts}/${maxAttempts}] Status: ${status || 'UNKNOWN'} | Msg: ${msg}`);
+                logger.info(`Raw Response:\n${JSON.stringify(pollRes, null, 2)}`);
+                // logger.info(`[Attempt ${attempts}/${maxAttempts}] Status: ${status || 'UNKNOWN'} | Msg: ${msg}`);
 
                 if (status?.toUpperCase() === "APPROVED") {
                     logger.info("🎉 SUCCESS: KYC has been APPROVED!");
