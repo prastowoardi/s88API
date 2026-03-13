@@ -145,14 +145,53 @@ class DepositService {
             config.merchantAPI,
             config.secretKey
         );
-        const url = `${config.BASE_URL}/api/${config.merchantCode}/v4/dopayment`;
 
-        logger.info(`🔹 Sending Deposit Request`);
-        logger.info(`URL: ${url}`);
-        logger.info(`Payload: ${payload}`);
-        logger.info(`Encrypted: ${encrypted}`);
+        const urls = [
+            config.BASE_URL,
+            process.env.BASE_URL_2,
+            process.env.BASE_URL_3,
+        ].filter(Boolean);
 
-        return this.sendEncryptedRequest(url, encrypted);
+        for (const base of urls) {
+            const url = `${base}/api/${config.merchantCode}/v4/dopayment`;
+
+            logger.info(`Trying: ${url}`);
+            logger.info(`Payload: ${payload}`);
+            logger.info(`Encrypted: ${encrypted}\n`);
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: encrypted }),
+                });
+
+                const text = await response.text();
+                
+                let json;
+                try {
+                    json = JSON.parse(text);
+                } catch (e) {
+                    logger.error(`❌ Failed to parse JSON from ${url}: ${e.message}`);
+                    continue;
+                }
+
+                if (!response.ok) {
+                    if (json.message === "[DP] Unauthorize" || response.status === 401) {
+                        logger.warn(`⚠️ Unauthorized at ${base}, trying next URL...\n`);
+                        continue;
+                    }
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+
+                return { result: json, url: base };
+            } catch (err) {
+                if (err.message.includes("HTTP")) throw err;
+                logger.error(`🚫 Network error on ${base}: ${err.message}`);
+            }
+        }
+
+        throw new Error("All API URLs failed (Unauthorized or Network Error)");
     }
 
     async submitUTR(currency, transactionCode) {
@@ -175,11 +214,11 @@ class DepositService {
 
         let url;
 
-        if (config.BASE_URL.includes("singhapay")) {
-            url = `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`;
+        if (baseURL.includes("singhapay")) {
+            url = `${baseURL}/api/${config.merchantCode}/v3/submit-utr`;
             console.log("Endpoint: ", url);
         } else {
-            url = `${config.BASE_URL}/api/${config.merchantCode}/v4/submit-utr`;
+            url = `${baseURL}/api/${config.merchantCode}/v4/submit-utr`;
             console.log("Endpoint: ", url);
         }
 
@@ -210,7 +249,7 @@ class DepositService {
         };
 
         const payload = await this.buildPayload(config, tx, userInfo);
-        const result = await this.makeDepositRequest(config, payload);
+        const { result, url } = await this.makeDepositRequest(config, payload);
 
         logger.info(`Deposit Response:\n${JSON.stringify(result, null, 2)}`);
 
@@ -218,7 +257,7 @@ class DepositService {
             const confirm = (await this.ask("Input UTR (YES/NO): "))
                 .trim()
                 .toUpperCase();
-            if (confirm === "YES") await this.submitUTR(currency, transactionCode);
+            if (confirm === "YES") await this.submitUTR(currency, transactionCode, url);
             else logger.info("Skip Submit UTR.");
         }
 

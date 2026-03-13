@@ -189,7 +189,7 @@ class DepositService {
                 if (!json) continue;
 
                 if (!response.ok) {
-                    if (json.message === "[DP] Unauthorize") {
+                    if (json.message === "[DP] Unauthorize" || response.status === 401) {
                         logger.warn(`⚠️ Unauthorized at ${base}, trying next...\n`);
                         continue;
                     }
@@ -199,12 +199,13 @@ class DepositService {
 
                 return { result: json, url: base };
             } catch (err) {
+                if (err.message.includes("HTTP")) throw err; 
                 // logger.error(`🚫 Network error on ${base}: ${err.message}`);
-                throw err;
+                continue;
             }
         }
 
-        throw new Error("All API URLs failed");
+        throw new Error("All API URLs failed (Unauthorized or Connection Issue)");
     }
 
     async submitUTR(currency, transactionCode, baseURL) {
