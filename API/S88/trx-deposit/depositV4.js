@@ -108,14 +108,14 @@ class DepositService {
 
         // Only for Flowpay
         // if (tx.currency === "INR") {
-        //     basePayload.phone = await randomPhoneNumber('in');
+        //     basePayload.phone = "9123456789";
         //     basePayload.depositor_name = userInfo.name;
-        //     basePayload.email = `${userInfo.name.toLowerCase().replace(/\s/g, "")}@example.com`;
+        //     basePayload.email = `${userInfo.name.toLowerCase().replace(/\s/g, "")}@tank.com`;
         // }
 
         return Object.entries(basePayload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "redirect_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "redirect_url" || k === "ip_address" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
