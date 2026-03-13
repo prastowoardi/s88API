@@ -154,11 +154,24 @@ class DepositV2Service {
 
             const payload = await this.buildPayload(config, tx, user);
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-            const paymentURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
+
+            const urls = [
+                config.BASE_URL,
+                process.env.BASE_URL_2,
+                process.env.BASE_URL_3,
+            ].filter(Boolean);
 
             logger.info(`Request Payload: ${payload}\n`);
-            logger.info(`PayURL: ${paymentURL}`);
-            logger.info("======== REQUEST DONE ========\n\n");
+            logger.info(`Encrypted Payload: ${encrypted}\n`);
+
+            logger.info("--- Generated Payment URLs ---");
+
+            urls.forEach((base, index) => {
+                const paymentURL = `${base}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
+                logger.info(`PayURL ${index + 1}: ${paymentURL}`);
+            });
+
+            logger.info("======== REQUEST DONE ========\n");
         } catch (err) {
             logger.error(`❌ Error: ${err.message}`);
         } finally {
