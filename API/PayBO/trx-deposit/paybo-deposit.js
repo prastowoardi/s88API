@@ -59,7 +59,8 @@ async function buildPayload(config, tx, userInfo = {}) {
         // }),
         ...(tx.currency === "USDT" && {
             rate: readlineSync.question("Masukkan Rate: ").trim(),
-            bank_code: tx.bankCode
+            bank_code: tx.bankCode,
+            lang: readlineSync.question("Choose Language (EN/ID): ").trim().toUpperCase()
         }),
         ...(tx.currency === "IDR" && { 
             cust_phone: randomPhoneNumber("idr") 

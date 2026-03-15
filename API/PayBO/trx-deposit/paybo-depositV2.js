@@ -79,6 +79,7 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
     case "USDT":
       payloadObj.rate = await ask("Masukkan Rate: ");
       payloadObj.bank_code = bankCode;
+      payloadObj.lang = (await ask("Choose Language (EN/ID): ")).trim().toUpperCase();
       break;
     case "IDR":
       payloadObj.cust_phone = randomPhoneNumber("idr");
@@ -195,13 +196,26 @@ async function depositV2() {
     }
 
     payloadObj = await applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber);
+
+    let lang = "";
+    if (currency === "USDT" && payloadObj.lang) {
+        lang = payloadObj.lang;
+        delete payloadObj.lang;
+    }
+
     const payload = buildPayload(payloadObj);
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+
+    let payURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
+
+    if (lang) {
+      payURL += `&lang=${lang.toLowerCase()}`;
+    }
 
     logger.info(`Currency : ${currency}`);
     logger.info(`Amount : ${amount}`);
     logger.info(`Request Payload : ${payload}\n`);
-    logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
+    logger.info(`PayURL : ${payURL}`);
     logger.info("\n=============== CLICK LINK TO FINISHED THIS REQUEST ===============\n\n");
   } catch (err) {
     logger.error(`❌ Error: ${err.message}`, err);

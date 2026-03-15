@@ -168,7 +168,7 @@ class DepositV2Service {
 
             urls.forEach((base, index) => {
                 const paymentURL = `${base}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
-                logger.info(`PayURL ${index + 1}: ${paymentURL}`);
+                logger.info(`PayURL ${index + 1}: ${paymentURL}\n`);
             });
 
             logger.info("======== REQUEST DONE ========\n");
