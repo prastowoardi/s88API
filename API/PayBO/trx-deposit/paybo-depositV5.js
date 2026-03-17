@@ -108,7 +108,7 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
         case "USDT":
             payload.rate = readlineSync.question("Masukkan Rate: ").trim() || null;
             payload.bank_code = bankCode;
-            payload.lang = readlineSync.question("Choose Language (en/id): ").trim().toLowerCase();
+            payload.lang = readlineSync.question("Choose Language (en/id): ").trim().toLowerCase() || null;
             break;
         case "IDR":
             payload.cust_phone = randomPhoneNumber("idr");
