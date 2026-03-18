@@ -7,7 +7,7 @@ import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, registerC
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT"];
+const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR"];
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
