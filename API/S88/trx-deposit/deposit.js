@@ -126,7 +126,7 @@ class DepositService {
         // if (tx.currency === "INR") {
         //     Object.assign(payload, {
         //         product_name: "tofu",
-        //         depositor_name: await getRandomName("in", true),
+        //         depositor_name: await getRandomName(),
         //         email: "tofu@mail.com",
         //         phone: "9876373331",
         //         depositor_city: "Mumbai",

@@ -106,12 +106,22 @@ class DepositService {
             basePayload.depositor_name = await getRandomName('jp', true);
         }
 
-        // Only for Flowpay
+        // Only for Erfolg provider
         // if (tx.currency === "INR") {
-        //     basePayload.phone = "9123456789";
-        //     basePayload.depositor_name = userInfo.name;
-        //     basePayload.email = `${userInfo.name.toLowerCase().replace(/\s/g, "")}@tank.com`;
-        // }
+        //     const email = `${userInfo.name.toLowerCase().replace(/\s/g, "")}@tank.com`;
+        //     Object.assign(basePayload, {
+        //         product_name: "tofu",
+        //         depositor_name: await getRandomName(),
+        //         email,
+        //         phone: "9876373331",
+        //         depositor_city: "Mumbai",
+        //         depositor_country: "India",
+        //         depositor_zip_code: "81818",
+        //         depositor_pan_number: "HWULX6881T",
+        //         depositor_address: "mumbai",
+        //         depositor_merchant_url: "x.com"
+        //     });
+        // }        
 
         return Object.entries(basePayload)
             .map(([k, v]) => {
@@ -195,7 +205,7 @@ class DepositService {
         throw new Error("All API URLs failed (Unauthorized or Network Error)");
     }
 
-    async submitUTR(currency, transactionCode) {
+    async submitUTR(currency, transactionCode, baseURL) {
         if (!UTR_CURRENCIES.includes(currency)) {
             logger.warn("Submit UTR hanya tersedia untuk INR & BDT.");
             return;
