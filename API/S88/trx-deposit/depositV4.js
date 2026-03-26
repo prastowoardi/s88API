@@ -183,7 +183,8 @@ class DepositService {
                 try {
                     json = JSON.parse(text);
                 } catch (e) {
-                    logger.error(`❌ Failed to parse JSON from ${url}: ${e.message}`);
+                    console.error("Error Message:", e.message);
+                    console.log("Raw Response Body:", text); 
                     continue;
                 }
 
