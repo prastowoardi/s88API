@@ -270,7 +270,7 @@ async function main() {
         const scriptConfig = SCRIPT_ACTIONS[action];
 
         const needsCurrency = [
-          "depositV3", "depositV2", "depositV4", "payout", "batchDeposit", "batchDepositV2", "batchDepositV4", "batchWithdraw",
+          "depositV3", "depositV2", "depositV4", "payout", "batchDepositV3", "batchDepositV2", "batchDepositV4", "batchWithdraw",
           "payboDepositV3", "payboDepositV2", "payboDepositV4", "payboDepositV5",
           "payboPayout", "payboPayoutV5",
           "payboBatchDeposit", "payboBatchDepositV5", "payboBatchPayout", "payboBatchPayoutV5"
