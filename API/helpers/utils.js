@@ -357,32 +357,32 @@ export async function registerCustomerJPY(config, customerId) {
 
         logger.info(`📤 Sending KYC with Real Images: ${payload.customer_id}`);
 
-        const logFormData = (formData) => {
-            logger.info("--- 📦 Payload Register User ---");
+        // const logFormData = (formData) => {
+        //     logger.info("--- 📦 Payload Register User ---");
 
-            const streams = formData._streams || [];
+        //     const streams = formData._streams || [];
 
-            for (let i = 0; i < streams.length; i++) {
-                const item = streams[i];
+        //     for (let i = 0; i < streams.length; i++) {
+        //         const item = streams[i];
                 
-                if (typeof item === 'string' && item.includes('name="')) {
-                    const nameMatch = item.match(/name="([^"]+)"/);
-                    if (nameMatch) {
-                        const fieldName = nameMatch[1];
-                        const value = streams[i + 1]; // Value biasanya ada di indeks setelah header
+        //         if (typeof item === 'string' && item.includes('name="')) {
+        //             const nameMatch = item.match(/name="([^"]+)"/);
+        //             if (nameMatch) {
+        //                 const fieldName = nameMatch[1];
+        //                 const value = streams[i + 1]; // Value biasanya ada di indeks setelah header
 
-                        if (typeof value === 'string' || typeof value === 'number') {
-                            logger.info(`Field [${fieldName}]: ${value}`);
-                        } else if (value && value.path) {
-                            logger.info(`Field [${fieldName}]: 📄 File (${value.path})`);
-                        } else {
-                            logger.info(`Field [${fieldName}]: [Binary/Buffer]`);
-                        }
-                    }
-                }
-            }
-            logger.info("---------------------------------");
-        };
+        //                 if (typeof value === 'string' || typeof value === 'number') {
+        //                     logger.info(`Field [${fieldName}]: ${value}`);
+        //                 } else if (value && value.path) {
+        //                     logger.info(`Field [${fieldName}]: 📄 File (${value.path})`);
+        //                 } else {
+        //                     logger.info(`Field [${fieldName}]: [Binary/Buffer]`);
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     logger.info("---------------------------------");
+        // };
 
         logFormData(form);
 
@@ -407,6 +407,7 @@ export async function registerCustomerJPY(config, customerId) {
         const resText = await response.text();
         const resData = JSON.parse(resText);
         if (!response.ok) {
+            console.log("DEBUG RESPONSE:", resText);
             logger.error(`❌ API Response (${response.status}): ${JSON.stringify(JSON.parse(resText), null, 2)}`);
             return resData;
         } else {

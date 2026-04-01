@@ -273,7 +273,7 @@ class BatchDepositV5Service {
                 logger.info(logMsg);                
 
                 this.stats.success++;
-
+                // console.log(JSON.stringify(resultDP, null, 2));
                 return { success: true, transactionNo, result: resultDP };
             } else {
                 const error = `Deposit failed: ${JSON.stringify(resultDP)}`;
