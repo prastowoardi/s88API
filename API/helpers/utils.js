@@ -299,6 +299,7 @@ export async function registerCustomerJPY(config, customerId) {
     const url = `${BASE_URL}/api/kyc/register/${merchantCode}`;
 
     try {
+        logger.info(`URL: ${url}`);
         logger.info(`🔍 Pre-checking status for: ${customerId}...`);
         const checkRes = await pollKYCStatus(customerId, config);
         
