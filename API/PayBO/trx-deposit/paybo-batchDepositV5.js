@@ -21,6 +21,13 @@ const REQUEST_TIMEOUT = 30000; // 30 seconds
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 1000; // 1 second base delay
 
+const getDynamicBatchSize = (count) => {
+    if (count > 500) return 250;
+    if (count > 200) return 40;
+    if (count > 100) return 30;
+    return 10; 
+};
+
 class BatchDepositV5Service {
     constructor() {
         this.lastTransactionNumber = 0;
@@ -109,7 +116,7 @@ class BatchDepositV5Service {
         const codes = [];
         for (let i = 1; i <= count; i++) {
             this.lastTransactionNumber += 1;
-            codes.push(`TEST-DP-${this.lastTransactionNumber}`);
+            codes.push(`TEST-DP-BATCH-V5-${this.lastTransactionNumber}-${Math.floor(Math.random() * 100000)}`);
         }
         return codes;
     }
@@ -274,6 +281,7 @@ class BatchDepositV5Service {
 
                 this.stats.success++;
                 // console.log(JSON.stringify(resultDP, null, 2));
+                // await this.delay(1000);
                 return { success: true, transactionNo, result: resultDP };
             } else {
                 const error = `Deposit failed: ${JSON.stringify(resultDP)}`;
@@ -369,7 +377,10 @@ class BatchDepositV5Service {
                 tasks.push(() => this.sendDeposit({ currency, amount, transactionCode }));
             }
 
-            await this.processBatch(tasks);
+            const dynamicConcurrency = getDynamicBatchSize(jumlah);
+            logger.info(`Processing with Dynamic Batch Size: ${dynamicConcurrency}`);
+            await this.processBatch(tasks, dynamicConcurrency);
+            // await this.processBatch(tasks, 1);
 
             this.stats.endTime = Date.now();
             this.printSummary();

@@ -384,7 +384,7 @@ export async function registerCustomerJPY(config, customerId) {
         //     logger.info("---------------------------------");
         // };
 
-        logFormData(form);
+        // logFormData(form);
 
         const bodyBuffer = await new Promise((resolve, reject) => {
             const chunks = [];
