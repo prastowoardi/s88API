@@ -11,6 +11,7 @@
     "form-data": "^4.0.5",
     "inquirer": "^12.9.6",
     "node-fetch": "^3.3.2",
+    "open": "^11.0.0",
     "readline-sync": "^1.4.10",
     "strip-ansi": "^7.1.0",
     "uuid": "^13.0.0",
