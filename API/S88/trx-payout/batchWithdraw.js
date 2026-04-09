@@ -73,6 +73,8 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
   switch (currency) {
     case 'INR':
       return { ...basePayload, ifsc_code: options.ifscCode };
+    case 'BDT':
+      return { ...basePayload, bank_code: options.bankCode};
     case 'VND':
       const randomBankCode = config.bankCodes[Math.floor(Math.random() * config.bankCodes.length)];
       return { ...basePayload, bank_code: randomBankCode };
@@ -99,6 +101,7 @@ async function payout(userID, currency, amount, transactionCode, name, options =
     const payload = buildPayload(userID, currency, amount, transactionCode, name, options);
     const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.apiKey, config.secretKey);
 
+    // logger.info(`📝 Payload [${transactionCode}]: ${JSON.stringify(payload, null, 2)}`);
     const result = await retryWithBackoff(async () => {
       const response = await fetch(`${AllConfigs.BASE_URL}/api/v1/payout/${config.merchantCode}`, {
         method: "POST",
