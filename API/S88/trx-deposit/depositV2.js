@@ -109,14 +109,14 @@ class DepositV2Service {
         //         depositor_zip_code: "21323",
         //         depositor_pan_number: "HWULX6881T",
         //         depositor_address: "mumbai",
-        //         depositor_merchant_url: "aa.com"
+        //         depositor_merchant_url: "https://aa.com"
         //     });
         // }
 
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "redirect_url" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "redirect_url" || k === "depositor_merchant_url" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");

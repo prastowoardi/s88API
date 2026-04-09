@@ -127,21 +127,21 @@ class DepositService {
         //     Object.assign(payload, {
         //         product_name: "tofu",
         //         depositor_name: await getRandomName(),
-        //         email: "tofu@mail.com",
+        //         // email: "tofu@mail.com",
         //         phone: "9876373331",
         //         depositor_city: "Mumbai",
         //         depositor_country: "India",
         //         depositor_zip_code: "81818",
         //         depositor_pan_number: "HWULX6881T",
         //         depositor_address: "mumbai",
-        //         depositor_merchant_url: "x.com"
+        //         depositor_merchant_url: "https://x.com"
         //     });
         // }
 
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "email" || k === "depositor_merchant_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");

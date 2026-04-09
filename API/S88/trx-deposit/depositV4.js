@@ -119,13 +119,13 @@ class DepositService {
         //         depositor_zip_code: "81818",
         //         depositor_pan_number: "HWULX6881T",
         //         depositor_address: "mumbai",
-        //         depositor_merchant_url: "x.com"
+        //         depositor_merchant_url: "https://x.com"
         //     });
         // }        
 
         return Object.entries(basePayload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "redirect_url" || k === "ip_address" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "redirect_url" || k === "ip_address" || k === "email" || k === "depositor_merchant_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
