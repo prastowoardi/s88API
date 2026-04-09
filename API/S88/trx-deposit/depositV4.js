@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import readline from "readline";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
+import open from "open";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
@@ -264,6 +265,16 @@ class DepositService {
         const { result, url } = await this.makeDepositRequest(config, payload);
 
         logger.info(`Deposit Response:\n${JSON.stringify(result, null, 2)}`);
+
+        const data = Array.isArray(result) ? result[0] : result;
+        const payUrl = data?.pay_url;
+
+        if (payUrl) {
+            logger.info(`Opening Payment URL: ${payUrl}`);
+            await open(payUrl);
+        } else {
+            logger.warn("Pay URL tetap tidak ditemukan dalam response.");
+        }
 
         if (UTR_CURRENCIES.includes(currency)) {
             const confirm = (await this.ask("Input UTR (YES/NO): "))

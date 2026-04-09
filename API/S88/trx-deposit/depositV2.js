@@ -6,6 +6,7 @@ import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
+import open from "open";
 
 dotenv.config();
 
@@ -168,7 +169,10 @@ class DepositV2Service {
 
             urls.forEach((base, index) => {
                 const paymentURL = `${base}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
-                logger.info(`PayURL ${index + 1}: ${paymentURL}\n`);
+
+                logger.info(`PayURL ${index + 1}: ${paymentURL}`);
+
+                open(paymentURL);
             });
 
             logger.info("======== REQUEST DONE ========\n");
