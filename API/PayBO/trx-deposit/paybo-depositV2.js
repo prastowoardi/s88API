@@ -1,6 +1,7 @@
 import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
+import open from "open";
 import { faker } from '@faker-js/faker';
 import { randomInt } from "crypto";
 import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
@@ -216,6 +217,12 @@ async function depositV2() {
     logger.info(`Amount : ${amount}`);
     logger.info(`Request Payload : ${payload}\n`);
     logger.info(`PayURL : ${payURL}`);
+
+    if (payURL) {
+        logger.info("🚀 Opening PayURL in browser...");
+        await open(payURL);
+    }
+    
     logger.info("\n=============== CLICK LINK TO FINISHED THIS REQUEST ===============\n\n");
   } catch (err) {
     logger.error(`❌ Error: ${err.message}`, err);
