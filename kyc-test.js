@@ -11,17 +11,23 @@ async function manualKYC() {
     
     const config = getCurrencyConfig("JPY");
 
-    // Staging
-    // config.BASE_URL = "https://api-dev-p1.paybo.io";
-    // config.merchantCode = "SKU20240827065024";
-    // config.merchantAPI = "eZHpPLtyPIMTCqyNxbmSPw%3D%3D";
-    // config.secretKey = "Y1J05DxNRmHxZRZxECyfF8wloIJcnuXocfupUKNmeb0%3D";
+    // Staging Swftx
+    config.BASE_URL = "https://api-dev-p1.paybo.io";
+    config.merchantCode = "SKU20260317031403";
+    config.merchantAPI = "XyXrECwnw6rwjw96mK4WgA%3D%3D";
+    config.secretKey = "Hr5GFXXQQhGkfKRfctJAsjAXjMd3ODM4tDJgy0CQvPw%3D";
     
-    // Production
-    config.BASE_URL = "https://pmt-api.next8solution.com";
-    config.merchantCode = "SKU20260106031805";
-    config.merchantAPI = "wYIRVAjKGxR8haArdrCU%2BQ%3D%3D";
-    config.secretKey = "4OXqR1S4qpx8ghK49T%2BN9gZ9X0fUK%2F%2F8narM9DxwQ7o%3D";
+    // Production Next8
+    // config.BASE_URL = "https://pmt-api.next8solution.com";
+    // config.merchantCode = "SKU20260106031805";
+    // config.merchantAPI = "wYIRVAjKGxR8haArdrCU%2BQ%3D%3D";
+    // config.secretKey = "4OXqR1S4qpx8ghK49T%2BN9gZ9X0fUK%2F%2F8narM9DxwQ7o%3D";
+
+    // Production Swftx
+    // config.BASE_URL = "https://api.swftx.co";
+    // config.merchantCode = "SKU20260226042656";
+    // config.merchantAPI = "qGr91jouRzpeOXB3UGMCqg%3D%3D";
+    // config.secretKey = "RIrBzXdmWwAbm6SSjzHU7672JiD16jfwl2QtDzMOCUk%3D";
 
 
     console.log("\n[1] Register New Customer");
