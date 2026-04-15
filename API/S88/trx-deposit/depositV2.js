@@ -167,13 +167,27 @@ class DepositV2Service {
 
             logger.info("--- Generated Payment URLs ---");
 
-            urls.forEach((base, index) => {
+            for (let index = 0; index < urls.length; index++) {
+                const base = urls[index];
                 const paymentURL = `${base}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
-
+                
                 logger.info(`PayURL ${index + 1}: ${paymentURL}`);
-
-                open(paymentURL);
-            });
+                
+                try {
+                    const res = await fetch(paymentURL);
+                    const contentType = res.headers.get("content-type") || "";
+                    
+                    if (res.ok && contentType.includes("text/html")) {
+                        logger.info(`✅ Opening URL ${index + 1} in browser...`);
+                        open(paymentURL);
+                        break;
+                    } else {
+                        logger.warn(`⚠️ URL ${index + 1} skipped: status=${res.status}\n`);
+                    }
+                } catch (err) {
+                    logger.warn(`⚠️ URL ${index + 1} failed: ${err.message}`);
+                }
+            }
 
             logger.info("======== REQUEST DONE ========\n");
         } catch (err) {
