@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
+import open from "open";
 import { faker } from '@faker-js/faker';
 import { randomInt } from "crypto";
 import { encryptDecrypt, signVerify, getRandomIP, getRandomName, getAccountNumber, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
@@ -268,6 +269,16 @@ async function sendDeposit() {
 
         logger.info(`Response Status: ${res.status}`);
         logger.info(`Deposit Response: ${JSON.stringify(resultDP, null, 2)}`);
+
+        const data = Array.isArray(resultDP) ? resultDP[0] : resultDP;
+        const payUrl = resultDP?.data?.page_url;
+
+        if (payUrl) {
+            logger.info(`Opening Payment URL: ${payUrl}`);
+            await open(payUrl);
+        } else {
+            logger.warn("Pay URL tetap tidak ditemukan dalam response.");
+        }
 
         if (["INR","BDT"].includes(currency)) {
             const utr = await askUTR();
