@@ -2,24 +2,26 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { encryptDecrypt } from "../../helpers/utils.js";
-import {
-    BASE_URL, CALLBACK_URL,
-    SECRET_KEY_INR, SECRET_KEY_VND, SECRET_KEY_BDT, SECRET_KEY_MMK,
-    DEPOSIT_METHOD_INR, DEPOSIT_METHOD_VND, DEPOSIT_METHOD_BDT, DEPOSIT_METHOD_MMK,
-    MERCHANT_CODE_INR, MERCHANT_CODE_VND, MERCHANT_CODE_BDT, MERCHANT_CODE_MMK,
-    MERCHANT_API_KEY_INR, MERCHANT_API_KEY_VND, MERCHANT_API_KEY_BDT, MERCHANT_API_KEY_MMK
-} from "../../Config/config.js";
+import { CALLBACK_URL } from "../../Config/config.js";
+import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { generateUTR, randomAmount } from "../../helpers/depositHelper.js";
 
-const AVAILABLE_CURRENCIES = ["INR", "BDT", "VND", "MMK"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 1000; // 1 second base delay
+
+// Dynamic batch size based on transaction count
+const getDynamicBatchSize = (count) => {
+    if (count > 500) return 250;
+    if (count > 200) return 40;
+    if (count > 100) return 30;
+    return MAX_CONCURRENT_REQUESTS;
+};
 
 class BatchDepositV3Service {
     constructor() {
@@ -33,52 +35,6 @@ class BatchDepositV3Service {
             endTime: null,
             errors: []
         };
-        this.currencyConfig = this.initializeCurrencyConfig();
-    }
-
-    initializeCurrencyConfig() {
-        return {
-            INR: {
-                merchantCode: MERCHANT_CODE_INR,
-                depositMethod: DEPOSIT_METHOD_INR,
-                secretKey: SECRET_KEY_INR,
-                merchantAPI: MERCHANT_API_KEY_INR
-            },
-            VND: {
-                merchantCode: MERCHANT_CODE_VND,
-                depositMethod: DEPOSIT_METHOD_VND,
-                secretKey: SECRET_KEY_VND,
-                merchantAPI: MERCHANT_API_KEY_VND,
-                bankCodeOptions: ["acbbank", "bidv", "mbbank", "tpbank", "vpbank"]
-            },
-            BDT: {
-                merchantCode: MERCHANT_CODE_BDT,
-                depositMethod: DEPOSIT_METHOD_BDT,
-                secretKey: SECRET_KEY_BDT,
-                merchantAPI: MERCHANT_API_KEY_BDT,
-                bankCodeOptions: ["1002", "1001", "1004", "1003"]
-            },
-            MMK: {
-                merchantCode: MERCHANT_CODE_MMK,
-                depositMethod: DEPOSIT_METHOD_MMK,
-                secretKey: SECRET_KEY_MMK,
-                merchantAPI: MERCHANT_API_KEY_MMK,
-                requiresBankCode: true
-            }
-        };
-    }
-
-    validateCurrency(input) {
-        const upperInput = input.toUpperCase();
-        if (upperInput === "ALL") {
-            return AVAILABLE_CURRENCIES;
-        }
-        
-        if (AVAILABLE_CURRENCIES.includes(upperInput)) {
-            return [upperInput];
-        }
-        
-        throw new Error(`Invalid currency. Available: ${AVAILABLE_CURRENCIES.join("/")}, or 'ALL'`);
     }
 
     validateTransactionCount(count) {
@@ -141,9 +97,7 @@ class BatchDepositV3Service {
         }
 
         const utr = generateUTR(currency);
-        const config = currency === "INR"
-            ? { merchantCode: MERCHANT_CODE_INR, secretKey: SECRET_KEY_INR, merchantAPI: MERCHANT_API_KEY_INR }
-            : { merchantCode: MERCHANT_CODE_BDT, secretKey: SECRET_KEY_BDT, merchantAPI: MERCHANT_API_KEY_BDT };
+        const config = getCurrencyConfig(currency);
 
         const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
         const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
@@ -151,7 +105,7 @@ class BatchDepositV3Service {
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
                 const response = await this.fetchWithTimeout(
-                    `${BASE_URL}/api/${config.merchantCode}/v3/submit-utr`,
+                    `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -194,7 +148,7 @@ class BatchDepositV3Service {
         } = transactionData;
 
         const payloadParts = [
-            `callback_url=${CALLBACK_URL}`,
+            `callback_url=${config.callbackURL || CALLBACK_URL}`,
             `merchant_api_key=${config.merchantAPI}`,
             `merchant_code=${config.merchantCode}`,
             `transaction_code=${transactionCode}`,
@@ -212,13 +166,14 @@ class BatchDepositV3Service {
     }
 
     async sendDeposit({ currency, amount, transactionCode }) {
-        const config = this.currencyConfig[currency];
-        if (!config) {
-            const error = `Invalid currency: ${currency}`;
-            logger.error(`❌ ${error}`);
+        let config;
+        try {
+            config = getCurrencyConfig(currency);
+        } catch (err) {
+            logger.error(`❌ ${err.message}`);
             this.stats.failed++;
-            this.stats.errors.push({ transactionCode, error });
-            return { success: false, error };
+            this.stats.errors.push({ transactionCode, error: err.message });
+            return { success: false, error: err.message };
         }
 
         try {
@@ -247,7 +202,7 @@ class BatchDepositV3Service {
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
             const response = await this.fetchWithTimeout(
-                `${BASE_URL}/api/${config.merchantCode}/v3/dopayment`,
+                `${config.BASE_URL}/api/${config.merchantCode}/v3/dopayment`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -307,19 +262,22 @@ class BatchDepositV3Service {
         logger.info(`Progress: ${completed}/${total} (${percentage}%) | Success: ${this.stats.success} | Failed: ${this.stats.failed} | ETA: ${Math.round(eta/1000)}s`);
     }
 
-    async processBatch(tasks, maxConcurrency = MAX_CONCURRENT_REQUESTS) {
+    async processBatch(tasks, totalCount) {
         const results = [];
+        const dynamicConcurrency = getDynamicBatchSize(totalCount);
+
+        logger.info(`Dynamic concurrency: ${dynamicConcurrency} (untuk ${totalCount} transaksi)`);
         
-        for (let i = 0; i < tasks.length; i += maxConcurrency) {
-            const batch = tasks.slice(i, i + maxConcurrency);
+        for (let i = 0; i < tasks.length; i += dynamicConcurrency) {
+            const batch = tasks.slice(i, i + dynamicConcurrency);
             const batchPromises = batch.map(task => task());
             
             const batchResults = await Promise.allSettled(batchPromises);
             results.push(...batchResults);
             
-            this.updateProgress(Math.min(i + maxConcurrency, tasks.length), tasks.length);
+            this.updateProgress(Math.min(i + dynamicConcurrency, tasks.length), tasks.length);
             
-            if (i + maxConcurrency < tasks.length) {
+            if (i + dynamicConcurrency < tasks.length) {
                 await this.delay(500);
             }
         }
@@ -328,13 +286,20 @@ class BatchDepositV3Service {
     }
 
     getUserInput() {
-        const envCurrency = process.env.CURRENCY;
+        const envCurrency = process.env.CURRENCY?.trim().toUpperCase();
         let currenciesToProcess = [];
 
-        if (envCurrency && AVAILABLE_CURRENCIES.includes(envCurrency.trim())) {
-            currenciesToProcess = [envCurrency.trim()];
+        if (envCurrency) {
+            // Validasi currency ada di depositConfigMap
+            try {
+                getCurrencyConfig(envCurrency);
+                currenciesToProcess = [envCurrency];
+            } catch {
+                console.error(`❌ Invalid currency: ${envCurrency}`);
+                process.exit(1);
+            }
         } else {
-            console.error(`❌ Invalid currency: ${envCurrency}`);
+            console.error("❌ CURRENCY tidak ditemukan. Jalankan via index.js.");
             process.exit(1);
         }
 
@@ -357,23 +322,14 @@ class BatchDepositV3Service {
         return { currenciesToProcess, jumlah, amounts };
     }
 
-    async handleMMKBankCode(currenciesToProcess) {
-        if (currenciesToProcess.includes("MMK")) {
-            const bankCode = readlineSync.question("Masukkan Bank Code untuk MMK: ");
-            if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
-                throw new Error("Bank Code must contain only letters and numbers");
-            }
-            this.currencyConfig.MMK.bankCodeOptions = [bankCode.toLowerCase()];
-        }
-    }
-
     async batchDeposit() {
         try {
             logger.info("======== Batch Deposit V3 Request ========");
             this.stats.startTime = Date.now();
 
             const { currenciesToProcess, jumlah, amounts } = this.getUserInput();
-            await this.handleMMKBankCode(currenciesToProcess);
+
+            logger.info(`Currency: ${currenciesToProcess.join(", ")} | Merchant: ${process.env.CURRENT_MERCHANT || "-"}`);
 
             this.stats.total = currenciesToProcess.length * jumlah;
 
@@ -388,7 +344,7 @@ class BatchDepositV3Service {
                 }
             }
 
-            await this.processBatch(tasks);
+            await this.processBatch(tasks, this.stats.total);
 
             this.stats.endTime = Date.now();
             this.printSummary();
