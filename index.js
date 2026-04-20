@@ -273,7 +273,7 @@ async function main() {
           "depositV3", "depositV2", "depositV4", "payout", "batchDepositV3", "batchDepositV2", "batchDepositV4", "batchWithdraw",
           "payboDepositV3", "payboDepositV2", "payboDepositV4", "payboDepositV5",
           "payboPayout", "payboPayoutV5",
-          "payboBatchDeposit", "payboBatchDepositV5", "payboBatchPayout", "payboBatchPayoutV5"
+          "payboBatchDepositV3", "payboBatchDepositV5", "payboBatchPayout", "payboBatchPayoutV5"
         ].includes(action);
 
         let currency = null;
