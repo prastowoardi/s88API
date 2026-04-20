@@ -9,8 +9,14 @@ import fs from 'fs';
 import FormData from 'form-data';
 
 export const encryptDecrypt = (action, data, apikey, secretkey) => {
-    const key = CryptoJS.SHA256(apikey); 
-    const iv = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256(secretkey).toString(CryptoJS.enc.Hex).substring(0, 16)); 
+    const salt = CryptoJS.SHA256(`enc:${secretkey}`);
+    const derived = CryptoJS.PBKDF2(apikey, salt, {
+        keySize: 12, // 12 words = 48 bytes (32-byte key + 16-byte IV)
+        iterations: 100000,
+        hasher: CryptoJS.algo.SHA256
+    });
+    const key = CryptoJS.lib.WordArray.create(derived.words.slice(0, 8), 32);
+    const iv = CryptoJS.lib.WordArray.create(derived.words.slice(8, 12), 16);
 
     if (!['encrypt', 'decrypt'].includes(action)) {
         console.error("Invalid action. Use 'encrypt' or 'decrypt'.");
@@ -37,8 +43,14 @@ export const encryptDecrypt = (action, data, apikey, secretkey) => {
 };
 
 export const encryptDecryptPayout = (action, data, apikey, secretkey) => {
-    const key = CryptoJS.SHA256(apikey);
-    const iv = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256(secretkey).toString(CryptoJS.enc.Hex).substring(0, 16));
+    const salt = CryptoJS.SHA256(`payout:${secretkey}`);
+    const derived = CryptoJS.PBKDF2(apikey, salt, {
+        keySize: 12, // 12 words = 48 bytes (32-byte key + 16-byte IV)
+        iterations: 100000,
+        hasher: CryptoJS.algo.SHA256
+    });
+    const key = CryptoJS.lib.WordArray.create(derived.words.slice(0, 8), 32);
+    const iv = CryptoJS.lib.WordArray.create(derived.words.slice(8, 12), 16);
 
     if (!['encrypt', 'decrypt'].includes(action)) {
         console.error("Invalid action. Use 'encrypt' or 'decrypt'.");
