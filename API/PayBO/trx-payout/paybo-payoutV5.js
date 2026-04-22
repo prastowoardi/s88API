@@ -143,6 +143,10 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
     payload.crypto_amount = inputCrypto.trim() || String(estimasi);
   }
 
+  if (currency === "IDR") {
+    payload.bank_account_number = "081944296969";
+  }
+
   return await executePayoutRequest(payload, config);
 }
 
