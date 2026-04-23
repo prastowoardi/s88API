@@ -80,7 +80,7 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
     case "USDT":
       payloadObj.rate = await ask("Masukkan Rate: ");
       payloadObj.bank_code = bankCode;
-      payloadObj.lang = (await ask("Choose Language (EN/ID): ")).trim().toUpperCase();
+      payloadObj.lang = (await ask("Choose Language (EN/ID): ")).trim();
       break;
     case "IDR":
       payloadObj.cust_phone = randomPhoneNumber("idr");
@@ -219,11 +219,9 @@ async function depositV2() {
     logger.info(`PayURL : ${payURL}`);
 
     if (payURL) {
-        logger.info("🚀 Opening PayURL in browser...");
+        logger.info("🚀 Opening PayURL in browser...\n");
         await open(payURL);
     }
-    
-    logger.info("\n=============== CLICK LINK TO FINISHED THIS REQUEST ===============\n\n");
   } catch (err) {
     logger.error(`❌ Error: ${err.message}`, err);
   } finally {

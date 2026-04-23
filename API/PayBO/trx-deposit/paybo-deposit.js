@@ -60,7 +60,7 @@ async function buildPayload(config, tx, userInfo = {}) {
         ...(tx.currency === "USDT" && {
             rate: readlineSync.question("Masukkan Rate: ").trim(),
             bank_code: tx.bankCode,
-            lang: readlineSync.question("Choose Language (EN/ID): ").trim().toUpperCase()
+            lang: readlineSync.question("Choose Language (EN/ID): ").trim() || null,
         }),
         callback_url: config.callbackURL,
     };

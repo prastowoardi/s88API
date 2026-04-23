@@ -115,7 +115,7 @@ async function applyCurrencySpecifics(payload, currency, bankCode, cardNumber) {
         case "USDT":
             payload.rate = readlineSync.question("Masukkan Rate: ").trim() || null;
             payload.bank_code = bankCode;
-            payload.lang = readlineSync.question("Choose Language (EN/ID): ").trim().toUpperCase();
+            payload.lang = readlineSync.question("Choose Language (EN/ID): ").trim() || null;
             break;
     }
     return payload;
