@@ -1,12 +1,13 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
+import { faker } from "@faker-js/faker";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber,registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -58,7 +59,8 @@ async function buildPayload(config, tx, userInfo = {}) {
         // }),
         ...(tx.currency === "USDT" && {
             rate: readlineSync.question("Masukkan Rate: ").trim(),
-            bank_code: tx.bankCode
+            bank_code: tx.bankCode,
+            lang: readlineSync.question("Choose Language (EN/ID): ").trim() || null,
         }),
         callback_url: config.callbackURL,
     };
@@ -131,10 +133,61 @@ async function sendDeposit() {
         const amount = Number(amountInput);
         if (isNaN(amount) || amount <= 0) throw new Error("Amount harus berupa angka lebih dari 0.");
 
-        const userID = randomInt(100, 999);
+        let userID;
+        if (currency === "JPY") {
+            // userID = `CUST-JP-${faker.string.numeric(5)}`; 
+            userID = "NASHEED" // Approved user from QFPay
+        } else {
+            userID = randomInt(100, 999).toString();
+        }        
+        
         const timestamp = Math.floor(Date.now() / 1000).toString();
         const transactionCode = `TEST-DP-V3-${timestamp}`;
         const config = getCurrencyConfig(currency);
+
+        let kycName = null;
+        if (currency === "JPY") {
+            logger.info(`🔹 Registering KYC JPY for User: ${userID}`);
+            try {
+                const kycRegResponse = await registerCustomerJPY(config, userID);
+                // logger.info(`𝌮 KYC Registration Response: ${JSON.stringify(kycRegResponse, null, 2)}`);
+
+                let isApproved = false;
+                let attempts = 0;
+                const maxAttempts = 3;
+
+                while (!isApproved && attempts < maxAttempts) {
+                    attempts++;
+                    logger.info(`🔍 Checking KYC status ${userID} (Attempt ${attempts}/${maxAttempts})...`);
+                    
+                    const pollResult = await pollKYCStatus(userID, config);
+                    
+                    // Handle format data (Array vs Object)
+                    const resData = pollResult?.data;
+                    const status = Array.isArray(resData) ? resData[0]?.status : resData?.status;
+
+                    if (status?.toUpperCase() === "APPROVED") {
+                        isApproved = true;
+                        // Ambil nama dari hasil registrasi/polling untuk payload deposit
+                        kycName = kycRegResponse?.recipient_name || "SATO TARO"; 
+                        logger.info("✅ KYC APPROVED!");
+                    } else if (status?.toUpperCase() === "REJECTED") {
+                        throw new Error("KYC REJECTED by server.");
+                    } else {
+                        logger.info(`⏳ Status: ${status || 'PENDING'}. Waiting 5s...`);
+                        if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 5000));
+                    }
+                }
+
+                if (!isApproved) {
+                    throw new Error(`KYC timeout after ${maxAttempts} attempts.`);
+                }
+            } catch (kycErr) {
+                logger.error(`❌ KYC Process Failed: ${kycErr.message}`);
+                return; // Stop proses deposit jika KYC gagal
+            }
+        }
+
         const cardNumber = randomCardNumber();
         const ip = getRandomIP();
         const bankCode = getBankCode(currency, config);

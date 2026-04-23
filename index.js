@@ -33,29 +33,32 @@ const ENV_CONFIGS = {
   PayBO_tiger: { file: ".paybo_tiger", label: "PayBO Tiger2378" },
   PayBO_next8: { file: ".paybo_next8", label: "PayBO Next8" },
   PayBO_cosmospay: { file: ".paybo_cosmospay", label: "PayBO Cosmospay" },
+  PayBO_snappay: { file: ".paybo_snappay", label: "PayBO Snappay" }
 };
 
 // Script Actions
 const SCRIPT_ACTIONS = {
   // S88 Scripts
   depositV2: { path: "API/S88/trx-deposit/depositV2.js", label: "Deposit V2", type: "S88/Singhapay" },
-  deposit: { path: "API/S88/trx-deposit/deposit.js", label: "Deposit V3", type: "S88/Singhapay" },
+  depositV3: { path: "API/S88/trx-deposit/deposit.js", label: "Deposit V3", type: "S88/Singhapay" },
   depositV4: { path: "API/S88/trx-deposit/depositV4.js", label: "Deposit V4", type: "S88/Singhapay" },
   payout: { path: "API/S88/trx-payout/payout.js", label: "Payout", type: "S88/Singhapay" },
+  batchDepositV2: { path: "API/S88/trx-deposit/batchDepositV2.js", label: "Batch Deposit V2", type: "S88/Singhapay" },
+  batchDepositV3: { path: "API/S88/trx-deposit/batchDeposit.js", label: "Batch Deposit V3", type: "S88/Singhapay" },
+  batchDepositV4: { path: "API/S88/trx-deposit/batchDepositV4.js", label: "Batch Deposit V4", type: "S88/Singhapay" },
+  batchWithdraw: { path: "API/S88/trx-payout/batchWithdraw.js", label: "Batch Withdraw", type: "S88/Singhapay" },
   manualINR: { path: "API/S88/trx-payout/manualINR.js", label: "Manual Withdraw INR", type: "S88/Singhapay" },
   manualVND: { path: "API/S88/trx-payout/manualVND.js", label: "Manual Withdraw VND", type: "S88/Singhapay" },
-  batchDeposit: { path: "API/S88/trx-deposit/batchDeposit.js", label: "Batch Deposit", type: "S88/Singhapay" },
-  batchDepositV2: { path: "API/S88/trx-deposit/batchDepositV2.js", label: "Batch Deposit V2", type: "S88/Singhapay" },
-  batchWithdraw: { path: "API/S88/trx-payout/batchWithdraw.js", label: "Batch Withdraw", type: "S88/Singhapay" },
 
   // PayBO Scripts
   payboDepositV2: { path: "API/PayBO/trx-deposit/paybo-depositV2.js", label: "PayBO Deposit V2", type: "PayBO" },
-  payboDeposit: { path: "API/PayBO/trx-deposit/paybo-deposit.js", label: "PayBO Deposit V3", type: "PayBO" },
+  payboDepositV3: { path: "API/PayBO/trx-deposit/paybo-deposit.js", label: "PayBO Deposit V3", type: "PayBO" },
   payboDepositV4: { path: "API/PayBO/trx-deposit/paybo-depositV4.js", label: "PayBO Deposit V4", type: "PayBO" },
   payboDepositV5: { path: "API/PayBO/trx-deposit/paybo-depositV5.js", label: "PayBO Deposit V5", type: "PayBO" },
   payboPayout: { path: "API/PayBO/trx-payout/paybo-payout.js", label: "PayBO Withdraw", type: "PayBO" },
   payboPayoutV5: { path: "API/PayBO/trx-payout/paybo-payoutV5.js", label: "PayBO Withdraw V5", type: "PayBO" },
-  payboBatchDeposit: { path: "API/PayBO/trx-deposit/paybo-batchDeposit.js", label: "PayBO Batch Deposit", type: "PayBO" },
+  payboBatchDepositV3: { path: "API/PayBO/trx-deposit/paybo-batchDeposit.js", label: "PayBO Batch Deposit V3", type: "PayBO" },
+  payboBatchDepositV4: { path: "API/PayBO/trx-deposit/paybo-batchDepositV4.js", label: "PayBO Batch Deposit V4", type: "PayBO" },
   payboBatchDepositV5: { path: "API/PayBO/trx-deposit/paybo-batchDepositV5.js", label: "PayBO Batch Deposit V5", type: "PayBO" },
   payboBatchPayout: { path: "API/PayBO/trx-payout/paybo-batchPayout.js", label: "PayBO Batch Withdraw", type: "PayBO" },
   payboBatchPayoutV5: { path: "API/PayBO/trx-payout/paybo-batchPayoutV5.js", label: "PayBO Batch Withdraw V5", type: "PayBO" },
@@ -269,10 +272,10 @@ async function main() {
         const scriptConfig = SCRIPT_ACTIONS[action];
 
         const needsCurrency = [
-          "deposit", "depositV2", "depositV4", "payout", "batchDeposit", "batchDepositV2", "batchWithdraw",
-          "payboDeposit", "payboDepositV2", "payboDepositV4", "payboDepositV5",
+          "depositV3", "depositV2", "depositV4", "payout", "batchDepositV3", "batchDepositV2", "batchDepositV4", "batchWithdraw",
+          "payboDepositV3", "payboDepositV2", "payboDepositV4", "payboDepositV5",
           "payboPayout", "payboPayoutV5",
-          "payboBatchDeposit", "payboBatchDepositV5", "payboBatchPayout", "payboBatchPayoutV5"
+          "payboBatchDepositV3", "payboBatchDepositV4","payboBatchDepositV5", "payboBatchPayout", "payboBatchPayoutV5"
         ].includes(action);
 
         let currency = null;

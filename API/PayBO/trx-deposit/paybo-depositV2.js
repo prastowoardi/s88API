@@ -1,13 +1,15 @@
 import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
+import open from "open";
+import { faker } from '@faker-js/faker';
 import { randomInt } from "crypto";
-import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 dotenv.config();
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR"];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -78,6 +80,10 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
     case "USDT":
       payloadObj.rate = await ask("Masukkan Rate: ");
       payloadObj.bank_code = bankCode;
+      payloadObj.lang = (await ask("Choose Language (EN/ID): ")).trim();
+      break;
+    case "IDR":
+      payloadObj.cust_phone = randomPhoneNumber("idr");
       break;
   }
   return payloadObj;
@@ -98,13 +104,20 @@ async function depositV2() {
     currency = currency.trim().toUpperCase();
     if (!SUPPORTED_CURRENCIES.includes(currency)) throw new Error(`Currency ${currency} tidak support.`);
 
+    let userID;
+    if (currency === "JPY") {
+        // userID = `CUST-JP-${faker.string.numeric(5)}`; 
+        userID = "NASHEED" // Approved user from QFPay
+    } else {
+        userID = randomInt(100, 999).toString();
+    }
+
     const amountInput = await ask("Masukkan Amount: ");
     const amount = Number(amountInput.trim());
     if (isNaN(amount) || amount <= 0) throw new Error("Amount harus berupa angka lebih dari 0.");
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const transactionCode = `TEST-DP-V2-${timestamp}`;
-    const userID = randomInt(100, 999);
     const cardNumber = randomCardNumber();
     const ip = getRandomIP();
 
@@ -129,15 +142,86 @@ async function depositV2() {
       callback_url: config.callbackURL,
     };
 
+    if (currency === "JPY") {
+        logger.info("🔹 Registering KYC JPY...");
+        
+        try {
+            if (typeof faker === 'undefined') {
+                throw new Error("Library 'faker' belum di-import di file ini!");
+            }
+
+            logger.info(`Generated ID: ${userID}`);
+
+            const kycData = await registerCustomerJPY(config, userID);
+
+            if (!kycData) {
+                logger.error("❌ Registrasi gagal (Response Kosong)");
+                return;
+            }
+
+            let isApproved = false;
+            let attempts = 0;
+            const maxAttempts = 3;
+
+            while (!isApproved && attempts < maxAttempts) {
+                attempts++;
+                logger.info(`🔍 Checking status ${userID} (Attempt ${attempts}/${maxAttempts})...`);
+
+                const pollResult = await pollKYCStatus(userID, config);
+                
+                const status = pollResult?.data?.status || pollResult?.status;
+
+                if (status === "APPROVED") {
+                    isApproved = true;
+                    payloadObj.cust_name = kycData.recipient_name;
+                    payloadObj.user_id = userID; 
+                    logger.info("✅ KYC APPROVED!");
+                } else if (status === "REJECTED") {
+                    logger.error("❌ KYC REJECTED oleh server.");
+                    return;
+                } else {
+                    logger.info(`⏳ Status: ${status || 'PENDING'}. Waiting 5s...`);
+                    await new Promise(r => setTimeout(r, 5000));
+                }
+            }
+
+            if (!isApproved) {
+                logger.error("❌ KYC Timeout (Status masih PENDING).");
+                return;
+            }
+
+        } catch (innerError) {
+            console.error(innerError); 
+            return;
+        }
+    }
+
     payloadObj = await applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber);
+
+    let lang = "";
+    if (currency === "USDT" && payloadObj.lang) {
+        lang = payloadObj.lang;
+        delete payloadObj.lang;
+    }
+
     const payload = buildPayload(payloadObj);
     const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+
+    let payURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
+
+    if (lang) {
+      payURL += `&lang=${lang.toLowerCase()}`;
+    }
 
     logger.info(`Currency : ${currency}`);
     logger.info(`Amount : ${amount}`);
     logger.info(`Request Payload : ${payload}\n`);
-    logger.info(`PayURL : ${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`);
-    logger.info("\n=============== CLICK LINK TO FINISHED THIS REQUEST ===============\n\n");
+    logger.info(`PayURL : ${payURL}`);
+
+    if (payURL) {
+        logger.info("🚀 Opening PayURL in browser...\n");
+        await open(payURL);
+    }
   } catch (err) {
     logger.error(`❌ Error: ${err.message}`, err);
   } finally {

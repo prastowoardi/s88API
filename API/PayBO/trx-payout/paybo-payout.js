@@ -2,9 +2,10 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, getCryptoRate } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+import CoinKey from 'coinkey';
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
@@ -49,7 +50,7 @@ class PayoutService {
       transaction_code: transactionCode,
       transaction_timestamp: timestamp,
       transaction_amount: Number(amount),
-      user_id: userID.toString(),
+      user_id: String(userID),
       currency_code: currency,
       payout_code: config.payoutMethod,
       callback_url: callbackURL || config.callbackURL,
@@ -64,9 +65,7 @@ class PayoutService {
   async addCurrencySpecificFields(payload, currency, bankCode, config) {
     if (currency === "INR" && config.requiresIFSC) {
       const ifscCode = await getValidIFSC();
-      if (!ifscCode) {
-        throw new Error("IFSC code tidak ditemukan");
-      }
+      if (!ifscCode) throw new Error("IFSC code tidak ditemukan");
 
       const bank = ifscCode.substring(0, 4);
       Object.assign(payload, {
@@ -74,13 +73,14 @@ class PayoutService {
         bank_account_number: BANK_ACCOUNT_NUMBER,
         bank_code: bank,
         bank_name: bank,
+        // Hanya untuk Erfolg Flowpay
+        cust_email: `user${randomInt(1000, 9999)}@example.com`,
+        cust_phone: `+91765${randomInt(1000000, 9999999)}`,
       });
     }
 
     if (CURRENCIES_REQUIRING_BANK_CODE.includes(currency)) {
-      if (!bankCode) {
-        throw new Error(`Bank Code wajib diisi untuk ${currency}!`);
-      }
+      if (!bankCode) throw new Error(`Bank Code wajib diisi untuk ${currency}!`);
       
       payload.bank_code = bankCode;
       payload.bank_account_number = Math.floor(1e10 + Math.random() * 9e10).toString();
@@ -95,30 +95,60 @@ class PayoutService {
       }
     }
 
-    if (currency === "THB") {
-      payload.bank_name = "SCB";
-    }
-
+    if (currency === "THB") payload.bank_name = "SCB";
+    if (currency === "JPY") payload.branch_code = "MIZUHO BANK";
     if (currency === "MMK") {
-      Object.assign(payload, {
-        bank_name: bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY"
-      })
+      payload.bank_name = bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY";
     }
 
     if (currency === "USDT") {
-      Object.assign(payload, {
-        rate: readlineSync.question("Masukkan Rate: ").trim()
-      });
+      const fromFiat = await this.ask("Masukkan Fiat Asal (contoh: USD/INR/IDR): ");
+      const fiat = fromFiat.toUpperCase().trim() || "USD";
+
+      logger.info(`Fetching Rate: ${fiat} -> USDT...`);
+      const cryptoData = await getCryptoRate(payload.transaction_amount, fiat, config, "USDT", "withdraw");
+
+      let estimasi = "0";
+
+      if (cryptoData && cryptoData.forex) {
+        const { forex, token, usedAddress } = cryptoData;
+
+        logger.info(`✅ Rate: ${forex} | Address: ${usedAddress}`);
+        
+        payload.rate = String(forex);
+        payload.bank_account_number = usedAddress;
+        
+        if (token) {
+          payload.token = token;
+          logger.info(`✅ Token dilampirkan.`);
+        }
+
+        estimasi = (Number(payload.transaction_amount) / Number(forex)).toFixed(2);
+        logger.info(`Estimasi Crypto: ${estimasi} USDT`);
+      } else {
+        throw new Error("Gagal mendapatkan rate crypto dari server.");
+      }
+
+      const cryptoAmountInput = await this.ask(`Masukkan Crypto Amount (Enter untuk pakai estimasi amount ${estimasi}): `);
+      payload.crypto_amount = cryptoAmountInput.trim() || String(estimasi);
+    }
+
+    if (currency === "IDR") {
+      payload.bank_account_number = '081328645436';
     }
   }
 
   async makePayoutRequest(config, payload) {
     const url = `${config.BASE_URL}/api/v1/payout/${config.merchantCode}`;
     
+    const cleanedPayload = Object.fromEntries(
+      Object.entries(payload).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+    );
+
     logger.info(`Request URL: ${url}`);
     logger.info(`Request Payload: ${JSON.stringify(payload, null, 2)}`);
 
-    const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.merchantAPI, config.secretKey);
+    const encryptedPayload = encryptDecryptPayout("encrypt", cleanedPayload, config.merchantAPI, config.secretKey);
     logger.info(`Encrypted Payload: ${encryptedPayload}`);
 
     let response;
@@ -171,7 +201,6 @@ class PayoutService {
       return await this.makePayoutRequest(config, payload);
     } catch (error) {
       logger.error(`❌ Payout Error: ${error.message}`);
-      throw error;
     }
   }
 

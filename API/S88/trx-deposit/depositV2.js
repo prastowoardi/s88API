@@ -6,10 +6,11 @@ import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
+import open from "open";
 
 dotenv.config();
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
 class DepositV2Service {
@@ -92,7 +93,7 @@ class DepositV2Service {
 
             Object.assign(payload, {
                 depositor_bank: depositorBank,
-                depositor_name: await getRandomName(),
+                depositor_name: await getRandomName('th', true),
                 depositor_account_number: user.accountNumber,
             });
         }
@@ -101,7 +102,7 @@ class DepositV2Service {
         // if (tx.currency === "INR") {
         //     Object.assign(payload, {
         //         product_name: "pillow",
-        //         depositor_name: await getRandomName("in", true),
+        //         depositor_name: await getRandomName(),
         //         email: "pillow@mail.com",
         //         phone: "9876371231",
         //         depositor_city: "Mumbai",
@@ -109,14 +110,14 @@ class DepositV2Service {
         //         depositor_zip_code: "21323",
         //         depositor_pan_number: "HWULX6881T",
         //         depositor_address: "mumbai",
-        //         depositor_merchant_url: "aa.com"
+        //         depositor_merchant_url: "https://aa.com"
         //     });
         // }
 
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "redirect_url" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "redirect_url" || k === "depositor_merchant_url" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
@@ -154,11 +155,41 @@ class DepositV2Service {
 
             const payload = await this.buildPayload(config, tx, user);
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-            const paymentURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
+
+            const urls = [
+                config.BASE_URL,
+                process.env.BASE_URL_2,
+                process.env.BASE_URL_3,
+            ].filter(Boolean);
 
             logger.info(`Request Payload: ${payload}\n`);
-            logger.info(`PayURL: ${paymentURL}`);
-            logger.info("======== REQUEST DONE ========\n\n");
+            logger.info(`Encrypted Payload: ${encrypted}\n`);
+
+            logger.info("--- Generated Payment URLs ---");
+
+            for (let index = 0; index < urls.length; index++) {
+                const base = urls[index];
+                const paymentURL = `${base}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
+                
+                logger.info(`PayURL ${index + 1}: ${paymentURL}`);
+                
+                try {
+                    const res = await fetch(paymentURL);
+                    const contentType = res.headers.get("content-type") || "";
+                    
+                    if (res.ok && contentType.includes("text/html")) {
+                        logger.info(`✅ Opening URL ${index + 1} in browser...`);
+                        open(paymentURL);
+                        break;
+                    } else {
+                        logger.warn(`⚠️ URL ${index + 1} skipped: status=${res.status}\n`);
+                    }
+                } catch (err) {
+                    logger.warn(`⚠️ URL ${index + 1} failed: ${err.message}`);
+                }
+            }
+
+            logger.info("======== REQUEST DONE ========\n");
         } catch (err) {
             logger.error(`❌ Error: ${err.message}`);
         } finally {

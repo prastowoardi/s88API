@@ -25,9 +25,13 @@ node_modules
 .paybo_next8
 .paybo_rangoon
 .paybo_cosmospay
+.paybo_snappay
 
 # src files
 old_bank.json
 
 # Log files
 log
+
+#attachments
+file.pdf

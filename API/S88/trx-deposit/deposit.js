@@ -7,7 +7,7 @@ import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNum
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -118,26 +118,30 @@ class DepositService {
             payload.depositor_name = user.name;
         }
 
+        if (tx.currency === "JPY") {
+            payload.depositor_name = await getRandomName('jp', true);
+        }
+
         // Only for Erfolg provider
         // if (tx.currency === "INR") {
         //     Object.assign(payload, {
         //         product_name: "tofu",
-        //         depositor_name: await getRandomName("in", true),
-        //         email: "tofu@mail.com",
+        //         depositor_name: await getRandomName(),
+        //         // email: "tofu@mail.com",
         //         phone: "9876373331",
         //         depositor_city: "Mumbai",
         //         depositor_country: "India",
         //         depositor_zip_code: "81818",
         //         depositor_pan_number: "HWULX6881T",
         //         depositor_address: "mumbai",
-        //         depositor_merchant_url: "x.com"
+        //         depositor_merchant_url: "https://x.com"
         //     });
         // }
 
         // return new URLSearchParams(payload).toString();
         return Object.entries(payload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "email") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "email" || k === "depositor_merchant_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
@@ -161,6 +165,9 @@ class DepositService {
             process.env.BASE_URL_3,
         ].filter(Boolean);
 
+        logger.info(`Payload: ${payload}\n`);
+        logger.info(`Encrypted: ${encrypted}\n`);
+
         for (const base of urls) {
             const endpoint =
                 String(config.currency).toUpperCase() === "KRW"
@@ -169,8 +176,6 @@ class DepositService {
 
             const url = `${base}${endpoint}`;
             logger.info(`Trying: ${url}`);
-            logger.info(`Payload: ${payload}\n`);
-            logger.info(`Encrypted: ${encrypted}`);
 
             try {
                 const response = await fetch(url, {
@@ -185,7 +190,7 @@ class DepositService {
                 if (!json) continue;
 
                 if (!response.ok) {
-                    if (json.message === "[DP] Unauthorize") {
+                    if (json.message === "[DP] Unauthorize" || response.status === 401) {
                         logger.warn(`⚠️ Unauthorized at ${base}, trying next...\n`);
                         continue;
                     }
@@ -195,12 +200,13 @@ class DepositService {
 
                 return { result: json, url: base };
             } catch (err) {
+                if (err.message.includes("HTTP")) throw err; 
                 // logger.error(`🚫 Network error on ${base}: ${err.message}`);
-                throw err;
+                continue;
             }
         }
 
-        throw new Error("All API URLs failed");
+        throw new Error("All API URLs failed (Unauthorized or Connection Issue)");
     }
 
     async submitUTR(currency, transactionCode, baseURL) {

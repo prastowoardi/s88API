@@ -1,12 +1,14 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
+import open from "open";
+import { faker } from '@faker-js/faker';
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, getRandomIP, getRandomName, getAccountNumber, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT"];
+const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR"];
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -86,7 +88,9 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
             // payload.card_number = cardNumber;
             break;
         case "JPY":
-            payload.cust_name = await getRandomName("jp", true);
+            if (!payload.cust_name) {
+                payload.cust_name = await getRandomName("jp", true);
+            }
             break;
         case "THB":
             const account_type = readlineSync.question("Masukkan Account Type: ").trim();
@@ -103,8 +107,9 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
             payload.card_holder_name = "bob Brown";
             break;
         case "USDT":
-            payload.rate = readlineSync.question("Masukkan Rate: ").trim();
+            payload.rate = readlineSync.question("Masukkan Rate: ").trim() || null;
             payload.bank_code = bankCode;
+            payload.lang = readlineSync.question("Choose Language (en/id): ").trim() || null;
             break;
     }
     return payload;
@@ -127,13 +132,20 @@ async function sendDeposit() {
         let currency = SUPPORTED_CURRENCIES.includes(envCurrency) ? envCurrency : readlineSync.question("Masukkan Currency: ").trim().toUpperCase();
         if (!SUPPORTED_CURRENCIES.includes(currency)) throw new Error(`Currency ${currency} tidak support`);
 
+        let userID;
+        if (currency === "JPY") {
+            userID = `CUST-JP-${faker.string.numeric(5)}`; 
+            // userID = "NASHEED" // Approved user from QFPay
+        } else {
+            userID = randomInt(100, 999).toString();
+        }
+
         const amountInput = readlineSync.question("Masukkan Amount: ").trim();
         const amount = Number(amountInput);
         if (isNaN(amount) || amount <= 0) throw new Error("Amount harus berupa angka lebih dari 0.");
 
         const timestamp = Math.floor(Date.now() / 1000).toString();
         const transactionCode = `TEST-DP-V5-${timestamp}`;
-        const userID = randomInt(100, 999).toString();
         const config = getCurrencyConfig(currency);
         const cardNumber = config.cardNumber ? randomCardNumber() : "";
 
@@ -155,7 +167,61 @@ async function sendDeposit() {
         if (phone) payload.cust_phone = phone;
         if (cardNumber) payload.card_number = cardNumber;
 
-        payload = await applyCurrencySpecificPayload(payload, currency, bankCode, cardNumber);
+        // if (currency === "JPY") {
+        //     logger.info("🔹 Registering KYC JPY...");
+            
+        //     try {
+        //         if (typeof faker === 'undefined') {
+        //             throw new Error("Library 'faker' belum di-import di file ini!");
+        //         }
+
+        //         logger.info(`Generated ID: ${userID}`);
+
+        //         const kycData = await registerCustomerJPY(config, userID);
+
+        //         if (!kycData) {
+        //             logger.error("❌ Registrasi gagal (Response Kosong)");
+        //             return;
+        //         }
+
+        //         let isApproved = false;
+        //         let attempts = 0;
+        //         const maxAttempts = 3;
+
+        //         while (!isApproved && attempts < maxAttempts) {
+        //             attempts++;
+        //             logger.info(`🔍 Checking status ${userID} (Attempt ${attempts}/${maxAttempts})...`);
+
+        //             const pollResult = await pollKYCStatus(userID, config);
+                    
+        //             const status = pollResult?.data?.status || pollResult?.status;
+
+        //             if (status === "APPROVED") {
+        //                 isApproved = true;
+        //                 payload.cust_name = kycData.recipient_name;
+        //                 payload.user_id = userID; 
+        //                 logger.info("✅ KYC APPROVED!");
+        //             } else if (status === "REJECTED") {
+        //                 logger.error("❌ KYC REJECTED oleh server.");
+        //                 return;
+        //             } else {
+        //                 logger.info(`⏳ Status: ${status || 'PENDING'}. Waiting 5s...`);
+        //                 await new Promise(r => setTimeout(r, 5000));
+        //             }
+        //         }
+
+        //         if (!isApproved) {
+        //             logger.error("❌ KYC Timeout (Status masih PENDING).");
+        //             return;
+        //         }
+
+        //     } catch (innerError) {
+        //         console.error(innerError); 
+        //         return;
+        //     }
+        // }
+
+        payload = await applyCurrencySpecificPayload(payload, currency, bankCode, cardNumber, config);
 
         const payloadStr = JSON.stringify(payload);
         const signature = signVerify("sign", payloadStr, config.secretKey);
@@ -200,6 +266,16 @@ async function sendDeposit() {
 
         logger.info(`Response Status: ${res.status}`);
         logger.info(`Deposit Response: ${JSON.stringify(resultDP, null, 2)}`);
+
+        const data = Array.isArray(resultDP) ? resultDP[0] : resultDP;
+        const payUrl = resultDP?.data?.page_url;
+
+        if (payUrl) {
+            logger.info(`Opening Payment URL: ${payUrl}`);
+            await open(payUrl);
+        } else {
+            logger.warn("Pay URL tetap tidak ditemukan dalam response.");
+        }
 
         if (["INR","BDT"].includes(currency)) {
             const utr = await askUTR();

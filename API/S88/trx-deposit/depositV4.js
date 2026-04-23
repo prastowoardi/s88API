@@ -2,11 +2,12 @@ import fetch from "node-fetch";
 import readline from "readline";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
+import open from "open";
 import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 
@@ -44,7 +45,7 @@ class DepositService {
     validateBankCode(bankCode, currency) {
         if (!/^[a-zA-Z0-9]+$/.test(bankCode))
         throw new Error("Bank Code must contain only letters and numbers");
-        return currency === "MMK" ? bankCode.toUpperCase() : bankCode.toLowerCase();
+        return bankCode;
     }
 
     generateTransactionCode() {
@@ -74,7 +75,7 @@ class DepositService {
         return "";
     }
 
-    buildPayload(config, tx, userInfo) {
+    async buildPayload(config, tx, userInfo) {
         const basePayload = {
             merchant_api_key: config.merchantAPI,
             merchant_code: config.merchantCode,
@@ -88,15 +89,44 @@ class DepositService {
             ...(tx.bankCode && { bank_code: tx.bankCode }),
             ...(tx.phone && { phone: tx.phone }),
             ...(tx.currency === "THB" && {
-                depositor_name: userInfo.name,
+                depositor_name: await getRandomName('th', true),
                 depositor_account_number: userInfo.accountNumber,
             }),
             callback_url: config.callbackURL,
+            redirect_url: "https://x.com",
         };
+
+        if (tx.currency === "THB") {
+            const depositorBank = await this.ask("Masukkan Depositor Bank: ");
+            if (!/^[a-z0-9A-Z]+$/.test(depositorBank))
+                throw new Error("Depositor Bank must contain only letters");
+                basePayload.depositor_bank = depositorBank;
+        }
+
+        if (tx.currency === "JPY") {
+            basePayload.depositor_name = await getRandomName('jp', true);
+        }
+
+        // Only for Erfolg provider
+        // if (tx.currency === "INR") {
+        //     const email = `${userInfo.name.toLowerCase().replace(/\s/g, "")}@tank.com`;
+        //     Object.assign(basePayload, {
+        //         product_name: "tofu",
+        //         depositor_name: await getRandomName(),
+        //         email,
+        //         phone: "9876373331",
+        //         depositor_city: "Mumbai",
+        //         depositor_country: "India",
+        //         depositor_zip_code: "81818",
+        //         depositor_pan_number: "HWULX6881T",
+        //         depositor_address: "mumbai",
+        //         depositor_merchant_url: "https://x.com"
+        //     });
+        // }        
 
         return Object.entries(basePayload)
             .map(([k, v]) => {
-                if (k === "depositor_name" || k === "callback_url" || k === "ip_address") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
+                if (k === "depositor_name" || k === "callback_url" || k === "redirect_url" || k === "ip_address" || k === "email" || k === "depositor_merchant_url") return `${k}=${v}`; // biarkan plain (biar tidak double encode)
                 return `${k}=${encodeURIComponent(v)}`;
             })
             .join("&");
@@ -126,17 +156,58 @@ class DepositService {
             config.merchantAPI,
             config.secretKey
         );
-        const url = `${config.BASE_URL}/api/${config.merchantCode}/v4/dopayment`;
 
-        logger.info(`\n🔹 Sending Deposit Request`);
-        logger.info(`URL: ${url}`);
-        logger.info(`Payload: ${payload}`);
-        logger.info(`Encrypted: ${encrypted}`);
+        const urls = [
+            config.BASE_URL,
+            process.env.BASE_URL_2,
+            process.env.BASE_URL_3,
+        ].filter(Boolean);
 
-        return this.sendEncryptedRequest(url, encrypted);
+        logger.info(`Payload: ${payload}\n`);
+        logger.info(`Encrypted: ${encrypted}\n`);
+
+        for (const base of urls) {
+            const url = `${base}/api/${config.merchantCode}/v4/dopayment`;
+
+            logger.info(`Trying: ${url}`);
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: encrypted }),
+                });
+
+                const text = await response.text();
+                
+                let json;
+                try {
+                    json = JSON.parse(text);
+                } catch (e) {
+                    console.error("Error Message:", e.message);
+                    console.log("Raw Response Body:", text); 
+                    continue;
+                }
+
+                if (!response.ok) {
+                    if (json.message === "[DP] Unauthorize" || response.status === 401) {
+                        logger.warn(`⚠️ Unauthorized at ${base}, trying next URL...\n`);
+                        continue;
+                    }
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+
+                return { result: json, url: base };
+            } catch (err) {
+                if (err.message.includes("HTTP")) throw err;
+                logger.error(`🚫 Network error on ${base}: ${err.message}`);
+            }
+        }
+
+        throw new Error("All API URLs failed (Unauthorized or Network Error)");
     }
 
-    async submitUTR(currency, transactionCode) {
+    async submitUTR(currency, transactionCode, baseURL) {
         if (!UTR_CURRENCIES.includes(currency)) {
             logger.warn("Submit UTR hanya tersedia untuk INR & BDT.");
             return;
@@ -153,13 +224,22 @@ class DepositService {
             config.merchantAPI,
             config.secretKey
         );
-        const url = `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`;
+
+        let url;
+
+        if (baseURL.includes("singhapay")) {
+            url = `${baseURL}/api/${config.merchantCode}/v3/submit-utr`;
+            console.log("Endpoint: ", url);
+        } else {
+            url = `${baseURL}/api/${config.merchantCode}/v4/submit-utr`;
+            console.log("Endpoint: ", url);
+        }
 
         try {
             const result = await this.sendEncryptedRequest(url, encrypted);
             logger.info(`Submit UTR Response: ${JSON.stringify(result, null, 2)}`);
         } catch (err) {
-            logger.error(`❌ Submit UTR Error: ${JSON.stringify(err.message, null, 2)}`);
+            logger.error(`❌ Submit UTR Error: `, err);
         }
     }
 
@@ -181,16 +261,26 @@ class DepositService {
             accountNumber: randomCardNumber(),
         };
 
-        const payload = this.buildPayload(config, tx, userInfo);
-        const result = await this.makeDepositRequest(config, payload);
+        const payload = await this.buildPayload(config, tx, userInfo);
+        const { result, url } = await this.makeDepositRequest(config, payload);
 
         logger.info(`Deposit Response:\n${JSON.stringify(result, null, 2)}`);
+
+        const data = Array.isArray(result) ? result[0] : result;
+        const payUrl = data?.pay_url;
+
+        if (payUrl) {
+            logger.info(`Opening Payment URL: ${payUrl}`);
+            await open(payUrl);
+        } else {
+            logger.warn("Pay URL tetap tidak ditemukan dalam response.");
+        }
 
         if (UTR_CURRENCIES.includes(currency)) {
             const confirm = (await this.ask("Input UTR (YES/NO): "))
                 .trim()
                 .toUpperCase();
-            if (confirm === "YES") await this.submitUTR(currency, transactionCode);
+            if (confirm === "YES") await this.submitUTR(currency, transactionCode, url);
             else logger.info("Skip Submit UTR.");
         }
 
@@ -230,8 +320,6 @@ class DepositService {
             }
 
             const transactionCode = this.generateTransactionCode();
-            logger.info(`Transaction Code: ${transactionCode}`);
-
             await this.processStandardDeposit(currency, amount, config, transactionCode);
 
             logger.info("======== REQUEST DONE ========\n");

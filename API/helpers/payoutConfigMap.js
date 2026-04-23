@@ -13,6 +13,7 @@ import {
     PAYOUT_METHOD_PHP, MERCHANT_CODE_PHP, MERCHANT_API_KEY_PHP, SECRET_KEY_PHP,
     PAYOUT_METHOD_HKD, MERCHANT_CODE_HKD, MERCHANT_API_KEY_HKD, SECRET_KEY_HKD,
     PAYOUT_METHOD_MYR, MERCHANT_CODE_MYR, MERCHANT_API_KEY_MYR, SECRET_KEY_MYR,
+    PAYOUT_METHOD_JPY, MERCHANT_CODE_JPY, MERCHANT_API_KEY_JPY, SECRET_KEY_JPY,
     PAYOUT_METHOD_USDT, MERCHANT_CODE_USDT, MERCHANT_API_KEY_USDT, SECRET_KEY_USDT
 } from "../Config/config.js";
 
@@ -104,6 +105,13 @@ const internalCurrencies = {
       payoutMethod: PAYOUT_METHOD_MYR,
       secretKey: SECRET_KEY_MYR,
       merchantAPI: MERCHANT_API_KEY_MYR,
+      requiresBankCode: true,
+  },
+  JPY: {
+      merchantCode: MERCHANT_CODE_JPY,
+      payoutMethod: PAYOUT_METHOD_JPY,
+      secretKey: SECRET_KEY_JPY,
+      merchantAPI: MERCHANT_API_KEY_JPY,
       requiresBankCode: true,
   },
   USDT: {
