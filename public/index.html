@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment API WebView</title>
+    <style>
+        :root {
+            --bg: #0e1117;
+            --bg2: #161b24;
+            --bg3: #1e2533;
+            --border: rgba(255, 255, 255, 0.08);
+            --border2: rgba(255, 255, 255, 0.14);
+            --text: #e2e8f0;
+            --text2: #8a96a8;
+            --text3: #556070;
+            --green: #1D9E75;
+            --green2: #0F6E56;
+            --green-dim: rgba(29, 158, 117, 0.15);
+            --amber: #EF9F27;
+            --amber-dim: rgba(239, 159, 39, 0.12);
+            --red: #E24B4A;
+            --red-dim: rgba(226, 75, 74, 0.12);
+            --blue: #378ADD;
+            --blue-dim: rgba(55, 138, 221, 0.12);
+            --radius: 8px;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+            --font-sans: -apple-system, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        a {
+            color: var(--green);
+        }
+
+        /* Layout */
+        .shell {
+            display: grid;
+            grid-template-columns: 210px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            padding: 18px 16px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-brand h1 {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--text);
+        }
+
+        .sidebar-brand p {
+            font-size: 11px;
+            color: var(--text3);
+            margin-top: 2px;
+            font-family: var(--font-mono);
+        }
+
+        .nav {
+            padding: 10px 0;
+            flex: 1;
+        }
+
+        .nav-section {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text3);
+            padding: 10px 16px 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text2);
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg3);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(29, 158, 117, 0.1);
+            color: var(--green);
+            border-left-color: var(--green);
+        }
+
+        .nav-icon {
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .ws-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--text3);
+            margin-left: auto;
+            transition: background 0.3s;
+        }
+
+        .ws-dot.on {
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        /* Main */
+        .main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg2);
+        }
+
+        .topbar-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .env-pill {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            background: var(--amber-dim);
+            color: var(--amber);
+            border: 1px solid rgba(239, 159, 39, 0.25);
+        }
+
+        .env-pill.prod {
+            background: var(--green-dim);
+            color: var(--green);
+            border-color: rgba(29, 158, 117, 0.3);
+        }
+
+        .curr-pill {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            background: var(--blue-dim);
+            color: var(--blue);
+            border: 1px solid rgba(55, 138, 221, 0.25);
+        }
+
+        .content {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .label {
+            font-size: 11px;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            font-weight: 500;
+        }
+
+        .label span {
+            color: var(--text3);
+            text-transform: none;
+            font-weight: 400;
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 11px;
+            color: var(--text);
+            width: 100%;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-dim);
+        }
+
+        select option {
+            background: var(--bg3);
+        }
+
+        textarea {
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text3);
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            border: 1px solid var(--border2);
+            background: var(--bg3);
+            color: var(--text);
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--bg2);
+            border-color: var(--border2);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--green2);
+            color: #E1F5EE;
+            border-color: var(--green2);
+        }
+
+        .btn-primary:hover {
+            background: #085041;
+        }
+
+        .btn-danger {
+            background: var(--red-dim);
+            color: var(--red);
+            border-color: rgba(226, 75, 74, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(226, 75, 74, 0.2);
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 11px;
+        }
+
+        /* Tabs */
+        .tab-row {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+            gap: 0;
+        }
+
+        .tab {
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 9px 16px;
+            cursor: pointer;
+            color: var(--text3);
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--green);
+            border-bottom-color: var(--green);
+        }
+
+        /* Section labels */
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            color: var(--text3);
+            margin-bottom: 12px;
+            margin-top: 22px;
+            font-weight: 600;
+        }
+
+        .section-label:first-child {
+            margin-top: 0;
+        }
+
+        /* Output panel */
+        .output-panel {
+            margin-top: 18px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .output-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            color: var(--text3);
+            font-weight: 600;
+        }
+
+        .output-body {
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: var(--text2);
+            min-height: 80px;
+            max-height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.75;
+            background: var(--bg);
+        }
+
+        .ok {
+            color: var(--green);
+        }
+
+        .err {
+            color: var(--red);
+        }
+
+        .warn {
+            color: var(--amber);
+        }
+
+        .dim {
+            color: var(--text3);
+        }
+
+        .key-val {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 0;
+        }
+
+        .kk {
+            color: var(--text3);
+        }
+
+        .kv {
+            color: var(--text);
+        }
+
+        /* Env cards */
+        .env-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .env-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .env-card:hover {
+            border-color: var(--border2);
+            background: var(--bg3);
+        }
+
+        .env-card.selected {
+            border-color: var(--green);
+            background: var(--green-dim);
+        }
+
+        .env-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .env-file {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--font-mono);
+            margin-top: 2px;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .badge-stag {
+            background: var(--amber-dim);
+            color: var(--amber);
+        }
+
+        .badge-prod {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        /* Config display */
+        .config-table {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 2;
+        }
+
+        .config-table .kk {
+            color: var(--text3);
+            display: inline-block;
+            width: 130px;
+        }
+
+        .config-table .kv {
+            color: var(--text);
+        }
+
+        /* Spinner */
+        .spin {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1.5px solid var(--border2);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.65s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Log panel */
+        .log-list {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            max-height: 240px;
+            overflow-y: auto;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border);
+            color: var(--text2);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-ts {
+            color: var(--text3);
+        }
+
+        .log-action {
+            color: var(--green);
+            margin: 0 6px;
+        }
+
+        /* Copy flash */
+        .copy-flash {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--green2);
+            color: #E1F5EE;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-size: 12px;
+            font-family: var(--font-sans);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .copy-flash.show {
+            opacity: 1;
+        }
+
+        /* Info note */
+        .note {
+            font-size: 11.5px;
+            color: var(--text3);
+            padding: 10px 14px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        .note b {
+            color: var(--text2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h1>Payment API WebView</h1>
+                <p>payment gateway tester</p>
+            </div>
+            <nav class="nav">
+                <div class="nav-section">Setup</div>
+                <div class="nav-item active" onclick="go('env')" id="nav-env"><span class="nav-icon">⚙</span>Environment
+                </div>
+                <div class="nav-section">Transaksi</div>
+                <div class="nav-item" onclick="go('deposit')" id="nav-deposit"><span class="nav-icon">↓</span>Deposit
+                </div>
+                <div class="nav-item" onclick="go('payout')" id="nav-payout"><span class="nav-icon">↑</span>Payout</div>
+                <div class="nav-item" onclick="go('batch')" id="nav-batch"><span class="nav-icon">⊞</span>Batch</div>
+                <div class="nav-section">Tools</div>
+                <div class="nav-item" onclick="go('callback')" id="nav-callback"><span class="nav-icon">↩</span>Manual
+                    Callback</div>
+                <div class="nav-item" onclick="go('checkwd')" id="nav-checkwd"><span class="nav-icon">?</span>Check WD
+                    Status</div>
+                <div class="nav-item" onclick="go('encrypt')" id="nav-encrypt"><span
+                        class="nav-icon">🔒</span>Encrypt/Decrypt</div>
+                <div class="nav-section">Info</div>
+                <div class="nav-item" onclick="go('config')" id="nav-config"><span class="nav-icon">≡</span>Config aktif
+                </div>
+                <div class="nav-item" onclick="go('logs')" id="nav-logs"><span class="nav-icon">◉</span>Activity log
+                    <span class="ws-dot" id="ws-dot"></span></div>
+            </nav>
+        </aside>
+
+        <!-- Main -->
+        <div class="main">
+            <div class="topbar">
+                <span class="topbar-title" id="page-title">Environment</span>
+                <span id="env-pill" class="env-pill">— belum dipilih</span>
+                <span id="curr-pill" class="curr-pill hidden">—</span>
+                <span id="merchant-pill" style="font-size:11px;color:var(--text3);font-family:var(--font-mono)"></span>
+            </div>
+
+            <!-- ── PAGE: ENV ────────────────────────────────── -->
+            <div class="content page active" id="page-env">
+                <div class="section-label">Pilih environment</div>
+                <div class="env-grid" id="env-grid"></div>
+
+                <div class="section-label">Currency & merchant</div>
+                <div class="form-grid">
+                    <div class="field">
+                        <div class="label">Currency</div>
+                        <select id="e-currency" onchange="onCurrencyChange()">
+                            <option value="">-- pilih currency --</option>
+                            <option>INR</option>
+                            <option>VND</option>
+                            <option>BDT</option>
+                            <option>MMK</option>
+                            <option>BRL</option>
+                            <option>IDR</option>
+                            <option>THB</option>
+                            <option>MXN</option>
+                            <option>KRW</option>
+                            <option>PHP</option>
+                            <option>JPY</option>
+                            <option>HKD</option>
+                            <option>KHR</option>
+                            <option>MYR</option>
+                            <option>USDT</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="label">Merchant <span>(dari env file)</span></div>
+                        <select id="e-merchant">
+                            <option value="">-- pilih merchant --</option>
+                        </select>
+                    </div>
+                    <div class="field form-full">
+                        <div class="label">Base URL <span>(override opsional)</span></div>
+                        <input id="e-baseurl" type="text" placeholder="auto dari env file" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Deposit method <span>(override)</span></div>
+                        <input id="e-depmethod" type="text" placeholder="auto dari env file" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Payout method <span>(override)</span></div>
+                        <input id="e-paymethod" type="text" placeholder="auto dari env file" />
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="loadEnvConfig()">Load konfigurasi</button>
+                    <button class="btn" onclick="clearSession()">Reset semua</button>
+                </div>
+                <div class="output-panel" id="env-out" style="display:none">
+                    <div class="output-header"><span class="output-label">log</span></div>
+                    <div class="output-body" id="env-out-body"></div>
+                </div>
+            </div>
+
+            <!-- ── PAGE: DEPOSIT ───────────────────────────── -->
+            <div class="content page" id="page-deposit">
+                <div class="tab-row">
+                    <button class="tab active" onclick="dtab('v2')" id="dtab-v2">S88 V2</button>
+                    <button class="tab" onclick="dtab('v3')" id="dtab-v3">S88 V3</button>
+                    <button class="tab" onclick="dtab('v4')" id="dtab-v4">S88 V4</button>
+                    <button class="tab" onclick="dtab('paybo')" id="dtab-paybo">PayBO V2–V4</button>
+                    <button class="tab" onclick="dtab('v5')" id="dtab-v5">PayBO V5</button>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <div class="label">Amount</div>
+                        <input id="d-amount" type="number" placeholder="e.g. 10000" />
+                    </div>
+                    <div class="field" id="d-bankcode-wrap">
+                        <div class="label">Bank code <span>(jika diperlukan)</span></div>
+                        <input id="d-bankcode" type="text" placeholder="e.g. HDFC, WAVEPAY, OVO" />
+                    </div>
+                    <div class="field hidden" id="d-depbank-wrap">
+                        <div class="label">Depositor bank <span>(THB only)</span></div>
+                        <input id="d-depbank" type="text" placeholder="e.g. SCB" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Transaction code <span>(opsional)</span></div>
+                        <input id="d-txcode" type="text" placeholder="auto-generated" />
+                    </div>
+                    <div class="field form-full">
+                        <div class="label">Redirect URL</div>
+                        <input id="d-redirect" type="text" value="https://kaskus.id" />
+                    </div>
+                    <div class="field form-full">
+                        <div class="label">Callback URL</div>
+                        <input id="d-callback" type="text"
+                            value="https://webhook.prastowoardi616.workers.dev/webhook" />
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="runDeposit()" id="btn-deposit">Generate &amp;
+                        kirim</button>
+                    <button class="btn" onclick="genTx('d-txcode','TEST-DP')">Generate TX code</button>
+                    <button class="btn btn-sm" onclick="copyOutput('dep-body')">Copy output</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-header">
+                        <span class="output-label">output</span>
+                        <span id="dep-spin" class="hidden"><span class="spin"></span></span>
+                    </div>
+                    <div class="output-body" id="dep-body">Generate payload untuk melihat output…</div>
+                </div>
+                <div class="note"><b>Hit API:</b> Setelah payload di-generate, browser kamu bisa langsung fetch ke
+                    <code>paymentUrl</code> yang muncul di output. Atau copy URL-nya untuk dibuka di tab baru.</div>
+            </div>
+
+            <!-- ── PAGE: PAYOUT ────────────────────────────── -->
+            <div class="content page" id="page-payout">
+                <div class="tab-row">
+                    <button class="tab active" onclick="ptab('regular')" id="ptab-regular">S88 Regular</button>
+                    <button class="tab" onclick="ptab('paybo')" id="ptab-paybo">PayBO Regular</button>
+                    <button class="tab" onclick="ptab('v5')" id="ptab-v5">V5 (Sign)</button>
+                    <button class="tab" onclick="ptab('paybov5')" id="ptab-paybov5">PayBO V5</button>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <div class="label">Amount</div>
+                        <input id="p-amount" type="number" placeholder="e.g. 5000" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Bank code</div>
+                        <input id="p-bankcode" type="text" placeholder="e.g. HDFC, SCB" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Account name <span>(opsional, auto-random)</span></div>
+                        <input id="p-accname" type="text" placeholder="auto-generated" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Transaction code <span>(opsional)</span></div>
+                        <input id="p-txcode" type="text" placeholder="auto-generated" />
+                    </div>
+                    <div class="field form-full">
+                        <div class="label">Callback URL</div>
+                        <input id="p-callback" type="text"
+                            value="https://webhook.prastowoardi616.workers.dev/webhook" />
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="runPayout()" id="btn-payout">Generate &amp; kirim</button>
+                    <button class="btn" onclick="genTx('p-txcode','TEST-WD')">Generate TX code</button>
+                    <button class="btn btn-sm" onclick="copyOutput('pay-body')">Copy output</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-header">
+                        <span class="output-label">output</span>
+                        <span id="pay-spin" class="hidden"><span class="spin"></span></span>
+                    </div>
+                    <div class="output-body" id="pay-body">Generate payload untuk melihat output…</div>
+                </div>
+            </div>
+
+            <!-- ── PAGE: BATCH ─────────────────────────────── -->
+            <div class="content page" id="page-batch">
+                <div class="tab-row">
+                    <button class="tab active" onclick="btab('dep')" id="btab-dep">Batch Deposit</button>
+                    <button class="tab" onclick="btab('payout')" id="btab-payout">Batch Payout</button>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <div class="label">Versi</div>
+                        <select id="b-version">
+                            <option value="v3">V3</option>
+                            <option value="v4">V4</option>
+                            <option value="v5">V5 (Sign)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="label">Jumlah entri (auto-generate)</div>
+                        <input id="b-count" type="number" value="3" min="1" max="50" />
+                    </div>
+                    <div class="field form-full">
+                        <div class="label">JSON array entri <span>(atau kosongkan untuk auto-generate)</span></div>
+                        <textarea id="b-json" rows="7" placeholder='[
+  { "amount": 10000, "bank_code": "HDFC" },
+  { "amount": 5000, "bank_code": "ICICI" }
+]'></textarea>
+                    </div>
+                    <div class="field form-full">
+                        <div class="label">Callback URL</div>
+                        <input id="b-callback" type="text"
+                            value="https://webhook.prastowoardi616.workers.dev/webhook" />
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="runBatch()">Generate batch</button>
+                    <button class="btn" onclick="autoFillBatch()">Auto-fill JSON</button>
+                    <button class="btn btn-sm" onclick="copyOutput('batch-body')">Copy output</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-header">
+                        <span class="output-label">output</span>
+                        <span id="batch-spin" class="hidden"><span class="spin"></span></span>
+                    </div>
+                    <div class="output-body" id="batch-body">Generate batch untuk melihat output…</div>
+                </div>
+            </div>
+
+            <!-- ── PAGE: CALLBACK ──────────────────────────── -->
+            <div class="content page" id="page-callback">
+                <div class="form-grid">
+                    <div class="field form-full">
+                        <div class="label">Callback URL</div>
+                        <input id="cb-url" type="text" value="https://webhook.prastowoardi616.workers.dev/webhook" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Transaction code</div>
+                        <input id="cb-tx" type="text" placeholder="TEST-DP-V2-xxxxx" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Status</div>
+                        <select id="cb-status">
+                            <option value="success">success</option>
+                            <option value="pending">pending</option>
+                            <option value="failed">failed</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="label">Amount</div>
+                        <input id="cb-amount" type="number" placeholder="e.g. 10000" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Currency</div>
+                        <input id="cb-currency" type="text" placeholder="e.g. INR" />
+                    </div>
+                    <div class="field form-full">
+                        <div class="label">Extra payload <span>(JSON opsional)</span></div>
+                        <textarea id="cb-extra" rows="3" placeholder='{ "reference": "UTR123456789" }'></textarea>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="runCallback()">Kirim callback</button>
+                    <button class="btn btn-sm" onclick="copyOutput('cb-body')">Copy payload</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-header">
+                        <span class="output-label">output</span>
+                        <span id="cb-spin" class="hidden"><span class="spin"></span></span>
+                    </div>
+                    <div class="output-body" id="cb-body">Tekan "Kirim callback" untuk memulai…</div>
+                </div>
+            </div>
+
+            <!-- ── PAGE: CHECK WD ──────────────────────────── -->
+            <div class="content page" id="page-checkwd">
+                <div class="form-grid">
+                    <div class="field form-full">
+                        <div class="label">Request No</div>
+                        <input id="wd-reqno" type="text" placeholder="masukkan request_no dari payout V5" />
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="runCheckWD()">Build &amp; kirim</button>
+                    <button class="btn btn-sm" onclick="copyOutput('wd-body')">Copy output</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-header"><span class="output-label">output</span></div>
+                    <div class="output-body" id="wd-body">Masukkan request_no untuk generate signed request…</div>
+                </div>
+            </div>
+
+            <!-- ── PAGE: ENCRYPT ───────────────────────────── -->
+            <div class="content page" id="page-encrypt">
+                <div class="tab-row">
+                    <button class="tab active" onclick="etab('enc')" id="etab-enc">Encrypt (deposit)</button>
+                    <button class="tab" onclick="etab('dec')" id="etab-dec">Decrypt</button>
+                    <button class="tab" onclick="etab('epayout')" id="etab-epayout">Encrypt (payout)</button>
+                    <button class="tab" onclick="etab('sign')" id="etab-sign">Sign (V5)</button>
+                </div>
+                <div class="form-grid">
+                    <div class="field form-full">
+                        <div class="label">Input</div>
+                        <textarea id="enc-input" rows="5"
+                            placeholder="query string / JSON payload / ciphertext…"></textarea>
+                    </div>
+                    <div class="field">
+                        <div class="label">API key <span>(override, gunakan dari config jika kosong)</span></div>
+                        <input id="enc-api" type="password" placeholder="auto dari config" />
+                    </div>
+                    <div class="field">
+                        <div class="label">Secret key <span>(override)</span></div>
+                        <input id="enc-sec" type="password" placeholder="auto dari config" />
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="runEncrypt()">Jalankan</button>
+                    <button class="btn btn-sm" onclick="copyOutput('enc-body')">Copy output</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-header"><span class="output-label">output</span></div>
+                    <div class="output-body" id="enc-body">Tekan "Jalankan" untuk memproses…</div>
+                </div>
+            </div>
+
+            <!-- ── PAGE: CONFIG ────────────────────────────── -->
+            <div class="content page" id="page-config">
+                <div class="section-label">Konfigurasi aktif</div>
+                <div class="config-table" id="cfg-table">Belum ada konfigurasi. Pilih environment di halaman Setup.
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-danger" onclick="clearSession()">Reset semua</button>
+                    <button class="btn" onclick="exportCfg()">Export JSON</button>
+                </div>
+            </div>
+
+            <!-- ── PAGE: LOGS ──────────────────────────────── -->
+            <div class="content page" id="page-logs">
+                <div class="section-label">Activity log (realtime via WebSocket)</div>
+                <div class="log-list" id="log-list"><span style="color:var(--text3)">Menunggu koneksi WebSocket…</span>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-danger btn-sm" onclick="clearLogs()">Clear log</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-flash" id="copy-flash">Disalin!</div>
+
+    <script>
+        // ─── State ───────────────────────────────────────────────────────────────────
+        const S = {
+            envKey: null, currency: null, merchant: null,
+            envInfo: null, loadedConfig: null,
+            depositTab: 'v2', payoutTab: 'regular', batchTab: 'dep', encTab: 'enc'
+        };
+
+        // ─── Init ────────────────────────────────────────────────────────────────────
+        (async () => {
+            await loadEnvGrid();
+            initWS();
+        })();
+
+        async function loadEnvGrid() {
+            const res = await apiFetch('/api/envs');
+            if (!res) return;
+            const grid = document.getElementById('env-grid');
+            grid.innerHTML = '';
+            Object.entries(res).forEach(([key, cfg]) => {
+                const d = document.createElement('div');
+                d.className = 'env-card' + (S.envKey === key ? ' selected' : '');
+                d.id = 'ecard-' + key;
+                d.innerHTML = `<div><div class="env-name">${cfg.label}</div><div class="env-file">${cfg.file}</div></div>
+        <span class="badge ${cfg.type === 'production' ? 'badge-prod' : 'badge-stag'}">${cfg.type}</span>`;
+                d.onclick = () => selectEnv(key, cfg);
+                grid.appendChild(d);
+            });
+        }
+
+        // ─── Navigation ──────────────────────────────────────────────────────────────
+        function go(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + id).classList.add('active');
+            document.getElementById('nav-' + id).classList.add('active');
+            const titles = {
+                env: 'Environment', deposit: 'Deposit', payout: 'Payout', batch: 'Batch',
+                callback: 'Manual Callback', checkwd: 'Check WD Status', encrypt: 'Encrypt / Decrypt',
+                config: 'Config aktif', logs: 'Activity Log'
+            };
+            document.getElementById('page-title').textContent = titles[id] || id;
+            if (id === 'config') renderConfig();
+        }
+
+        // ─── Env selection ───────────────────────────────────────────────────────────
+        function selectEnv(key, cfg) {
+            S.envKey = key; S.envInfo = cfg;
+            document.querySelectorAll('.env-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('ecard-' + key)?.classList.add('selected');
+            const p = document.getElementById('env-pill');
+            p.textContent = cfg.label;
+            p.className = 'env-pill' + (cfg.type === 'production' ? ' prod' : '');
+        }
+
+        async function onCurrencyChange() {
+            const curr = document.getElementById('e-currency').value;
+            S.currency = curr;
+            const sel = document.getElementById('e-merchant');
+            sel.innerHTML = '<option value="">-- loading… --</option>';
+            if (!curr || !S.envKey) { sel.innerHTML = '<option value="">-- pilih merchant --</option>'; return; }
+            const res = await apiFetch('/api/merchants', { envKey: S.envKey, currency: curr });
+            if (!res) return;
+            sel.innerHTML = '<option value="">-- pilih merchant --</option>' +
+                res.merchants.map(m => `<option>${m}</option>`).join('');
+            if (res.merchants.length === 1) { sel.value = res.merchants[0]; S.merchant = res.merchants[0]; }
+        }
+
+        async function loadEnvConfig() {
+            if (!S.envKey) { showEnvOut('<span class="err">✗ Pilih environment terlebih dahulu.</span>'); return; }
+            const curr = document.getElementById('e-currency').value;
+            const merch = document.getElementById('e-merchant').value;
+            S.currency = curr; S.merchant = merch;
+
+            const res = await apiFetch('/api/env-vars', { envKey: S.envKey, currency: curr, merchant: merch });
+            if (!res) return;
+            S.loadedConfig = res.config;
+
+            // Apply overrides
+            if (document.getElementById('e-baseurl').value) S.loadedConfig.baseUrl = document.getElementById('e-baseurl').value;
+            if (document.getElementById('e-depmethod').value) S.loadedConfig.depMethod = document.getElementById('e-depmethod').value;
+            if (document.getElementById('e-paymethod').value) S.loadedConfig.payMethod = document.getElementById('e-paymethod').value;
+
+            if (curr) { const cp = document.getElementById('curr-pill'); cp.textContent = curr; cp.classList.remove('hidden'); }
+            document.getElementById('merchant-pill').textContent = merch ? `  ${merch}` : '';
+
+            const c = S.loadedConfig;
+            showEnvOut(`<span class="ok">✓ Konfigurasi berhasil dimuat.</span>
+
+<span class="dim">env        </span>  ${S.envInfo?.label || S.envKey}
+<span class="dim">currency   </span>  ${curr || '—'}
+<span class="dim">merchant   </span>  ${merch || '—'}
+<span class="dim">base url   </span>  ${c.baseUrl || '(kosong)'}
+<span class="dim">merch code </span>  ${c.merchantCode || '(kosong)'}
+<span class="dim">api key    </span>  ${c.merchantAPI ? '••••' + c.merchantAPI.slice(-4) : '(kosong)'}
+<span class="dim">secret key </span>  ${c.secretKey ? '••••' + c.secretKey.slice(-4) : '(kosong)'}
+<span class="dim">dep method </span>  ${c.depMethod || '(kosong)'}
+<span class="dim">pay method </span>  ${c.payMethod || '(kosong)'}`);
+        }
+
+        function showEnvOut(html) {
+            const p = document.getElementById('env-out'); p.style.display = 'block';
+            document.getElementById('env-out-body').innerHTML = html;
+        }
+
+        // ─── Deposit ─────────────────────────────────────────────────────────────────
+        let dTab = 'v2';
+        function dtab(t) {
+            dTab = t;
+            document.querySelectorAll('[id^="dtab-"]').forEach(b => b.classList.toggle('active', b.id === 'dtab-' + t));
+            const isTHB = S.currency === 'THB';
+            document.getElementById('d-depbank-wrap').classList.toggle('hidden', !isTHB);
+        }
+
+        async function runDeposit() {
+            if (!assertConfig()) return;
+            const amount = document.getElementById('d-amount').value;
+            if (!amount) { setOut('dep-body', '<span class="err">✗ Amount wajib diisi.</span>'); return; }
+            spin('dep-spin', true);
+
+            const body = {
+                envKey: S.envKey, currency: S.currency, merchant: S.merchant,
+                amount, bankCode: v('d-bankcode'), depositorBank: v('d-depbank'),
+                txCode: v('d-txcode'), redirectUrl: v('d-redirect'),
+                version: dTab === 'v5' ? 'v5' : dTab,
+            };
+
+            const endpoint = dTab === 'v5' ? '/api/deposit/prepare-v5' : '/api/deposit/prepare';
+            const res = await apiFetch(endpoint, body);
+            spin('dep-spin', false);
+            if (!res) return;
+
+            if (dTab === 'v5') {
+                setOut('dep-body',
+                    `<span class="ok">✓ Deposit V5 payload generated</span>\n\n` +
+                    `<span class="dim">Deposit URL  </span> ${res.depositUrl}\n` +
+                    `<span class="dim">TX Code      </span> ${res.txCode}\n\n` +
+                    `<span class="dim">--- Payload JSON ---</span>\n${JSON.stringify(res.payload, null, 2)}\n\n` +
+                    `<span class="dim">--- Signature (header: sign) ---</span>\n${res.signature}\n\n` +
+                    `<span class="dim">--- Encrypted Merchant Code (header: X-Encrypted-MerchantCode) ---</span>\n${res.encryptedMC}\n\n` +
+                    buildFetchSnippetV5(res));
+            } else {
+                setOut('dep-body',
+                    `<span class="ok">✓ Deposit payload generated</span>\n\n` +
+                    `<span class="dim">Payment URL  </span> <a href="${res.paymentUrl}" target="_blank">${res.paymentUrl}</a>\n` +
+                    `<span class="dim">TX Code      </span> ${res.txCode}\n` +
+                    `<span class="dim">User ID      </span> ${res.userID}  |  <span class="dim">Name</span> ${res.name}  |  <span class="dim">IP</span> ${res.ip}\n\n` +
+                    `<span class="dim">--- Raw payload (before encrypt) ---</span>\n${res.qs}\n\n` +
+                    `<span class="dim">--- Encrypted key ---</span>\n${res.encrypted}\n\n` +
+                    `<span class="warn">→ Buka payment URL di tab baru atau gunakan curl/fetch dari browser.</span>`);
+            }
+        }
+
+        function buildFetchSnippetV5(res) {
+            return `<span class="dim">--- Fetch snippet ---</span>\nfetch("${res.depositUrl}", {\n  method: "POST",\n  headers: {\n    "Content-Type": "application/json",\n    "sign": "${res.signature}"\n  },\n  body: JSON.stringify(${JSON.stringify(res.payload)})\n});`;
+        }
+
+        // ─── Payout ──────────────────────────────────────────────────────────────────
+        let pTab = 'regular';
+        function ptab(t) {
+            pTab = t;
+            document.querySelectorAll('[id^="ptab-"]').forEach(b => b.classList.toggle('active', b.id === 'ptab-' + t));
+        }
+
+        async function runPayout() {
+            if (!assertConfig()) return;
+            const amount = document.getElementById('p-amount').value;
+            if (!amount) { setOut('pay-body', '<span class="err">✗ Amount wajib diisi.</span>'); return; }
+            spin('pay-spin', true);
+
+            const isV5 = pTab === 'v5' || pTab === 'paybov5';
+            const res = await apiFetch('/api/payout/prepare', {
+                envKey: S.envKey, currency: S.currency, merchant: S.merchant,
+                amount, bankCode: v('p-bankcode'), accountName: v('p-accname'),
+                txCode: v('p-txcode'), version: isV5 ? 'v5' : 'regular',
+            });
+            spin('pay-spin', false);
+            if (!res) return;
+
+            if (isV5) {
+                setOut('pay-body',
+                    `<span class="ok">✓ Payout V5 payload generated</span>\n\n` +
+                    `<span class="dim">URL          </span> ${res.payoutUrl}\n` +
+                    `<span class="dim">TX Code      </span> ${res.txCode}\n\n` +
+                    `<span class="dim">--- Payload JSON ---</span>\n${JSON.stringify(res.payload, null, 2)}\n\n` +
+                    `<span class="dim">--- Signature (header: sign) ---</span>\n${res.signature}`);
+            } else {
+                setOut('pay-body',
+                    `<span class="ok">✓ Payout payload generated</span>\n\n` +
+                    `<span class="dim">URL          </span> ${res.payoutUrl}\n` +
+                    `<span class="dim">TX Code      </span> ${res.txCode}\n\n` +
+                    `<span class="dim">--- Payload JSON ---</span>\n${JSON.stringify(res.payload, null, 2)}\n\n` +
+                    `<span class="dim">--- Encrypted key ---</span>\n${res.encrypted}`);
+            }
+        }
+
+        // ─── Batch ───────────────────────────────────────────────────────────────────
+        let bTab = 'dep';
+        function btab(t) {
+            bTab = t;
+            document.querySelectorAll('[id^="btab-"]').forEach(b => b.classList.toggle('active', b.id === 'btab-' + t));
+        }
+
+        function autoFillBatch() {
+            const count = parseInt(document.getElementById('b-count').value) || 3;
+            const entries = Array.from({ length: count }, (_, i) => ({
+                amount: (i + 1) * 5000,
+                bank_code: ['HDFC', 'ICICI', 'SBI', 'AXIS', 'PNB'][i % 5],
+            }));
+            document.getElementById('b-json').value = JSON.stringify(entries, null, 2);
+        }
+
+        async function runBatch() {
+            if (!assertConfig()) return;
+            let entries;
+            try { entries = JSON.parse(document.getElementById('b-json').value || '[]'); }
+            catch (e) { setOut('batch-body', `<span class="err">✗ JSON tidak valid: ${e.message}</span>`); return; }
+            if (!entries.length) { autoFillBatch(); try { entries = JSON.parse(document.getElementById('b-json').value); } catch (_) { } }
+            spin('batch-spin', true);
+
+            const version = document.getElementById('b-version').value;
+            const endpoint = bTab === 'dep' ? '/api/batch/deposit' : '/api/batch/payout';
+            const res = await apiFetch(endpoint, { envKey: S.envKey, currency: S.currency, merchant: S.merchant, entries, version });
+            spin('batch-spin', false);
+            if (!res) return;
+
+            const lines = res.results.map((r, i) =>
+                `<span class="dim">--- Entry ${i + 1} ---</span>\n` +
+                `TX Code  : ${r.txCode}\n` +
+                `Name     : ${r.name}\n` +
+                (r.paymentUrl ? `URL      : ${r.paymentUrl}\n` : '') +
+                (r.encrypted ? `Encrypted: ${r.encrypted.substring(0, 60)}…\n` : '') +
+                (r.signature ? `Signature: ${r.signature.substring(0, 60)}…\n` : '')
+            ).join('\n');
+
+            setOut('batch-body', `<span class="ok">✓ ${res.count} batch entries generated</span>\n\n` + lines +
+                `\n<span class="dim">--- Full JSON ---</span>\n` + JSON.stringify(res.results, null, 2));
+        }
+
+        // ─── Callback ────────────────────────────────────────────────────────────────
+        async function runCallback() {
+            const url = v('cb-url');
+            if (!url) { setOut('cb-body', '<span class="err">✗ Callback URL wajib diisi.</span>'); return; }
+            const tx = v('cb-tx'), status = v('cb-status'), amount = v('cb-amount'), currency = v('cb-currency');
+            let extra = {};
+            try { const ev = v('cb-extra'); if (ev) extra = JSON.parse(ev); } catch (e) { setOut('cb-body', `<span class="err">✗ Extra JSON tidak valid: ${e.message}</span>`); return; }
+
+            const payload = { transaction_code: tx, status, ...(amount && { amount: Number(amount) }), ...(currency && { currency_code: currency }), ...extra };
+            spin('cb-spin', true);
+
+            let responseHtml = '';
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    mode: 'no-cors',
+                });
+                responseHtml = `<span class="ok">✓ Request terkirim (no-cors mode, respons tidak bisa dibaca dari browser).</span>`;
+            } catch (e) {
+                responseHtml = `<span class="warn">⚠ Fetch error (CORS/network): ${e.message}\n\nGunakan curl:\ncurl -X POST "${url}" \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(payload)}'</span>`;
+            }
+            spin('cb-spin', false);
+
+            setOut('cb-body',
+                `<span class="dim">URL     </span> ${url}\n` +
+                `<span class="dim">Method  </span> POST\n\n` +
+                `<span class="dim">--- Payload ---</span>\n${JSON.stringify(payload, null, 2)}\n\n` +
+                responseHtml);
+        }
+
+        // ─── Check WD ────────────────────────────────────────────────────────────────
+        async function runCheckWD() {
+            if (!assertConfig()) return;
+            const reqNo = v('wd-reqno');
+            if (!reqNo) { setOut('wd-body', '<span class="err">✗ Request No wajib diisi.</span>'); return; }
+            const res = await apiFetch('/api/check-wd-status', { envKey: S.envKey, currency: S.currency, merchant: S.merchant, requestNo: reqNo });
+            if (!res) return;
+            setOut('wd-body',
+                `<span class="ok">✓ Check WD Status payload generated</span>\n\n` +
+                `<span class="dim">URL      </span> ${res.url}\n\n` +
+                `<span class="dim">--- Headers ---</span>\nContent-Type: application/json\nsign: ${res.signature}\n\n` +
+                `<span class="dim">--- Payload ---</span>\n${JSON.stringify(res.payload, null, 2)}`);
+        }
+
+        // ─── Encrypt/Decrypt ─────────────────────────────────────────────────────────
+        let eTab = 'enc';
+        function etab(t) {
+            eTab = t;
+            document.querySelectorAll('[id^="etab-"]').forEach(b => b.classList.toggle('active', b.id === 'etab-' + t));
+        }
+
+        async function runEncrypt() {
+            const input = v('enc-input');
+            if (!input) { setOut('enc-body', '<span class="err">✗ Input kosong.</span>'); return; }
+            const apiKey = v('enc-api') || S.loadedConfig?.merchantAPI;
+            const secKey = v('enc-sec') || S.loadedConfig?.secretKey;
+            if (!apiKey || !secKey) { setOut('enc-body', '<span class="err">✗ API key / Secret key tidak tersedia. Isi di field override atau load konfigurasi terlebih dahulu.</span>'); return; }
+
+            if (eTab === 'sign') {
+                const res = await apiFetch('/api/sign', { data: input, secretKey: secKey });
+                if (!res) return;
+                setOut('enc-body', `<span class="ok">✓ HMAC-SHA256 Signature</span>\n\n${res.signature}`);
+                return;
+            }
+
+            const action = eTab === 'dec' ? 'decrypt' : 'encrypt';
+            const data = eTab === 'epayout' ? (() => { try { return JSON.parse(input); } catch { return input; } })() : input;
+            const res = await apiFetch('/api/encrypt', { action, data, apiKey, secretKey: secKey });
+            if (!res) return;
+            setOut('enc-body', `<span class="ok">✓ ${action} selesai</span>\n\n${typeof res.result === 'object' ? JSON.stringify(res.result, null, 2) : res.result}`);
+        }
+
+        // ─── Config page ──────────────────────────────────────────────────────────────
+        function renderConfig() {
+            const el = document.getElementById('cfg-table');
+            const c = S.loadedConfig;
+            if (!c && !S.envKey) { el.innerHTML = 'Belum ada konfigurasi. Pilih environment di halaman Setup.'; return; }
+            el.innerHTML = `
+<span class="kk">environment </span><span class="kv">${S.envInfo?.label || S.envKey || '—'}</span>
+<span class="kk">env file    </span><span class="kv">${S.envInfo?.file || '—'}</span>
+<span class="kk">type        </span><span class="kv">${S.envInfo?.type || '—'}</span>
+<span class="kk">currency    </span><span class="kv">${S.currency || '—'}</span>
+<span class="kk">merchant    </span><span class="kv">${S.merchant || '—'}</span>
+<span class="kk">base url    </span><span class="kv">${c?.baseUrl || '—'}</span>
+<span class="kk">merch code  </span><span class="kv">${c?.merchantCode || '—'}</span>
+<span class="kk">api key     </span><span class="kv">${c?.merchantAPI ? '••••' + c.merchantAPI.slice(-4) : '—'}</span>
+<span class="kk">secret key  </span><span class="kv">${c?.secretKey ? '••••' + c.secretKey.slice(-4) : '—'}</span>
+<span class="kk">dep method  </span><span class="kv">${c?.depMethod || '—'}</span>
+<span class="kk">pay method  </span><span class="kv">${c?.payMethod || '—'}</span>`;
+        }
+
+        function exportCfg() {
+            const safe = {
+                env: S.envKey,
+                currency: S.currency,
+                merchant: S.merchant,
+                baseUrl: S.loadedConfig?.baseUrl,
+                depMethod: S.loadedConfig?.depMethod,
+                payMethod: S.loadedConfig?.payMethod,
+                merchantCode: S.loadedConfig?.merchantCode,
+                apiKey: '[REDACTED]',
+                secretKey: '[REDACTED]'
+            };
+            const blob = new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 's88-config.json';
+            a.click();
+        }
+
+        // ─── WebSocket ────────────────────────────────────────────────────────────────
+        let ws;
+        function initWS() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${proto}//${location.host}`);
+            ws.onopen = () => { document.getElementById('ws-dot').classList.add('on'); };
+            ws.onclose = () => { document.getElementById('ws-dot').classList.remove('on'); setTimeout(initWS, 3000); };
+            ws.onmessage = (e) => {
+                try {
+                    const d = JSON.parse(e.data);
+                    if (d.type === 'log') addLog(d);
+                    if (d.type === 'ping') ws.send(JSON.stringify({ type: 'pong' }));
+                } catch (_) { }
+            };
+        }
+
+        function addLog(d) {
+            const el = document.getElementById('log-list');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const t = new Date(d.ts).toLocaleTimeString();
+            entry.innerHTML = `<span class="log-ts">${t}</span><span class="log-action">${d.action}</span><span style="color:var(--text3)">${d.env || ''}</span> ${d.currency || ''} ${d.merchant || ''} ${d.amount ? '→ ' + d.amount : ''} ${d.count ? `(${d.count} entries)` : ''}`;
+            if (el.firstChild?.textContent?.includes('Menunggu')) el.innerHTML = '';
+            el.insertBefore(entry, el.firstChild);
+            if (el.children.length > 200) el.removeChild(el.lastChild);
+        }
+
+        function clearLogs() { document.getElementById('log-list').innerHTML = '<span style="color:var(--text3)">Log dibersihkan.</span>'; }
+
+        // ─── Utils ────────────────────────────────────────────────────────────────────
+        function v(id) { return document.getElementById(id)?.value?.trim() || ''; }
+        function setOut(id, html) { document.getElementById(id).innerHTML = html; }
+        function spin(id, on) { document.getElementById(id).classList.toggle('hidden', !on); }
+
+        function assertConfig() {
+            if (!S.envKey) {
+                flash('Pilih environment terlebih dahulu!'); return false;
+            }
+            if (!S.currency) {
+                flash('Pilih currency terlebih dahulu!'); return false;
+            }
+            if (!S.loadedConfig) {
+                flash('Klik "Load konfigurasi" di halaman Environment!'); return false;
+            }
+            return true;
+        }
+
+        function genTx(id, prefix) {
+            const ts = Math.floor(Date.now() / 1000);
+            const rand = Math.floor(Math.random() * 9000 + 1000);
+            document.getElementById(id).value = `${prefix}-${ts}-${rand}`;
+        }
+
+        function copyOutput(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => flash('Disalin!')).catch(() => { });
+        }
+
+        function flash(msg) {
+            const el = document.getElementById('copy-flash');
+            el.textContent = msg; el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2000);
+        }
+
+        function clearSession() {
+            S.envKey = null; S.currency = null; S.merchant = null; S.envInfo = null; S.loadedConfig = null;
+            document.getElementById('env-pill').textContent = '— belum dipilih'; document.getElementById('env-pill').className = 'env-pill';
+            document.getElementById('curr-pill').classList.add('hidden');
+            document.getElementById('merchant-pill').textContent = '';
+            document.querySelectorAll('.env-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('env-out').style.display = 'none';
+            flash('Session direset.');
+        }
+
+        async function apiFetch(url, body) {
+            try {
+                const opts = body
+                    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+                    : { method: 'GET' };
+                const res = await fetch(url, opts);
+                const data = await res.json();
+                if (!res.ok) {
+                    flash('Error: ' + (data.error || res.status));
+                    const active = document.querySelector('.page.active');
+                    const out = active?.querySelector('.output-body');
+                    if (out) out.innerHTML = `<span class="err">✗ Server error: ${data.error || res.status}</span>`;
+                    return null;
+                }
+                return data;
+            } catch (e) {
+                flash('Fetch error: ' + e.message);
+                return null;
+            }
+        }
+    </script>
+</body>
+
+</html>

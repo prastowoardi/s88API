@@ -19,7 +19,9 @@
     "ws": "^8.18.3"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "web": "node server.js",
+    "web:dev": "node --watch server.js"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
