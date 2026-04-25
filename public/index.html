@@ -260,9 +260,29 @@
         .select2-container--default .select2-selection--single {
             background-color: var(--bg3) !important;
             border: 1px solid var(--border) !important;
-            height: 35px !important; /* Sesuaikan dengan tinggi input kamu */
+            height: 35px !important;
             display: flex;
             align-items: center;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: var(--text) !important;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+        .select2-dropdown {
+            background-color: var(--bg2) !important;
+            border: 1px solid var(--green) !important;
+            color: var(--text) !important;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            background-color: var(--bg) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text) !important;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--green2) !important;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
@@ -274,24 +294,6 @@
 
         .select2-container--default .select2-selection--single .select2-selection__placeholder {
             color: var(--text3) !important;
-        }
-
-        .select2-dropdown {
-            background-color: var(--bg2) !important;
-            border: 1px solid var(--green) !important;
-            color: var(--text) !important;
-            font-family: var(--font-mono);
-            font-size: 12px;
-        }
-
-        .select2-container--default .select2-search--dropdown .select2-search__field {
-            background-color: var(--bg) !important;
-            border: 1px solid var(--border) !important;
-            color: var(--text) !important;
-        }
-
-        .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: var(--green2) !important;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__arrow b {
@@ -656,6 +658,182 @@
         .note b {
             color: var(--text2);
         }
+
+        .resp-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .resp-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .resp-status {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .resp-status.success {
+            background: var(--green-dim);
+            color: var(--green);
+            border: 1px solid rgba(29, 158, 117, 0.25);
+        }
+
+        .resp-status.error {
+            background: var(--red-dim);
+            color: var(--red);
+            border: 1px solid rgba(226, 75, 74, 0.3);
+        }
+
+        .resp-status.warn {
+            background: var(--amber-dim);
+            color: var(--amber);
+            border: 1px solid rgba(239, 159, 39, 0.3);
+        }
+
+        .resp-status.info {
+            background: var(--blue-dim);
+            color: var(--blue);
+            border: 1px solid rgba(55, 138, 221, 0.3);
+        }
+
+        .resp-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .resp-time {
+            margin-left: auto;
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--font-mono);
+        }
+
+        .resp-body {
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            line-height: 1.7;
+        }
+
+        .resp-section {
+            margin-bottom: 14px;
+        }
+
+        .resp-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .resp-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text3);
+            margin-bottom: 6px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .resp-section-title::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 12px;
+            background: var(--green);
+            border-radius: 2px;
+        }
+
+        .resp-section-title.error::before { background: var(--red); }
+        .resp-section-title.warn::before { background: var(--amber); }
+        .resp-section-title.info::before { background: var(--blue); }
+
+        .resp-kv {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 4px 12px;
+            align-items: start;
+        }
+
+        .resp-kv-key {
+            color: var(--text3);
+            font-size: 11px;
+        }
+
+        .resp-kv-val {
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .resp-kv-val.url { color: var(--blue); }
+        .resp-kv-val.code { color: var(--green); font-weight: 600; }
+        .resp-kv-val.muted { color: var(--text3); font-style: italic; }
+
+        .resp-json {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .resp-json .json-key { color: #9D72FF; }
+        .resp-json .json-string { color: var(--green); }
+        .resp-json .json-number { color: var(--amber); }
+        .resp-json .json-bool { color: var(--blue); }
+        .resp-json .json-null { color: var(--red); }
+
+        .resp-copy-hint {
+            font-size: 10px;
+            color: var(--text3);
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .resp-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 12px 0;
+        }
+
+        .curl-block {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text2);
+        }
+
+        .curl-block .curl-cmd { color: var(--green); }
+        .curl-block .curl-flag { color: var(--amber); }
+        .curl-block .curl-val { color: var(--blue); }
     </style>
 </head>
 
@@ -710,7 +888,7 @@
                 <div class="form-grid">
                     <div class="field">
                         <div class="label">Currency</div>
-                        <select id="e-currency" onchange="onCurrencyChange()">
+                        <select id="e-currency">
                             <option value="">-- pilih currency --</option>
                             <option>INR</option>
                             <option>VND</option>
@@ -760,12 +938,16 @@
 
             <!-- ── PAGE: DEPOSIT ───────────────────────────── -->
             <div class="content page" id="page-deposit">
+                <div class="tab-row" style="margin-bottom: 5px;">
+                    <button class="tab active" onclick="dtab('s88-v2')" id="dtab-s88-v2">S88 V2</button>
+                    <button class="tab" onclick="dtab('s88-v3')" id="dtab-s88-v3">S88 V3</button>
+                    <button class="tab" onclick="dtab('s88-v4')" id="dtab-s88-v4">S88 V4</button>
+                </div>
                 <div class="tab-row">
-                    <button class="tab active" onclick="dtab('v2')" id="dtab-v2">S88 V2</button>
-                    <button class="tab" onclick="dtab('v3')" id="dtab-v3">S88 V3</button>
-                    <button class="tab" onclick="dtab('v4')" id="dtab-v4">S88 V4</button>
-                    <button class="tab" onclick="dtab('paybo')" id="dtab-paybo">PayBO V2–V4</button>
-                    <button class="tab" onclick="dtab('v5')" id="dtab-v5">PayBO V5</button>
+                    <button class="tab" onclick="dtab('paybo-v2')" id="dtab-paybo-v2">PayBO V2</button>
+                    <button class="tab" onclick="dtab('paybo-v3')" id="dtab-paybo-v3">PayBO V3</button>
+                    <button class="tab" onclick="dtab('paybo-v4')" id="dtab-paybo-v4">PayBO V4</button>
+                    <button class="tab" onclick="dtab('paybo-v5')" id="dtab-paybo-v5">PayBO V5</button>
                 </div>
                 <div class="form-grid">
                     <div class="field">
@@ -817,7 +999,6 @@
                     <button class="tab active" onclick="ptab('regular')" id="ptab-regular">S88 Regular</button>
                     <button class="tab" onclick="ptab('paybo')" id="ptab-paybo">PayBO Regular</button>
                     <button class="tab" onclick="ptab('v5')" id="ptab-v5">V5 (Sign)</button>
-                    <button class="tab" onclick="ptab('paybov5')" id="ptab-paybov5">PayBO V5</button>
                 </div>
                 <div class="form-grid">
                     <div class="field">
@@ -1028,7 +1209,7 @@
         const S = {
             envKey: null, currency: null, merchant: null,
             envInfo: null, loadedConfig: null,
-            depositTab: 'v2', payoutTab: 'regular', batchTab: 'dep', encTab: 'enc'
+            depositTab: 's88-v2', payoutTab: 's88-v2', batchTab: 'dep', encTab: 'enc'
         };
 
         // ─── Init ────────────────────────────────────────────────────────────────────
@@ -1079,38 +1260,30 @@
         }
 
         async function onCurrencyChange() {
-            const curr = $('#e-currency').val(); 
+            const curr = $('#e-currency').val();
             S.currency = curr;
-            const $merchantSelect = $('#e-merchant');
+            
+            const $mSelect = $('#e-merchant');
+            $mSelect.html('<option value="">-- loading --</option>').trigger('change');
 
             if (!curr || !S.envKey) {
-                $merchantSelect.html('<option value="">-- pilih merchant --</option>').trigger('change');
+                $mSelect.html('<option value="">-- pilih merchant --</option>').trigger('change');
                 return;
             }
 
-            $merchantSelect.html('<option value="">-- loading... --</option>').trigger('change');
+            const res = await apiFetch('/api/merchants', { envKey: S.envKey, currency: curr });
+            if (!res) return;
 
-            try {
-                const res = await apiFetch('/api/merchants', { envKey: S.envKey, currency: curr });
-                if (!res || !res.merchants) {
-                    $merchantSelect.html('<option value="">-- no merchant found --</option>').trigger('change');
-                    return;
-                }
+            let options = '<option value="">-- pilih merchant --</option>';
+            res.merchants.forEach(m => {
+                options += `<option value="${m}">${m}</option>`;
+            });
 
-                let options = '<option value="">-- pilih merchant --</option>';
-                res.merchants.forEach(m => {
-                    options += `<option value="${m}">${m}</option>`;
-                });
+            $mSelect.html(options).trigger('change');
 
-                $merchantSelect.html(options).trigger('change');
-
-                if (res.merchants.length === 1) {
-                    $merchantSelect.val(res.merchants[0]).trigger('change');
-                    S.merchant = res.merchants[0];
-                }
-            } catch (e) {
-                $merchantSelect.html('<option value="">-- error loading --</option>').trigger('change');
-                console.error(e);
+            if (res.merchants.length === 1) {
+                $mSelect.val(res.merchants[0]).trigger('change');
+                S.merchant = res.merchants[0];
             }
         }
 
@@ -1154,48 +1327,43 @@
         // ─── Deposit ─────────────────────────────────────────────────────────────────
         let dTab = 'v2';
         function dtab(t) {
-            dTab = t;
-            document.querySelectorAll('[id^="dtab-"]').forEach(b => b.classList.toggle('active', b.id === 'dtab-' + t));
-            const isTHB = S.currency === 'THB';
-            document.getElementById('d-depbank-wrap').classList.toggle('hidden', !isTHB);
+            S.depositTab = t;
+            document.querySelectorAll('#page-deposit .tab').forEach(tb => tb.classList.remove('active'));
+            document.getElementById('dtab-' + t)?.classList.add('active');
+            if (S.currency === 'THB') {
+                document.getElementById('d-depbank-wrap').classList.remove('hidden');
+            }
         }
 
         async function runDeposit() {
             if (!assertConfig()) return;
+            const currency = $('#e-currency').val();
+            const merchant = $('#e-merchant').val();
             const amount = document.getElementById('d-amount').value;
-            if (!amount) { setOut('dep-body', '<span class="err">✗ Amount wajib diisi.</span>'); return; }
-            spin('dep-spin', true);
-
+            if (!currency || !merchant || !amount) {
+                flash("Currency, Merchant, dan Amount wajib diisi!");
+                return;
+            }
             const body = {
-                envKey: S.envKey, currency: S.currency, merchant: S.merchant,
-                amount, bankCode: v('d-bankcode'), depositorBank: v('d-depbank'),
-                txCode: v('d-txcode'), redirectUrl: v('d-redirect'),
-                version: dTab === 'v5' ? 'v5' : dTab,
+                envKey: S.envKey, currency, merchant,
+                version: S.depositTab, amount,
+                bankCode: document.getElementById('d-bankcode').value,
+                depositorBank: document.getElementById('d-depbank')?.value || '',
+                transactionCode: document.getElementById('d-txcode').value,
+                redirectUrl: document.getElementById('d-redirect').value,
+                callbackUrl: document.getElementById('d-callback').value,
             };
-
-            const endpoint = dTab === 'v5' ? '/api/deposit/prepare-v5' : '/api/deposit/prepare';
+            const out = document.getElementById('dep-body');
+            const spin = document.getElementById('dep-spin');
+            out.innerHTML = `<span class="dim">// Mengirim request Deposit ${S.depositTab}...</span>`;
+            spin.classList.remove('hidden');
+            let endpoint = '/api/deposit/prepare';
+            if (S.depositTab === 's88-v5' || S.depositTab === 'paybo-v5') endpoint = '/api/deposit/prepare-v5';
             const res = await apiFetch(endpoint, body);
-            spin('dep-spin', false);
-            if (!res) return;
-
-            if (dTab === 'v5') {
-                setOut('dep-body',
-                    `<span class="ok">✓ Deposit V5 payload generated</span>\n\n` +
-                    `<span class="dim">Deposit URL  </span> ${res.depositUrl}\n` +
-                    `<span class="dim">TX Code      </span> ${res.txCode}\n\n` +
-                    `<span class="dim">--- Payload JSON ---</span>\n${JSON.stringify(res.payload, null, 2)}\n\n` +
-                    `<span class="dim">--- Signature (header: sign) ---</span>\n${res.signature}\n\n` +
-                    `<span class="dim">--- Encrypted Merchant Code (header: X-Encrypted-MerchantCode) ---</span>\n${res.encryptedMC}\n\n` +
-                    buildFetchSnippetV5(res));
-            } else {
-                setOut('dep-body',
-                    `<span class="ok">✓ Deposit payload generated</span>\n\n` +
-                    `<span class="dim">Payment URL  </span> <a href="${res.paymentUrl}" target="_blank">${res.paymentUrl}</a>\n` +
-                    `<span class="dim">TX Code      </span> ${res.txCode}\n` +
-                    `<span class="dim">User ID      </span> ${res.userID}  |  <span class="dim">Name</span> ${res.name}  |  <span class="dim">IP</span> ${res.ip}\n\n` +
-                    `<span class="dim">--- Raw payload (before encrypt) ---</span>\n${res.qs}\n\n` +
-                    `<span class="dim">--- Encrypted key ---</span>\n${res.encrypted}\n\n` +
-                    `<span class="warn">→ Buka payment URL di tab baru atau gunakan curl/fetch dari browser.</span>`);
+            spin.classList.add('hidden');
+            if (res) {
+                out.innerHTML = formatResponse(res, 'Deposit ' + S.depositTab.toUpperCase());
+                logAction('DEPOSIT', `${S.depositTab} - ${body.currency} ${body.amount}`);
             }
         }
 
@@ -1204,41 +1372,42 @@
         }
 
         // ─── Payout ──────────────────────────────────────────────────────────────────
-        let pTab = 'regular';
+        let pTab = 's88-v2';
+
         function ptab(t) {
-            pTab = t;
-            document.querySelectorAll('[id^="ptab-"]').forEach(b => b.classList.toggle('active', b.id === 'ptab-' + t));
+            S.payoutTab = t;
+            document.querySelectorAll('#page-payout .tab').forEach(tb => tb.classList.remove('active'));
+            document.getElementById('ptab-' + t)?.classList.add('active');
         }
 
         async function runPayout() {
             if (!assertConfig()) return;
-            const amount = document.getElementById('p-amount').value;
-            if (!amount) { setOut('pay-body', '<span class="err">✗ Amount wajib diisi.</span>'); return; }
-            spin('pay-spin', true);
-
-            const isV5 = pTab === 'v5' || pTab === 'paybov5';
-            const res = await apiFetch('/api/payout/prepare', {
-                envKey: S.envKey, currency: S.currency, merchant: S.merchant,
-                amount, bankCode: v('p-bankcode'), accountName: v('p-accname'),
-                txCode: v('p-txcode'), version: isV5 ? 'v5' : 'regular',
-            });
-            spin('pay-spin', false);
-            if (!res) return;
-
-            if (isV5) {
-                setOut('pay-body',
-                    `<span class="ok">✓ Payout V5 payload generated</span>\n\n` +
-                    `<span class="dim">URL          </span> ${res.payoutUrl}\n` +
-                    `<span class="dim">TX Code      </span> ${res.txCode}\n\n` +
-                    `<span class="dim">--- Payload JSON ---</span>\n${JSON.stringify(res.payload, null, 2)}\n\n` +
-                    `<span class="dim">--- Signature (header: sign) ---</span>\n${res.signature}`);
-            } else {
-                setOut('pay-body',
-                    `<span class="ok">✓ Payout payload generated</span>\n\n` +
-                    `<span class="dim">URL          </span> ${res.payoutUrl}\n` +
-                    `<span class="dim">TX Code      </span> ${res.txCode}\n\n` +
-                    `<span class="dim">--- Payload JSON ---</span>\n${JSON.stringify(res.payload, null, 2)}\n\n` +
-                    `<span class="dim">--- Encrypted key ---</span>\n${res.encrypted}`);
+            const body = {
+                envKey: S.envKey,
+                currency: $('#e-currency').val(),
+                merchant: $('#e-merchant').val(),
+                version: S.payoutTab,
+                amount: document.getElementById('p-amount').value,
+                bankCode: document.getElementById('p-bankcode').value,
+                accountName: document.getElementById('p-accname').value || 'Test User',
+                transactionCode: document.getElementById('p-txcode').value,
+                callbackUrl: document.getElementById('p-callback').value,
+            };
+            const out = document.getElementById('pay-body');
+            const spin = document.getElementById('pay-spin');
+            out.innerHTML = `<span class="dim">// Mengirim request ${S.payoutTab}...</span>`;
+            spin.classList.remove('hidden');
+            let endpoint = '/api/payout/prepare';
+            if (S.payoutTab.includes('v5')) endpoint = '/api/payout/prepare-v5';
+            try {
+                const res = await apiFetch(endpoint, body);
+                spin.classList.add('hidden');
+                if (!res) return;
+                out.innerHTML = formatResponse(res, 'Payout ' + S.payoutTab.toUpperCase());
+                logAction('PAYOUT', `${S.payoutTab} - ${body.currency} ${body.amount}`);
+            } catch (e) {
+                spin.classList.add('hidden');
+                out.innerHTML = renderErrorCard(e.message, 'Payout Error');
             }
         }
 
@@ -1262,73 +1431,96 @@
             if (!assertConfig()) return;
             let entries;
             try { entries = JSON.parse(document.getElementById('b-json').value || '[]'); }
-            catch (e) { setOut('batch-body', `<span class="err">✗ JSON tidak valid: ${e.message}</span>`); return; }
+            catch (e) { setOut('batch-body', renderErrorCard(`JSON tidak valid: ${e.message}`, 'Parse Error')); return; }
             if (!entries.length) { autoFillBatch(); try { entries = JSON.parse(document.getElementById('b-json').value); } catch (_) { } }
             spin('batch-spin', true);
-
             const version = document.getElementById('b-version').value;
-            const endpoint = bTab === 'dep' ? '/api/batch/deposit' : '/api/batch/payout';
+            const endpoint = S.batchTab === 'dep' ? '/api/batch/deposit' : '/api/batch/payout';
             const res = await apiFetch(endpoint, { envKey: S.envKey, currency: S.currency, merchant: S.merchant, entries, version });
             spin('batch-spin', false);
             if (!res) return;
 
-            const lines = res.results.map((r, i) =>
-                `<span class="dim">--- Entry ${i + 1} ---</span>\n` +
-                `TX Code  : ${r.txCode}\n` +
-                `Name     : ${r.name}\n` +
-                (r.paymentUrl ? `URL      : ${r.paymentUrl}\n` : '') +
-                (r.encrypted ? `Encrypted: ${r.encrypted.substring(0, 60)}…\n` : '') +
-                (r.signature ? `Signature: ${r.signature.substring(0, 60)}…\n` : '')
-            ).join('\n');
+            let entriesHtml = '';
+            res.results.forEach((r, i) => {
+                const fields = [
+                    ['TX Code', r.txCode, 'code'],
+                    ['Name', r.name],
+                ];
+                if (r.paymentUrl) fields.push(['URL', r.paymentUrl, 'url']);
+                if (r.encrypted) fields.push(['Encrypted', r.encrypted.substring(0, 60) + '…']);
+                if (r.signature) fields.push(['Signature', r.signature.substring(0, 60) + '…']);
 
-            setOut('batch-body', `<span class="ok">✓ ${res.count} batch entries generated</span>\n\n` + lines +
-                `\n<span class="dim">--- Full JSON ---</span>\n` + JSON.stringify(res.results, null, 2));
+                entriesHtml += `<div class="resp-card">
+                    <div class="resp-header">
+                        <span class="resp-status info">#${i + 1}</span>
+                        <span class="resp-title">Entry ${i + 1}</span>
+                    </div>
+                    <div class="resp-body">
+                        <div class="resp-kv">`;
+                fields.forEach(([k, v, cls]) => {
+                    entriesHtml += `<span class="resp-kv-key">${escapeHtml(k)}</span>
+                                <span class="resp-kv-val ${cls || ''}">${escapeHtml(v)}</span>`;
+                });
+                entriesHtml += `</div></div></div>`;
+            });
+
+            const html = renderSuccessCard(`${res.count} Batch Entries Generated`, null) +
+                entriesHtml +
+                `<div class="resp-card"><div class="resp-header">
+                    <span class="resp-status info">JSON</span>
+                    <span class="resp-title">Full Response</span>
+                </div><div class="resp-body"><div class="resp-json">${syntaxHighlight(JSON.stringify(res.results, null, 2))}</div></div></div>`;
+
+            setOut('batch-body', html);
         }
 
         // ─── Callback ────────────────────────────────────────────────────────────────
         async function runCallback() {
             const url = v('cb-url');
-            if (!url) { setOut('cb-body', '<span class="err">✗ Callback URL wajib diisi.</span>'); return; }
+            if (!url) { setOut('cb-body', renderErrorCard('Callback URL wajib diisi.', 'Validation Error')); return; }
             const tx = v('cb-tx'), status = v('cb-status'), amount = v('cb-amount'), currency = v('cb-currency');
             let extra = {};
-            try { const ev = v('cb-extra'); if (ev) extra = JSON.parse(ev); } catch (e) { setOut('cb-body', `<span class="err">✗ Extra JSON tidak valid: ${e.message}</span>`); return; }
-
+            try { const ev = v('cb-extra'); if (ev) extra = JSON.parse(ev); } catch (e) { setOut('cb-body', renderErrorCard(`Extra JSON tidak valid: ${e.message}`, 'Parse Error')); return; }
             const payload = { transaction_code: tx, status, ...(amount && { amount: Number(amount) }), ...(currency && { currency_code: currency }), ...extra };
             spin('cb-spin', true);
-
             let responseHtml = '';
             try {
-                const resp = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    mode: 'no-cors',
-                });
-                responseHtml = `<span class="ok">✓ Request terkirim (no-cors mode, respons tidak bisa dibaca dari browser).</span>`;
+                await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), mode: 'no-cors' });
+                responseHtml = renderSuccessCard('Request Terkirim', 'no-cors mode — respons tidak bisa dibaca dari browser.');
             } catch (e) {
-                responseHtml = `<span class="warn">⚠ Fetch error (CORS/network): ${e.message}\n\nGunakan curl:\ncurl -X POST "${url}" \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(payload)}'</span>`;
+                responseHtml = renderWarningCard('Fetch Error (CORS/network)', e.message) +
+                    `\n\n<div class="resp-section"><div class="resp-section-title">cURL Alternative</div>
+                    <div class="curl-block"><span class="curl-cmd">curl</span> <span class="curl-flag">-X</span> POST <span class="curl-val">"${url}"</span> <span class="curl-flag">\\\\</span>\n  <span class="curl-flag">-H</span> <span class="curl-val">"Content-Type: application/json"</span> <span class="curl-flag">\\\\</span>\n  <span class="curl-flag">-d</span> <span class="curl-val">'${escapeHtml(JSON.stringify(payload))}'</span></div></div>`;
             }
             spin('cb-spin', false);
-
-            setOut('cb-body',
-                `<span class="dim">URL     </span> ${url}\n` +
-                `<span class="dim">Method  </span> POST\n\n` +
-                `<span class="dim">--- Payload ---</span>\n${JSON.stringify(payload, null, 2)}\n\n` +
-                responseHtml);
+            const html = renderInfoCard('Callback Payload', null, [
+                ['URL', url, 'url'], ['Method', 'POST'], ['Status', status, 'code'],
+                ['TX Code', tx], ['Amount', amount || '-'], ['Currency', currency || '-']
+            ]) + `<div class="resp-section">
+                <div class="resp-section-title">Payload JSON</div>
+                <div class="resp-json">${syntaxHighlight(JSON.stringify(payload, null, 2))}</div>
+            </div>` + responseHtml;
+            setOut('cb-body', html);
         }
 
         // ─── Check WD ────────────────────────────────────────────────────────────────
         async function runCheckWD() {
             if (!assertConfig()) return;
             const reqNo = v('wd-reqno');
-            if (!reqNo) { setOut('wd-body', '<span class="err">✗ Request No wajib diisi.</span>'); return; }
+            if (!reqNo) { setOut('wd-body', renderErrorCard('Request No wajib diisi.', 'Validation Error')); return; }
             const res = await apiFetch('/api/check-wd-status', { envKey: S.envKey, currency: S.currency, merchant: S.merchant, requestNo: reqNo });
             if (!res) return;
-            setOut('wd-body',
-                `<span class="ok">✓ Check WD Status payload generated</span>\n\n` +
-                `<span class="dim">URL      </span> ${res.url}\n\n` +
-                `<span class="dim">--- Headers ---</span>\nContent-Type: application/json\nsign: ${res.signature}\n\n` +
-                `<span class="dim">--- Payload ---</span>\n${JSON.stringify(res.payload, null, 2)}`);
+            const html = renderSuccessCard('Check WD Status', 'Signed request berhasil di-generate') +
+                renderInfoCard('Request Details', null, [
+                    ['URL', res.url, 'url'], ['Request No', reqNo, 'code']
+                ]) + `<div class="resp-section">
+                    <div class="resp-section-title info">Headers</div>
+                    <div class="resp-json">Content-Type: application/json\nsign: ${escapeHtml(res.signature)}</div>
+                </div><div class="resp-section">
+                    <div class="resp-section-title">Payload</div>
+                    <div class="resp-json">${syntaxHighlight(JSON.stringify(res.payload, null, 2))}</div>
+                </div>`;
+            setOut('wd-body', html);
         }
 
         // ─── Encrypt/Decrypt ─────────────────────────────────────────────────────────
@@ -1340,23 +1532,28 @@
 
         async function runEncrypt() {
             const input = v('enc-input');
-            if (!input) { setOut('enc-body', '<span class="err">✗ Input kosong.</span>'); return; }
+            if (!input) { setOut('enc-body', renderErrorCard('Input kosong.', 'Validation Error')); return; }
             const apiKey = v('enc-api') || S.loadedConfig?.merchantAPI;
             const secKey = v('enc-sec') || S.loadedConfig?.secretKey;
-            if (!apiKey || !secKey) { setOut('enc-body', '<span class="err">✗ API key / Secret key tidak tersedia. Isi di field override atau load konfigurasi terlebih dahulu.</span>'); return; }
-
-            if (eTab === 'sign') {
+            if (!apiKey || !secKey) { setOut('enc-body', renderErrorCard('API key / Secret key tidak tersedia. Isi di field override atau load konfigurasi terlebih dahulu.', 'Missing Keys')); return; }
+            if (S.encTab === 'sign') {
                 const res = await apiFetch('/api/sign', { data: input, secretKey: secKey });
                 if (!res) return;
-                setOut('enc-body', `<span class="ok">✓ HMAC-SHA256 Signature</span>\n\n${res.signature}`);
+                setOut('enc-body', renderSuccessCard('HMAC-SHA256 Signature', null) +
+                    `<div class="resp-section"><div class="resp-section-title">Signature</div>
+                    <div class="resp-json" style="word-break:break-all">${escapeHtml(res.signature)}</div>
+                    <div class="resp-copy-hint">Klik "Copy output" untuk menyalin</div></div>`);
                 return;
             }
-
-            const action = eTab === 'dec' ? 'decrypt' : 'encrypt';
-            const data = eTab === 'epayout' ? (() => { try { return JSON.parse(input); } catch { return input; } })() : input;
+            const action = S.encTab === 'dec' ? 'decrypt' : 'encrypt';
+            const data = S.encTab === 'epayout' ? (() => { try { return JSON.parse(input); } catch { return input; } })() : input;
             const res = await apiFetch('/api/encrypt', { action, data, apiKey, secretKey: secKey });
             if (!res) return;
-            setOut('enc-body', `<span class="ok">✓ ${action} selesai</span>\n\n${typeof res.result === 'object' ? JSON.stringify(res.result, null, 2) : res.result}`);
+            const result = typeof res.result === 'object' ? JSON.stringify(res.result, null, 2) : res.result;
+            setOut('enc-body', renderSuccessCard(`${action.charAt(0).toUpperCase() + action.slice(1)} Selesai`, null) +
+                `<div class="resp-section"><div class="resp-section-title">Result</div>
+                <div class="resp-json" style="word-break:break-all">${escapeHtml(result)}</div>
+                <div class="resp-copy-hint">Klik "Copy output" untuk menyalin</div></div>`);
         }
 
         // ─── Config page ──────────────────────────────────────────────────────────────
@@ -1491,27 +1688,186 @@
                 return null;
             }
         }
+
+        function formatResponse(data, title) {
+            const ts = new Date().toLocaleTimeString();
+            let status = 'success', statusText = 'OK';
+            if (data.error || data.status === 'error' || (data.code && data.code >= 400)) {
+                status = 'error'; statusText = 'ERROR';
+            } else if (data.status === 'pending' || data.code === 202) {
+                status = 'warn'; statusText = 'PENDING';
+            }
+
+            let html = `<div class="resp-card">
+                <div class="resp-header">
+                    <span class="resp-status ${status}">${statusText}</span>
+                    <span class="resp-title">${escapeHtml(title)}</span>
+                    <span class="resp-time">${ts}</span>
+                </div>
+                <div class="resp-body">`;
+
+            const kvPairs = [];
+            const jsonData = {};
+
+            Object.entries(data).forEach(([key, val]) => {
+                if (typeof val === 'object' && val !== null) {
+                    jsonData[key] = val;
+                } else {
+                    let cls = '';
+                    const kl = key.toLowerCase();
+                    if (kl.includes('url') || kl.includes('link')) cls = 'url';
+                    if (kl.includes('code') || kl.includes('status') || kl.includes('sign')) cls = 'code';
+                    kvPairs.push([key, String(val), cls]);
+                }
+            });
+
+            if (kvPairs.length > 0) {
+                html += `<div class="resp-section">
+                    <div class="resp-section-title ${status === 'error' ? 'error' : ''}">Response Fields</div>
+                    <div class="resp-kv">`;
+                kvPairs.forEach(([k, v, cls]) => {
+                    html += `<span class="resp-kv-key">${escapeHtml(k)}</span>
+                            <span class="resp-kv-val ${cls}">${escapeHtml(v)}</span>`;
+                });
+                html += `</div></div>`;
+            }
+
+            Object.entries(jsonData).forEach(([key, val]) => {
+                html += `<div class="resp-section">
+                    <div class="resp-section-title">${escapeHtml(key)}</div>
+                    <div class="resp-json">${syntaxHighlight(JSON.stringify(val, null, 2))}</div>
+                </div>`;
+            });
+
+            html += `<hr class="resp-divider">
+                <div class="resp-section">
+                    <div class="resp-section-title dim">Full Response</div>
+                    <div class="resp-json">${syntaxHighlight(JSON.stringify(data, null, 2))}</div>
+                </div>
+                </div></div>`;
+            return html;
+        }
+
+        function renderSuccessCard(title, subtitle) {
+            return `<div class="resp-card">
+                <div class="resp-header">
+                    <span class="resp-status success">SUCCESS</span>
+                    <span class="resp-title">${escapeHtml(title)}</span>
+                </div>
+                <div class="resp-body">
+                    ${subtitle ? `<div class="resp-section"><div class="resp-kv">
+                        <span class="resp-kv-key">Message</span>
+                        <span class="resp-kv-val">${escapeHtml(subtitle)}</span>
+                    </div></div>` : ''}`;
+        }
+
+        function renderErrorCard(message, title) {
+            return `<div class="resp-card">
+                <div class="resp-header">
+                    <span class="resp-status error">ERROR</span>
+                    <span class="resp-title">${escapeHtml(title || 'Error')}</span>
+                </div>
+                <div class="resp-body">
+                    <div class="resp-section">
+                        <div class="resp-section-title error">Details</div>
+                        <div class="resp-kv">
+                            <span class="resp-kv-key">Message</span>
+                            <span class="resp-kv-val" style="color:var(--red)">${escapeHtml(message)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderWarningCard(title, message) {
+            return `<div class="resp-card">
+                <div class="resp-header">
+                    <span class="resp-status warn">WARNING</span>
+                    <span class="resp-title">${escapeHtml(title)}</span>
+                </div>
+                <div class="resp-body">
+                    <div class="resp-section">
+                        <div class="resp-section-title warn">Details</div>
+                        <div class="resp-kv">
+                            <span class="resp-kv-key">Message</span>
+                            <span class="resp-kv-val" style="color:var(--amber)">${escapeHtml(message)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderInfoCard(title, subtitle, fields) {
+            let html = `<div class="resp-card">
+                <div class="resp-header">
+                    <span class="resp-status info">INFO</span>
+                    <span class="resp-title">${escapeHtml(title)}</span>
+                </div>
+                <div class="resp-body">`;
+            if (subtitle) {
+                html += `<div class="resp-section"><div class="resp-kv">
+                    <span class="resp-kv-key">Note</span>
+                    <span class="resp-kv-val muted">${escapeHtml(subtitle)}</span>
+                </div></div>`;
+            }
+            if (fields && fields.length) {
+                html += `<div class="resp-section"><div class="resp-kv">`;
+                fields.forEach(([k, v, cls]) => {
+                    html += `<span class="resp-kv-key">${escapeHtml(k)}</span>
+                            <span class="resp-kv-val ${cls || ''}">${escapeHtml(v || '-')}</span>`;
+                });
+                html += `</div></div>`;
+            }
+            html += `</div></div>`;
+            return html;
+        }
+
+        function syntaxHighlight(json) {
+            json = escapeHtml(json);
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) cls = 'json-key';
+                    else cls = 'json-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-bool';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
     </script>
 
     <script>
         $(document).ready(function() {
-        // Inisialisasi Currency
         $('#e-currency').select2({
             placeholder: "-- pilih currency --",
             allowClear: true,
             width: '100%'
-        }).on('select2:open', function() {
-            document.querySelector('.select2-search__field').focus();
         }).on('change', function() {
-            // Trigger fungsi onCurrencyChange secara manual
             onCurrencyChange();
+        }).on('select2:open', function() {
+            setTimeout(() => {
+                document.querySelector('.select2-search__field').focus();
+            }, 50);
         });
 
-        // Inisialisasi Merchant
         $('#e-merchant').select2({
             placeholder: "-- pilih merchant --",
             allowClear: true,
             width: '100%'
+        }).on('change', function() {
+            S.merchant = $(this).val();
         });
     });
     </script>
