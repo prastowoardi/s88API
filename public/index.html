@@ -115,38 +115,48 @@
                     <button class="tab active" onclick="dtab('s88-v2')" id="dtab-s88-v2">S88 V2</button>
                     <button class="tab" onclick="dtab('s88-v3')" id="dtab-s88-v3">S88 V3</button>
                     <button class="tab" onclick="dtab('s88-v4')" id="dtab-s88-v4">S88 V4</button>
-                </div>
-                <div class="tab-row">
                     <button class="tab" onclick="dtab('paybo-v2')" id="dtab-paybo-v2">PayBO V2</button>
                     <button class="tab" onclick="dtab('paybo-v3')" id="dtab-paybo-v3">PayBO V3</button>
                     <button class="tab" onclick="dtab('paybo-v4')" id="dtab-paybo-v4">PayBO V4</button>
                     <button class="tab" onclick="dtab('paybo-v5')" id="dtab-paybo-v5">PayBO V5</button>
                 </div>
-                <div class="form-grid">
-                    <div class="field">
-                        <div class="label">Amount</div>
-                        <input id="d-amount" type="number" placeholder="e.g. 10000" />
+                <div class="split-container">
+                    <div class="form-side">
+                        <div class="form-grid">
+                            <div class="field">
+                                <div class="label">Amount</div>
+                                <input id="d-amount" type="number" placeholder="e.g. 10000" />
+                            </div>
+                            <div class="field" id="d-bankcode-wrap">
+                                <div class="label">Bank code <span>(jika diperlukan)</span></div>
+                                <input id="d-bankcode" type="text" placeholder="e.g. HDFC, WAVEPAY, OVO" />
+                            </div>
+                            <div class="field hidden" id="d-depbank-wrap">
+                                <div class="label">Depositor bank <span>(THB only)</span></div>
+                                <input id="d-depbank" type="text" placeholder="e.g. SCB" />
+                            </div>
+                            <div class="field">
+                                <div class="label">Transaction code <span>(opsional)</span></div>
+                                <input id="d-txcode" type="text" placeholder="auto-generated" />
+                            </div>
+                            <div class="field form-full">
+                                <div class="label">Redirect URL</div>
+                                <input id="d-redirect" type="text" value="https://kaskus.id" />
+                            </div>
+                            <div class="field form-full">
+                                <div class="label">Callback URL</div>
+                                <input id="d-callback" type="text"
+                                    value="https://webhook.prastowoardi616.workers.dev/webhook" />
+                            </div>
+                        </div>
                     </div>
-                    <div class="field" id="d-bankcode-wrap">
-                        <div class="label">Bank code <span>(jika diperlukan)</span></div>
-                        <input id="d-bankcode" type="text" placeholder="e.g. HDFC, WAVEPAY, OVO" />
-                    </div>
-                    <div class="field hidden" id="d-depbank-wrap">
-                        <div class="label">Depositor bank <span>(THB only)</span></div>
-                        <input id="d-depbank" type="text" placeholder="e.g. SCB" />
-                    </div>
-                    <div class="field">
-                        <div class="label">Transaction code <span>(opsional)</span></div>
-                        <input id="d-txcode" type="text" placeholder="auto-generated" />
-                    </div>
-                    <div class="field form-full">
-                        <div class="label">Redirect URL</div>
-                        <input id="d-redirect" type="text" value="https://kaskus.id" />
-                    </div>
-                    <div class="field form-full">
-                        <div class="label">Callback URL</div>
-                        <input id="d-callback" type="text"
-                            value="https://webhook.prastowoardi616.workers.dev/webhook" />
+
+                    <div class="output-panel">
+                        <div class="output-header">
+                            <span class="output-label">Response JSON</span>
+                            <span id="dep-spin" class="hidden"><span class="spin"></span></span>
+                        </div>
+                        <div class="output-body" id="dep-body">Menunggu request...</div>
                     </div>
                 </div>
                 <div class="btn-row">
@@ -171,29 +181,45 @@
                 <div class="tab-row">
                     <button class="tab active" onclick="ptab('regular')" id="ptab-regular">S88 Regular</button>
                     <button class="tab" onclick="ptab('paybo')" id="ptab-paybo">PayBO Regular</button>
-                    <button class="tab" onclick="ptab('v5')" id="ptab-v5">V5 (Sign)</button>
+                    <button class="tab" onclick="ptab('v5')" id="ptab-v5">PayBOV5</button>
                 </div>
-                <div class="form-grid">
-                    <div class="field">
-                        <div class="label">Amount</div>
-                        <input id="p-amount" type="number" placeholder="e.g. 5000" />
+                <div class="split-container">
+                    <div class="form-side">
+                        <div class="form-grid">
+                            <div class="field">
+                                <div class="label">Amount</div>
+                                <input id="p-amount" type="number" placeholder="e.g. 5000" />
+                            </div>
+                            <div class="field">
+                                <div class="label">Bank code</div>
+                                <input id="p-bankcode" type="text" placeholder="e.g. HDFC, SCB" />
+                            </div>
+                            <div class="field">
+                                <div class="label">Account name <span>(opsional, auto-random)</span></div>
+                                <input id="p-accname" type="text" placeholder="auto-generated" />
+                            </div>
+                            <div class="field">
+                                <div class="label">Account number <span>(opsional, auto-random)</span></div>
+                                <input id="p-accnumber" type="text" placeholder="auto-generated" />
+                            </div>
+                            <div class="field">
+                                <div class="label">Transaction code <span>(opsional)</span></div>
+                                <input id="p-txcode" type="text" placeholder="auto-generated" />
+                            </div>
+                            <div class="field form-full">
+                                <div class="label">Callback URL</div>
+                                <input id="p-callback" type="text"
+                                    value="https://webhook.prastowoardi616.workers.dev/webhook" />
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="runPayout()">Generate & kirim</button>
+                        </div>
                     </div>
-                    <div class="field">
-                        <div class="label">Bank code</div>
-                        <input id="p-bankcode" type="text" placeholder="e.g. HDFC, SCB" />
-                    </div>
-                    <div class="field">
-                        <div class="label">Account name <span>(opsional, auto-random)</span></div>
-                        <input id="p-accname" type="text" placeholder="auto-generated" />
-                    </div>
-                    <div class="field">
-                        <div class="label">Transaction code <span>(opsional)</span></div>
-                        <input id="p-txcode" type="text" placeholder="auto-generated" />
-                    </div>
-                    <div class="field form-full">
-                        <div class="label">Callback URL</div>
-                        <input id="p-callback" type="text"
-                            value="https://webhook.prastowoardi616.workers.dev/webhook" />
+
+                    <div class="output-panel">
+                        <div class="output-header"><span class="output-label">Response JSON</span></div>
+                        <div class="output-body" id="pay-body">Menunggu request...</div>
                     </div>
                 </div>
                 <div class="btn-row">

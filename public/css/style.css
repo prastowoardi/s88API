@@ -823,3 +823,28 @@ textarea::placeholder {
 .curl-block .curl-cmd { color: var(--green); }
 .curl-block .curl-flag { color: var(--amber); }
 .curl-block .curl-val { color: var(--blue); }
+
+.split-container {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 20px;
+    align-items: start;
+    margin-top: 15px;
+}
+
+.split-container .output-panel {
+    margin-top: 0 !important;
+    height: 100%;
+}
+
+.split-container .output-body {
+    min-height: 450px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+    .split-container {
+        grid-template-columns: 1fr;
+    }
+}
