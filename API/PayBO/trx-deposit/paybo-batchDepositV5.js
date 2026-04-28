@@ -71,7 +71,7 @@ class BatchDepositV5Service {
 
             const text = await res.text();
             const result = JSON.parse(text);
-            logger.info(`Submit UTR Response: ${JSON.stringify(result)}`);
+            // logger.info(`Submit UTR Response: ${JSON.stringify(result)}`);
             this.stats.utrSubmitted++;
         } catch (err) {
             logger.error(`❌ Submit UTR Error: ${err.message}`);
@@ -175,7 +175,7 @@ class BatchDepositV5Service {
             const payloadStr = JSON.stringify(payload);
             const signature = signVerify("sign", payloadStr, config.secretKey);
 
-            logger.info(`URL: ${config.BASE_URL}/api/${config.merchantCode}/v5/generateDeposit`);
+            // logger.info(`URL: ${config.BASE_URL}/api/${config.merchantCode}/v5/generateDeposit`);
             // logger.info(`Request Payload: ${JSON.stringify(payload, null, 2)}`);
             // logger.info(`Signature: ${signature}`);
 
