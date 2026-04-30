@@ -247,50 +247,16 @@ export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "
 }
 
 export const generateRandomJPYData = async (customerID) => {
-    const bankKanjis = ["みずほ銀行", "三菱UFJ銀行", "三井住友銀行", "りそな銀行", "楽天銀行", "ゆうちょ銀行", "PayPay銀行"];
-    const selectedBank = faker.helpers.arrayElement(bankKanjis);
-
-    const branchName = faker.location.city(); 
-    const branchCode = faker.string.numeric(3);
-    const fullBranchFormat = `${branchName}支店(${branchCode})`;
-
     const lastNameKanji = faker.person.lastName();
     const firstNameKanji = faker.person.firstName();
-    const fullNameKanji = `${lastNameKanji} ${firstNameKanji}`;
-
-
-    const katakanaChars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-    const randomKatakana = (len) => Array.from({ length: len }, () => katakanaChars[Math.floor(Math.random() * katakanaChars.length)]).join('');
-
-    let lastNameKana = faker.person.lastName({ variant: 'katakana' });
-    let firstNameKana = faker.person.firstName({ variant: 'katakana' });
-    if (/[一-龠]/.test(lastNameKana)) {
-        lastNameKana = randomKatakana(4);
-        firstNameKana = randomKatakana(3);
-    }
-    const fullNameFurigana = `${lastNameKana} ${firstNameKana}`;
     
-    const birthDate = faker.date.between({ from: '1970-01-01', to: '2000-12-31' })
-                        .toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+    const lastNameKana = faker.person.lastName({ variant: 'katakana' });
+    const firstNameKana = faker.person.firstName({ variant: 'katakana' });
 
     return {
         customer_id: customerID || `CUST-JP-${faker.string.numeric(5)}`,
-        recipient_name: fullNameKanji, 
-        full_bank_name: selectedBank,
-        swift_code: fullBranchFormat,
-        user_name_kanji: fullNameKanji, 
-        user_name_furigana: fullNameFurigana, 
-        birth_date: birthDate,
-        nationality: "JAPAN",
-        address: `${faker.location.state()}${faker.location.city()}${faker.location.streetAddress()}`,
-        phone: "81" + faker.string.numeric(9),
-        email: faker.internet.email(),
-        income_source1: "1",
-        income_source2: "0",
-        income_source3: "0",
-        income_source4: "0",
-        attachment1Path: "./file.pdf",
-        attachment2Path: "./file.pdf"
+        username_kanji: `${lastNameKanji} ${firstNameKanji}`,
+        username_katakana: `${lastNameKana}${firstNameKana}`.replace(/\s/g, ''), // Biasanya tanpa spasi untuk sistem bank
     };
 }
 
@@ -298,133 +264,58 @@ export async function registerCustomerJPY(config, customerId) {
     const { merchantCode, BASE_URL, secretKey, merchantAPI } = config;
     const url = `${BASE_URL}/api/kyc/register/${merchantCode}`;
 
+    const checkRes = await pollKYCStatus(customerId, config);
+    const resDataCheck = checkRes?.data;
+    const statusRaw = Array.isArray(resDataCheck) ? resDataCheck[0]?.status : resDataCheck?.status;
+    const currentStatus = statusRaw?.toUpperCase();
+
+    const STATUS_SKIP = ["APPROVED", "PENDING", "PROCESSING"];
+    if (currentStatus && STATUS_SKIP.includes(currentStatus)) {
+        logger.warn(`⏭️ Skipping ${customerId}: Already in state ${currentStatus}`);
+        return { success: true, status: currentStatus, data: resDataCheck };
+    }
+
+    const payload = await generateRandomJPYData(customerId);
+    const encryptedId = encryptDecrypt("encrypt", payload.customer_id, merchantAPI, secretKey);
+
+    const form = new FormData();
+    form.append('currency', 'JPY');
+    form.append('username_katakana', payload.username_katakana);
+
     try {
-        logger.info(`URL: ${url}`);
-        logger.info(`🔍 Pre-checking status for: ${customerId}...`);
-        const checkRes = await pollKYCStatus(customerId, config);
-        
-        const resDataCheck = checkRes?.data;
-        const currentStatus = Array.isArray(resDataCheck) ? resDataCheck[0]?.status : resDataCheck?.status;
-
-        if (currentStatus) {
-            const statusUpper = currentStatus.toUpperCase();
-            
-            if (statusUpper === "APPROVED") {
-                logger.warn(`✅ User ${customerId} is already APPROVED. Skipping registration.`);
-                return { success: true, message: "Already Approved", data: resDataCheck };
-            } 
-            
-            if (statusUpper === "PENDING" || statusUpper === "PROCESSING") {
-                logger.warn(`⏳ User ${customerId} is still PENDING. Skipping registration.`);
-                return { success: true, message: "Already Pending", data: resDataCheck };
-            }
-
-            if (statusUpper === "REJECTED") {
-                logger.info(`♻️ User ${customerId} was REJECTED. Re-registering with new data...`);
-            }
-        }
-
-        const payload = await generateRandomJPYData(customerId); 
-        const nationalityCode = "JAPAN"; 
-        const encryptedCustomerId = encryptDecrypt("encrypt", payload.customer_id, merchantAPI, secretKey);
-
-        const fileDepan = "./file.pdf"; 
-        const fileBelakang = "./file.pdf";
-
-        if (!fs.existsSync(fileDepan) || !fs.existsSync(fileBelakang)) {
-            throw new Error(`File gambar tidak ditemukan! Pastikan ${fileDepan} & ${fileBelakang} sudah ada.`);
-        }
-
-        const form = new FormData();
-        form.append('currency', 'JPY');
-        form.append('recipient_name', payload.recipient_name);
-        form.append('full_bank_name', payload.full_bank_name);
-        form.append('swift_code', payload.swift_code);
-        form.append('user_name_kanji', payload.user_name_kanji);
-        form.append('user_name_furigana', payload.user_name_furigana);
-        form.append('birth_date', payload.birth_date);
-        form.append('nationality', nationalityCode);
-        form.append('address', payload.address);
-        form.append('phone', payload.phone);
-        form.append('email', payload.email);
-        form.append('income_source1', "1");
-        form.append('income_source2', "0");
-        form.append('income_source3', "0");
-        form.append('income_source4', "0");
-
-        form.append('attachment1', fs.createReadStream(fileDepan));
-        form.append('attachment2', fs.createReadStream(fileBelakang));
-
-        logger.info(`📤 Sending KYC with Real Images: ${payload.customer_id}`);
-
-        // const logFormData = (formData) => {
-        //     logger.info("--- 📦 Payload Register User ---");
-
-        //     const streams = formData._streams || [];
-
-        //     for (let i = 0; i < streams.length; i++) {
-        //         const item = streams[i];
-                
-        //         if (typeof item === 'string' && item.includes('name="')) {
-        //             const nameMatch = item.match(/name="([^"]+)"/);
-        //             if (nameMatch) {
-        //                 const fieldName = nameMatch[1];
-        //                 const value = streams[i + 1]; // Value biasanya ada di indeks setelah header
-
-        //                 if (typeof value === 'string' || typeof value === 'number') {
-        //                     logger.info(`Field [${fieldName}]: ${value}`);
-        //                 } else if (value && value.path) {
-        //                     logger.info(`Field [${fieldName}]: 📄 File (${value.path})`);
-        //                 } else {
-        //                     logger.info(`Field [${fieldName}]: [Binary/Buffer]`);
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     logger.info("---------------------------------");
-        // };
-
-        // logFormData(form);
-
-        const bodyBuffer = await new Promise((resolve, reject) => {
-            const chunks = [];
-            form.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-            form.on('error', (err) => reject(err));
-            form.on('end', () => resolve(Buffer.concat(chunks)));
-            form.resume(); 
-        });
+        logger.info(`📤 Sending KYC for: ${payload.customer_id}`);
 
         const response = await fetch(url, {
             method: 'POST',
-            body: bodyBuffer,
+            body: form,
             headers: {
                 ...form.getHeaders(),
-                'X-Encrypted-Customer-Id': encryptedCustomerId,
+                'X-Encrypted-Customer-Id': encryptedId,
                 'Idempotency-Key': uuidv4()
             }
         });
 
         const resText = await response.text();
-        const resData = JSON.parse(resText);
-        if (!response.ok) {
-            console.log("DEBUG RESPONSE:", resText);
-            logger.error(`❌ API Response (${response.status}): ${JSON.stringify(JSON.parse(resText), null, 2)}`);
-            return resData;
-        } else {
-            logger.info(`✅ KYC Registration Successful for ${payload.customer_id}: ${JSON.stringify(JSON.parse(resText), null, 2)}`);
-            return resData;
+        let resData;
+
+        try {
+            resData = JSON.parse(resText);
+        } catch (e) {
+            resData = { message: "Invalid JSON response", raw: resText };
         }
 
-        // FOR DEBUGGING PURPOSES ONLY - LOG RAW RESPONSE
-        // const resultJson = JSON.parse(resText);
-        // logger.info(`⛹ User ID Registered: ${payload.customer_id}`);
-        // logger.info(`🔍 Encrypted User ID: ${encryptedCustomerId}`);
-        // return payload;
+        if (!response.ok) {
+            // console.log("⚠️ DEBUG RAW RESPONSE:", resText);
+            logger.error(`❌ KYC Failed for ${payload.username_katakana} (${response.status})`);
+            logger.error(`❌ Response (${response.status}): ${typeof resData === 'object' ? JSON.stringify(resData, null, 2) : resText}`);
+            
+            return resData; 
+        }
 
+        return resData;
     } catch (error) {
-        console.error("DEBUG ERROR REGISTER:", error); 
-        // logger.error(`❌ Registration Error: ${error.message}`);
-        // throw error;
+        logger.error(`❌ Registration Error for ${customerId}: ${error.message}`);
+        throw error;
     }
 }
 
