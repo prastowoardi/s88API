@@ -135,8 +135,8 @@ async function sendDeposit() {
 
         let userID;
         if (currency === "JPY") {
-            // userID = `CUST-JP-${faker.string.numeric(5)}`; 
-            userID = "NASHEED" // Approved user from QFPay
+            userID = `CUST-JP-${faker.string.numeric(5)}`; 
+            // userID = "NASHEED" // Approved user from QFPay
         } else {
             userID = randomInt(100, 999).toString();
         }        
@@ -180,7 +180,8 @@ async function sendDeposit() {
                 }
 
                 if (!isApproved) {
-                    throw new Error(`KYC timeout after ${maxAttempts} attempts.`);
+                    logger.error(`⚠️  KYC_TIMEOUT: User ${userID} still pending when system trying to polling the status.\n`);
+                    process.exit();
                 }
             } catch (kycErr) {
                 logger.error(`❌ KYC Process Failed: ${kycErr.message}`);

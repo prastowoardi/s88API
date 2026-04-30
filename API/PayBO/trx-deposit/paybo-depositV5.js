@@ -167,59 +167,59 @@ async function sendDeposit() {
         if (phone) payload.cust_phone = phone;
         if (cardNumber) payload.card_number = cardNumber;
 
-        // if (currency === "JPY") {
-        //     logger.info("🔹 Registering KYC JPY...");
+        if (currency === "JPY") {
+            logger.info("🔹 Registering KYC JPY...");
             
-        //     try {
-        //         if (typeof faker === 'undefined') {
-        //             throw new Error("Library 'faker' belum di-import di file ini!");
-        //         }
+            try {
+                if (typeof faker === 'undefined') {
+                    throw new Error("Library 'faker' belum di-import di file ini!");
+                }
 
-        //         logger.info(`Generated ID: ${userID}`);
+                logger.info(`Generated ID: ${userID}`);
 
-        //         const kycData = await registerCustomerJPY(config, userID);
+                const kycData = await registerCustomerJPY(config, userID);
 
-        //         if (!kycData) {
-        //             logger.error("❌ Registrasi gagal (Response Kosong)");
-        //             return;
-        //         }
+                if (!kycData) {
+                    logger.error("❌ Registrasi gagal (Response Kosong)");
+                    return;
+                }
 
-        //         let isApproved = false;
-        //         let attempts = 0;
-        //         const maxAttempts = 3;
+                let isApproved = false;
+                let attempts = 0;
+                const maxAttempts = 3;
 
-        //         while (!isApproved && attempts < maxAttempts) {
-        //             attempts++;
-        //             logger.info(`🔍 Checking status ${userID} (Attempt ${attempts}/${maxAttempts})...`);
+                while (!isApproved && attempts < maxAttempts) {
+                    attempts++;
+                    logger.info(`🔍 Checking status ${userID} (Attempt ${attempts}/${maxAttempts})...`);
 
-        //             const pollResult = await pollKYCStatus(userID, config);
+                    const pollResult = await pollKYCStatus(userID, config);
                     
-        //             const status = pollResult?.data?.status || pollResult?.status;
+                    const status = pollResult?.data?.status || pollResult?.status;
 
-        //             if (status === "APPROVED") {
-        //                 isApproved = true;
-        //                 payload.cust_name = kycData.recipient_name;
-        //                 payload.user_id = userID; 
-        //                 logger.info("✅ KYC APPROVED!");
-        //             } else if (status === "REJECTED") {
-        //                 logger.error("❌ KYC REJECTED oleh server.");
-        //                 return;
-        //             } else {
-        //                 logger.info(`⏳ Status: ${status || 'PENDING'}. Waiting 5s...`);
-        //                 await new Promise(r => setTimeout(r, 5000));
-        //             }
-        //         }
+                    if (status === "APPROVED") {
+                        isApproved = true;
+                        payload.cust_name = kycData.recipient_name;
+                        payload.user_id = userID; 
+                        logger.info("✅ KYC APPROVED!");
+                    } else if (status === "REJECTED") {
+                        logger.error("❌ KYC REJECTED oleh server.");
+                        return;
+                    } else {
+                        logger.info(`⏳ Status: ${status || 'PENDING'}. Waiting 5s...`);
+                        await new Promise(r => setTimeout(r, 5000));
+                    }
+                }
 
-        //         if (!isApproved) {
-        //             logger.error("❌ KYC Timeout (Status masih PENDING).");
-        //             return;
-        //         }
+                if (!isApproved) {
+                    logger.error(`⚠️  KYC_TIMEOUT: User ${userID} still pending when system trying to polling the status.\n`);
+                    process.exit();
+                }
 
-        //     } catch (innerError) {
-        //         console.error(innerError); 
-        //         return;
-        //     }
-        // }
+            } catch (innerError) {
+                console.error(innerError); 
+                return;
+            }
+        }
 
         payload = await applyCurrencySpecificPayload(payload, currency, bankCode, cardNumber, config);
 
