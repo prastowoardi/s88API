@@ -116,6 +116,7 @@ class DepositService {
 
         if (tx.currency === "KRW") {
             payload.depositor_name = user.name;
+            payload.depositor_account_number = user.accountNumber;
         }
 
         if (tx.currency === "JPY") {
@@ -151,6 +152,7 @@ class DepositService {
         try {
             return JSON.parse(text);
         } catch (err) {
+            console.log(`Response Text from ${url}:\n${text}\n`);
             logger.error(`❌ Failed to parse JSON from ${url}: ${err.message}`);
             return null;
         }

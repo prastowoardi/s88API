@@ -107,6 +107,11 @@ class DepositService {
             basePayload.depositor_name = await getRandomName('jp', true);
         }
 
+        if (tx.currency === "KRW") {
+            basePayload.depositor_name = await getRandomName('kr', true);
+            basePayload.depositor_account_number = userInfo.accountNumber
+        }
+
         // Only for Erfolg provider
         // if (tx.currency === "INR") {
         //     const email = `${userInfo.name.toLowerCase().replace(/\s/g, "")}@tank.com`;
