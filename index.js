@@ -169,7 +169,7 @@ function printRunSummary(envConfig, scriptConfig, currency, selectedMerchant, ac
     console.log(`   Merchant        : ${selectedMerchant}`);
     console.log(`   Merchant Code   : ${process.env[`MERCHANT_CODE_${currency}`] ?? "Not set"}`);
     if (method !== null) {
-      console.log(`   ${kind === "deposit" ? "Deposit" : "Payout"} Method   : ${method ?? "Not set"}`);
+      console.log(`   ${kind === "deposit" ? "Deposit" : "Payout "} Method  : ${method ?? "Not set"}`);
     }
   }
   console.log(`   Base URL        : ${process.env.BASE_URL ?? "Not set"}`);
