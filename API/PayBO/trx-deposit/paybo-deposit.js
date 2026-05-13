@@ -3,13 +3,14 @@ import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { faker } from "@faker-js/faker";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber,registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, generateEmail, getAccountNumber,registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
+const xxx = await generateEmail();
 
 async function buildPayload(config, tx, userInfo = {}) {
     const payloadObj = {
@@ -45,18 +46,18 @@ async function buildPayload(config, tx, userInfo = {}) {
         }),
         ...(tx.currency === "JPY" && { cust_name: await getRandomName("jp", true) }),
         // Uncomment for Erfolgpay
-        // ...(tx.currency === "INR" && {
-        //     product_name:"pillow",
-        //     cust_name:"Percival Parlay Peacock",
-        //     cust_email:"percival_peacock@test.com",
-        //     cust_phone:"9812763405",
-        //     cust_city:"Mumbai",
-        //     cust_country:"India",
-        //     zip_code:"21323",
-        //     cust_pan_number:"VIPPA1236A",
-        //     cust_address:"The Stacks, Columbus, Ohio",
-        //     cust_website_url:"https://api.mins31.com"
-        // }),
+        ...(tx.currency === "INR" && {            
+            product_name:"pillow",
+            cust_name:xxx.name,
+            cust_email:xxx.email,
+            cust_phone:"9812763405",
+            cust_city:"Mumbai",
+            cust_country:"India",
+            zip_code:"21323",
+            cust_pan_number:"VIPPA1236A",
+            cust_address:"The Stacks, Columbus, Ohio",
+            cust_website_url:"https://api.mins31.com"
+        }),
         ...(tx.currency === "USDT" && {
             rate: readlineSync.question("Masukkan Rate: ").trim(),
             bank_code: tx.bankCode,
@@ -201,7 +202,12 @@ async function sendDeposit() {
             tx.accountType = accountType;
         }
 
-        const userInfo = { name: await getRandomName(), accountNumber: cardNumber };
+        const userInfo = {
+            name: user.name,
+            email: user.email,
+            accountNumber: cardNumber
+        };
+
         const payload = await buildPayload(config, tx, userInfo);
         const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 

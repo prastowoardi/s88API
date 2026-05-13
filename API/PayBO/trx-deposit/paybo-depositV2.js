@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import open from "open";
 import { faker } from '@faker-js/faker';
 import { randomInt } from "crypto";
-import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
+import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, generateEmail, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -40,18 +40,20 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
   const userName = await getRandomName();
   switch (currency) {
     // Uncomment for Erfolgpay
-    // case "INR":
-    //   payloadObj.product_name="pillow"
-    //   payloadObj.cust_name="Percival Parlay Peacock"
-    //   payloadObj.cust_email="percival_peacock@test.com"
-    //   payloadObj.cust_phone="9812763405"
-    //   payloadObj.cust_city="Mumbai"
-    //   payloadObj.cust_country="India"
-    //   payloadObj.zip_code="21323",
-    //   payloadObj.cust_pan_number="VIPPA1236A",
-    //   payloadObj.cust_address="The Stacks, Columbus, Ohio",
-    //   payloadObj.cust_website_url="https://api.mins31.com"
-    //   break;
+    case "INR":
+      const user = await generateEmail();
+
+      payloadObj.product_name="pillow",
+      payloadObj.cust_name=user.name,
+      payloadObj.cust_email=user.email,
+      payloadObj.cust_phone="9812763405",
+      payloadObj.cust_city="Mumbai",
+      payloadObj.cust_country="India",
+      payloadObj.zip_code="21323",
+      payloadObj.cust_pan_number="VIPPA1236A",
+      payloadObj.cust_address="The Stacks, Columbus, Ohio",
+      payloadObj.cust_website_url="https://api.mins31.com"
+      break;
     case "KRW":
       payloadObj.bank_code = bankCode;
       payloadObj.card_holder_name = await getRandomName("kr", true);

@@ -199,6 +199,27 @@ export function getAccountNumber(length = 8) {
     return s;
 }
 
+export async function generateEmail({
+    domain = "example.com"
+} = {}) {
+    const name = await getRandomName();
+
+    const emailBase = name
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]/g, "")
+        .split(" ")
+        .filter(Boolean)
+        .join(".");
+
+    const randomNum = Math.floor(Math.random() * 1000);
+    const email = `${emailBase}${randomNum}@${domain}`;
+
+    return {
+        name,
+        email
+};
+}
+
 export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "USDT", type = "withdraw") {
     const wallet = CoinKey.createRandom();
     // console.log("SAVE BUT DO NOT SHARE THIS:", wallet.privateKey.toString('hex'));

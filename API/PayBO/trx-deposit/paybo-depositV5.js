@@ -4,7 +4,7 @@ import logger from "../../logger.js";
 import open from "open";
 import { faker } from '@faker-js/faker';
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, getRandomIP, getRandomName, getAccountNumber, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, getRandomIP, getRandomName, generateEmail, getAccountNumber, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
@@ -67,18 +67,20 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
     const name = await getRandomName();
     switch(currency) {
         // Uncomment for Erfolgpay
-        // case "INR":
-            // payload.product_name="pillow"
-            // payload.cust_name="Percival Parlay Peacock"
-            // payload.cust_email="percival_peacock@test.com"
-            // payload.cust_phone="9812763405"
-            // payload.cust_city="Mumbai"
-            // payload.cust_country="India"
-            // payload.zip_code="21323",
-            // payload.cust_pan_number="VIPPA1236A",
-            // payload.cust_address="The Stacks, Columbus, Ohio",
-            // payload.cust_website_url="https://api.mins31.com"
-            // break;
+        case "INR":
+            const user = await generateEmail();
+
+            payload.product_name="pillow",
+            payload.cust_name=user.name,
+            payload.cust_email=user.email,
+            payload.cust_phone="9812763405",
+            payload.cust_city="Mumbai",
+            payload.cust_country="India",
+            payload.zip_code="21323",
+            payload.cust_pan_number="VIPPA1236A",
+            payload.cust_address="The Stacks, Columbus, Ohio",
+            payload.cust_website_url="https://api.mins31.com"
+            break;
         case "KRW":
             payload.cust_name = await getRandomName("kr", true);
             payload.bank_name = bankCode;
