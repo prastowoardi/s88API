@@ -20,8 +20,8 @@
   },
   "scripts": {
     "start": "node index.js",
-    "ex-staging": "cross-env NODE_ENV=PayBO_staging node API/PayBO/api-ex/ex-deposit.js",
-    "ex-production": "cross-env NODE_ENV=PayBO_snappay node API/PayBO/api-ex/ex-deposit.js"
+    "ex-staging": "cross-env NODE_ENV=PayBO_staging node API/PayBO/api-ex/ex-runner.js",
+    "ex-production": "cross-env NODE_ENV=PayBO_snappay node API/PayBO/api-ex/ex-runner.js"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"

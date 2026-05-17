@@ -132,7 +132,7 @@ export async function runGenerateVA(token, amount, channel, transactionCode) {
     }
 }
 
-export async function runCreateWithdrawal(token, amount, bankId, accountNumber, transactionCode) {
+export async function runCreateWithdrawal(token, amount, bankId, accountNumber, accountName, transactionCode) {
     logger.info("======== 💸 CREATE WITHDRAWAL ========");
     const currency = getCurrentCurrency();
 
@@ -144,7 +144,7 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
         channel: channelType,
         currency_code: currency,
         bank_id: bankId || "3",
-        account_holder_name: "SUCCESS",
+        account_holder_name: accountName || "Ujang",
         account_number: accountNumber || "123132123"
     };
 

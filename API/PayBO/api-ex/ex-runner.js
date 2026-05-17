@@ -36,8 +36,8 @@ readlineSync.setDefaultOptions({
     keepLoop: false
 });
 
-function generateTrxCode() {
-    return `TEST-API-Ex-${Math.floor(Date.now() / 1000)}`;
+function generateTrxCode(type = "DP") {
+    return `TEST-${type.toUpperCase()}-API-Ex-${Math.floor(Date.now() / 1000)}`;
 }
 
 async function apiEx() {
@@ -55,8 +55,8 @@ async function apiEx() {
         "Generate QRIS Payment",
         "Generate Virtual Account",
         "Create Withdrawal (Pay-Out)",
-        "Inquiry Status Transaction (Pay-In)",
-        "Inquiry Status Withdrawal (Pay-Out)",
+        "Inquiry Status Pay-In",
+        "Inquiry Status Pay-Out",
         "Check Balance",
         "List Supported Banks"
     ];
@@ -83,6 +83,7 @@ async function apiEx() {
                 break;
             }
             case 1: {
+                const transactionCode = generateTrxCode("DP");
                 const amountInput = readlineSync.question("Masukkan Amount Pay-In (Default 10.000): ");
                 if (amountInput === null) handleGracefulStop();
                 const amount = Number(amountInput || 10000);
@@ -102,6 +103,7 @@ async function apiEx() {
                 break;
             }
             case 3: {
+                const transactionCode = generateTrxCode("WD");
                 const amountInput = readlineSync.question("Masukkan Amount Pay-Out (Default 10.000): ");
                 if (amountInput === null) handleGracefulStop();
                 const amount = Number(amountInput || 10000);
@@ -114,7 +116,11 @@ async function apiEx() {
                 if (accNumInput === null) handleGracefulStop();
                 const accNum = accNumInput || "123132123";
 
-                await runCreateWithdrawal(token, amount, bankId, accNum, transactionCode);
+                const accNameInput = readlineSync.question("Masukkan Account Name (Default Ujang): ");
+                if (accNameInput === null) handleGracefulStop();
+                const accName = accNameInput || "Ujang";
+
+                await runCreateWithdrawal(token, amount, bankId, accNum, accName, transactionCode);
                 break;
             }
             case 4: {
