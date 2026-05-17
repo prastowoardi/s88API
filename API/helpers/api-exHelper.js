@@ -1,18 +1,21 @@
 import fetch from "node-fetch";
 import logger from "../logger.js";
 import { generateEmail } from "./utils.js";
-import { randomPhoneNumber } from "./depositHelper.js"
-import { BASE_URL, MERCHANT_API_KEY_IDR, SECRET_TOKEN } from "../Config/config.js";
+import { randomPhoneNumber } from "./depositHelper.js";
 
 function getCurrentCurrency() {
     return (process.env.CURRENCY || "IDR").toUpperCase();
 }
 
 function getHeaders(token = null) {
+    const currency = getCurrentCurrency();
+    const apiKey = process.env[`MERCHANT_API_KEY_${currency}`] || process.env.MERCHANT_API_KEY_IDR;
+    const secretToken = process.env.SECRET_TOKEN;
+
     const headers = {
         "Content-Type": "application/json",
-        "x-api-key": MERCHANT_API_KEY_IDR,
-        "secret-token": SECRET_TOKEN
+        "x-api-key": apiKey,
+        "secret-token": secretToken
     };
 
     if (token) {
@@ -22,21 +25,22 @@ function getHeaders(token = null) {
 }
 
 async function userGenerate() {
-    const user = await generateEmail();
-
-    const name = user.name;
-    const email = user.email;
-
-    return { name, email };
+    try {
+        const user = await generateEmail();
+        const name = user?.name || "TES";
+        const email = user?.email || "example@mail.com";
+        return { name, email };
+    } catch (e) {
+        return { name: "TES", email: "example@mail.com" };
+    }
 }
-
-const userData = await userGenerate();
 
 export async function runAuthentication() {
     logger.info("======== 🔐 API AUTHENTICATION ========");
+    const baseUrl = process.env.BASE_URL;
     
     try {
-        const res = await fetch(`${BASE_URL}/api/auth/generate-token`, {
+        const res = await fetch(`${baseUrl}/api/auth/generate-token`, {
             method: "POST",
             headers: getHeaders()
         });
@@ -49,7 +53,7 @@ export async function runAuthentication() {
 
         const result = JSON.parse(responseBody);
         if (result?.data?.token) {
-            logger.info(`Token: ${result.data.token}`)
+            logger.info(`Token: ${result.data.token}`);
             logger.info("✅ Token successfully generated!");
             return `Bearer ${result.data.token}`;
         }
@@ -64,7 +68,9 @@ export async function runAuthentication() {
 
 export async function runGenerateQRIS(token, amount, transactionCode) {
     logger.info("======== 📱 GENERATE QRIS PAYMENT ========");
+    const baseUrl = process.env.BASE_URL;
     const currency = getCurrentCurrency();
+    const userData = await userGenerate();
 
     let paymentChannel = "QRIS"; 
     if (currency === "IDR") {
@@ -81,9 +87,8 @@ export async function runGenerateQRIS(token, amount, transactionCode) {
         phone_number: await randomPhoneNumber("idr")
     };
 
-    // logger.info(`Payload: ${JSON.stringify(payload, null, 2)}`);
     try {
-        const res = await fetch(`${BASE_URL}/api/payment/generate-qris`, {
+        const res = await fetch(`${baseUrl}/api/payment/generate-qris`, {
             method: "POST",
             headers: getHeaders(token),
             body: JSON.stringify(payload)
@@ -102,7 +107,9 @@ export async function runGenerateQRIS(token, amount, transactionCode) {
 
 export async function runGenerateVA(token, amount, channel, transactionCode) {
     logger.info("======== 💳 GENERATE VIRTUAL ACCOUNT ========");
+    const baseUrl = process.env.BASE_URL;
     const currency = getCurrentCurrency();
+    const userData = await userGenerate();
 
     const payload = {
         no_transaction: transactionCode,
@@ -115,7 +122,7 @@ export async function runGenerateVA(token, amount, channel, transactionCode) {
     };
 
     try {
-        const res = await fetch(`${BASE_URL}/api/payment/generate-va`, {
+        const res = await fetch(`${baseUrl}/api/payment/generate-va`, {
             method: "POST",
             headers: getHeaders(token),
             body: JSON.stringify(payload)
@@ -132,8 +139,9 @@ export async function runGenerateVA(token, amount, channel, transactionCode) {
     }
 }
 
-export async function runCreateWithdrawal(token, amount, bankId, accountNumber, accountName, transactionCode) {
+export async function runCreateWithdrawal(token, amount, bankId, accountNumber, transactionCode) {
     logger.info("======== 💸 CREATE WITHDRAWAL ========");
+    const baseUrl = process.env.BASE_URL;
     const currency = getCurrentCurrency();
 
     let channelType = "domestic_transfer";
@@ -144,14 +152,13 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
         channel: channelType,
         currency_code: currency,
         bank_id: bankId || "2",
-        account_holder_name: accountName || "Ujang",
+        account_holder_name: "Ujang",
         account_number: accountNumber || "12340995811",
-        description:"testing"
+        description: "testing"
     };
 
-    // logger.info(`Payload: ${JSON.stringify(payload, null, 2)}`)
     try {
-        const res = await fetch(`${BASE_URL}/api/withdrawal-balance`, {
+        const res = await fetch(`${baseUrl}/api/withdrawal-balance`, {
             method: "POST",
             headers: getHeaders(token),
             body: JSON.stringify(payload)
@@ -170,11 +177,12 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
 
 export async function runInquiryDeposit(token, transactionCode) {
     logger.info("======== 🔍 INQUIRY TRANSACTION STATUS ========");
+    const baseUrl = process.env.BASE_URL;
 
     const payload = { no_transaction: transactionCode };
 
     try {
-        const res = await fetch(`${BASE_URL}/api/inquiry-transaction`, {
+        const res = await fetch(`${baseUrl}/api/inquiry-transaction`, {
             method: "POST",
             headers: getHeaders(token),
             body: JSON.stringify(payload)
@@ -193,9 +201,10 @@ export async function runInquiryDeposit(token, transactionCode) {
 
 export async function runGetBalance(token) {
     logger.info("======== 💰 GET BALANCE ========");
+    const baseUrl = process.env.BASE_URL;
 
     try {
-        const res = await fetch(`${BASE_URL}/api/get-balance`, {
+        const res = await fetch(`${baseUrl}/api/get-balance`, {
             method: "POST",
             headers: getHeaders(token),
             body: "" 
@@ -214,11 +223,12 @@ export async function runGetBalance(token) {
 
 export async function runInquiryWithdrawal(token, partnerReference) {
     logger.info("======== 🔍 INQUIRY WITHDRAWAL STATUS ========");
+    const baseUrl = process.env.BASE_URL;
 
     const payload = { no_partner_reference: partnerReference };
 
     try {
-        const res = await fetch(`${BASE_URL}/api/inquiry-money-out`, {
+        const res = await fetch(`${baseUrl}/api/inquiry-money-out`, {
             method: "POST",
             headers: getHeaders(token),
             body: JSON.stringify(payload)
@@ -237,9 +247,10 @@ export async function runInquiryWithdrawal(token, partnerReference) {
 
 export async function runListBanks(token) {
     logger.info("======== 🏦 LIST BANKS (GET) ========");
+    const baseUrl = process.env.BASE_URL;
 
     try {
-        const res = await fetch(`${BASE_URL}/api/list-banks`, {
+        const res = await fetch(`${baseUrl}/api/list-banks`, {
             method: "GET",
             headers: getHeaders(token)
         });
