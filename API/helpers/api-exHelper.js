@@ -139,7 +139,7 @@ export async function runGenerateVA(token, amount, channel, transactionCode) {
     }
 }
 
-export async function runCreateWithdrawal(token, amount, bankId, accountNumber, transactionCode) {
+export async function runCreateWithdrawal(token, amount, bankId, accountNumber, accountName, transactionCode) {
     logger.info("======== 💸 CREATE WITHDRAWAL ========");
     const baseUrl = process.env.BASE_URL;
     const currency = getCurrentCurrency();
@@ -156,6 +156,8 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
         account_number: accountNumber || "12340995811",
         description: "testing"
     };
+
+    // logger.info(`Payload: ${JSON.stringify(payload, null, 2)}`)
 
     try {
         const res = await fetch(`${baseUrl}/api/withdrawal-balance`, {
