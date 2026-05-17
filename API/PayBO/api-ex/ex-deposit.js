@@ -40,17 +40,18 @@ function generateTrxCode() {
     return `TEST-API-Ex-${Math.floor(Date.now() / 1000)}`;
 }
 
-async function startPayboCLI() {
+async function apiEx() {
     logger.info("🚀 GEMPITA CUSTOM API (API EX)");
     logger.info("========================================================");
 
-    const token = await runAuthentication();
+    let token = await runAuthentication();
     if (!token) {
         logger.error("🛑 Proses dihentikan karena gagal mengonfirmasi token.");
         return;
     }
 
     const menus = [
+        "🔄 Regenerate Token (Refresh Auth)",
         "Generate QRIS Payment",
         "Generate Virtual Account",
         "Create Withdrawal (Pay-Out)",
@@ -72,13 +73,23 @@ async function startPayboCLI() {
 
         switch (index) {
             case 0: {
+                const newToken = await runAuthentication();
+                if (newToken) {
+                    token = newToken;
+                    logger.info("✅ Session token has been successfully refreshed!");
+                } else {
+                    logger.error("❌ Failed to refresh token. Keeping the old token.");
+                }
+                break;
+            }
+            case 1: {
                 const amountInput = readlineSync.question("Masukkan Amount Pay-In (Default 10.000): ");
                 if (amountInput === null) handleGracefulStop();
                 const amount = Number(amountInput || 10000);
                 await runGenerateQRIS(token, amount, transactionCode);
                 break;
             }
-            case 1: {
+            case 2: {
                 const amountInput = readlineSync.question("Masukkan Amount VA: ");
                 if (amountInput === null) handleGracefulStop();
                 const amount = Number(amountInput);
@@ -90,7 +101,7 @@ async function startPayboCLI() {
                 await runGenerateVA(token, amount, channel, transactionCode);
                 break;
             }
-            case 2: {
+            case 3: {
                 const amountInput = readlineSync.question("Masukkan Amount Pay-Out (Default 10.000): ");
                 if (amountInput === null) handleGracefulStop();
                 const amount = Number(amountInput || 10000);
@@ -106,23 +117,23 @@ async function startPayboCLI() {
                 await runCreateWithdrawal(token, amount, bankId, accNum, transactionCode);
                 break;
             }
-            case 3: {
+            case 4: {
                 const targetTrx = readlineSync.question("Masukkan Nomor Transaksi Pay-In: ");
                 if (targetTrx === null) handleGracefulStop();
                 if (targetTrx.trim()) await runInquiryTransaction(token, targetTrx.trim());
                 break;
             }
-            case 4: {
+            case 5: {
                 const targetRef = readlineSync.question("Masukkan No Partner Reference: ");
                 if (targetRef === null) handleGracefulStop();
                 if (targetRef.trim()) await runInquiryWithdrawal(token, targetRef.trim());
                 break;
             }
-            case 5: {
+            case 6: {
                 await runGetBalance(token);
                 break;
             }
-            case 6: {
+            case 7: {
                 await runListBanks(token);
                 break;
             }
@@ -131,4 +142,4 @@ async function startPayboCLI() {
     }
 }
 
-startPayboCLI();
+apiEx();
