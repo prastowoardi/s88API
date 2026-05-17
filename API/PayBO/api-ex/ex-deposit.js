@@ -37,7 +37,7 @@ readlineSync.setDefaultOptions({
 });
 
 function generateTrxCode() {
-    return `TEST-POSTMAN-${Math.floor(Date.now() / 1000)}`;
+    return `TEST-API-Ex-${Math.floor(Date.now() / 1000)}`;
 }
 
 async function startPayboCLI() {
@@ -53,9 +53,9 @@ async function startPayboCLI() {
     const menus = [
         "Generate QRIS Payment",
         "Generate Virtual Account",
-        "Create Withdrawal (Money Out)",
-        "Inquiry Status Transaction (Pay In)",
-        "Inquiry Status Withdrawal (Money Out)",
+        "Create Withdrawal (Pay-Out)",
+        "Inquiry Status Transaction (Pay-In)",
+        "Inquiry Status Withdrawal (Pay-Out)",
         "Check Balance",
         "List Supported Banks"
     ];
@@ -72,26 +72,26 @@ async function startPayboCLI() {
 
         switch (index) {
             case 0: {
-                const amountInput = readlineSync.question("Masukkan Amount QRIS (Default 31881): ");
+                const amountInput = readlineSync.question("Masukkan Amount Pay-In (Default 10.000): ");
                 if (amountInput === null) handleGracefulStop();
-                const amount = Number(amountInput || 31881);
+                const amount = Number(amountInput || 10000);
                 await runGenerateQRIS(token, amount, transactionCode);
                 break;
             }
             case 1: {
-                const amountInput = readlineSync.question("Masukkan Amount VA (Default 31881): ");
+                const amountInput = readlineSync.question("Masukkan Amount VA: ");
                 if (amountInput === null) handleGracefulStop();
-                const amount = Number(amountInput || 31881);
+                const amount = Number(amountInput);
 
-                const channelInput = readlineSync.question("Masukkan Channel (Default VABNI): ");
+                const channelInput = readlineSync.question("Masukkan Channel (Default QRIS): ");
                 if (channelInput === null) handleGracefulStop();
-                const channel = channelInput.toUpperCase() || "VABNI";
+                const channel = channelInput.toUpperCase() || "qris";
 
                 await runGenerateVA(token, amount, channel, transactionCode);
                 break;
             }
             case 2: {
-                const amountInput = readlineSync.question("Masukkan Amount Withdrawal (Default 10000): ");
+                const amountInput = readlineSync.question("Masukkan Amount Pay-Out (Default 10.000): ");
                 if (amountInput === null) handleGracefulStop();
                 const amount = Number(amountInput || 10000);
 
