@@ -34,7 +34,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 const currencies = ['INR', 'VND', 'BDT', 'MMK', 'BRL', 'IDR', 'THB', 'MXN', 'KRW', 'PHP', 'HKD', "KHR", "MYR", 'JPY'];
 const merchantFields = ['SECRET_KEY', 'DEPOSIT_METHOD', 'PAYOUT_METHOD', 'MERCHANT_API_KEY', 'MERCHANT_CODE'];
 const pmiFields = ['PMI_WD_URL', 'PMI_DP_URL', 'PMI_AUTHORIZATION', 'MERCHANT_CODE_PMI', 'SECRET_KEY_PMI', 'DEPOSIT_METHOD_PMI', 'PAYOUT_METHOD_PMI', 'MERCHANT_API_KEY_PMI'];
-const staticFields = ['BASE_URL', 'API_NINJAS_KEY'];
+const staticFields = ['BASE_URL', 'API_NINJAS_KEY', 'MERCHANT_API_KEY_IDR', 'SECRET_TOKEN'];
 
 const allFields = [
     ...staticFields,
@@ -50,6 +50,7 @@ allFields.forEach(field => {
 export const {
     BASE_URL,
     API_NINJAS_KEY,
+    SECRET_TOKEN,
     SECRET_KEY_INR, DEPOSIT_METHOD_INR, PAYOUT_METHOD_INR, MERCHANT_API_KEY_INR, MERCHANT_CODE_INR,
     SECRET_KEY_VND, DEPOSIT_METHOD_VND, PAYOUT_METHOD_VND, MERCHANT_API_KEY_VND, MERCHANT_CODE_VND,
     SECRET_KEY_BDT, DEPOSIT_METHOD_BDT, PAYOUT_METHOD_BDT, MERCHANT_API_KEY_BDT, MERCHANT_CODE_BDT,
@@ -70,19 +71,23 @@ export const {
 
 export const CALLBACK_URL = "https://webhook.prastowoardi616.workers.dev/webhook";
 
-const missingKeys = currencies.filter(curr => !process.env[`SECRET_KEY_${curr}`]);
+// Pengecekan Bersyarat: Hanya lakukan throw error jika BUKAN environment PayBO
+const isPayBO = process.env.NODE_ENV && process.env.NODE_ENV.startsWith('PayBO_');
 
-if (missingKeys.length > 0) {
-    console.error(`❌ Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
-    throw new Error(`Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
-}
-
-if (!PMI_DP_URL || !PMI_WD_URL) {
-    throw new Error("PMI BASE_URL is required and cannot be empty.");
-}
-
-if (!PMI_AUTHORIZATION) {
-    throw new Error("PMI authorization is required and cannot be empty.");
+if (!isPayBO) {
+    const missingKeys = currencies.filter(curr => !process.env[`SECRET_KEY_${curr}`]);
+    if (missingKeys.length > 0) {
+        console.error(`❌ Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
+        throw new Error(`Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
+    }
+    if (!PMI_DP_URL || !PMI_WD_URL) throw new Error("PMI BASE_URL is required and cannot be empty.");
+    if (!PMI_AUTHORIZATION) throw new Error("PMI authorization is required and cannot be empty.");
+} else {
+    // Validasi khusus untuk env PayBO / Monebash
+    if (!BASE_URL) throw new Error("BASE_URL is required for PayBO environment.");
+    if (!MERCHANT_API_KEY_IDR || !SECRET_TOKEN) {
+        throw new Error("PAYBO_X_API_KEY and PAYBO_SECRET_TOKEN are required in your .paybo_* file.");
+    }
 }
 
 if (!API_NINJAS_KEY) {

@@ -65,6 +65,7 @@ const SCRIPT_ACTIONS = {
   payboBatchPayoutV5:   { path: "API/PayBO/trx-payout/paybo-batchPayoutV5.js",  label: "PayBO Batch Withdraw V5", type: "PayBO", kind: "payout"  },
 
   // Other
+  payboApiEx:       { path: "API/PayBO/api-ex/ex-deposit.js",                label: "PayBO API Ex (Gempita)",  type: "PayBO", kind: null },
   callback:        { path: "API/manualCallback.js",                          label: "Manual Callback",   type: "Other", kind: null },
   checkStatus:     { path: "API/PayBO/additional/check-wd-status-v5.js",     label: "Check WD Status V5",type: "PayBO", kind: null },
   depositEncrypt:  { path: "API/encrypt_decrypt/depositEncrypt.js",          label: "Deposit Encrypt",   type: "Other", kind: null },
