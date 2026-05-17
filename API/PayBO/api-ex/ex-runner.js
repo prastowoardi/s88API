@@ -6,7 +6,7 @@ import {
     runGenerateQRIS, 
     runGenerateVA, 
     runCreateWithdrawal, 
-    runInquiryTransaction, 
+    runInquiryDeposit, 
     runGetBalance, 
     runInquiryWithdrawal, 
     runListBanks 
@@ -126,7 +126,7 @@ async function apiEx() {
             case 4: {
                 const targetTrx = readlineSync.question("Masukkan Nomor Transaksi Pay-In: ");
                 if (targetTrx === null) handleGracefulStop();
-                if (targetTrx.trim()) await runInquiryTransaction(token, targetTrx.trim());
+                if (targetTrx.trim()) await runInquiryDeposit(token, targetTrx.trim());
                 break;
             }
             case 5: {

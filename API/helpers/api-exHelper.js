@@ -168,7 +168,7 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
     }
 }
 
-export async function runInquiryTransaction(token, transactionCode) {
+export async function runInquiryDeposit(token, transactionCode) {
     logger.info("======== 🔍 INQUIRY TRANSACTION STATUS ========");
 
     const payload = { no_transaction: transactionCode };
