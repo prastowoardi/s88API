@@ -108,13 +108,13 @@ async function apiEx() {
                 if (amountInput === null) handleGracefulStop();
                 const amount = Number(amountInput || 10000);
 
-                const bankIdInput = readlineSync.question("Masukkan Bank ID (Default 3): ");
+                const bankIdInput = readlineSync.question("Masukkan Bank ID (Default 2): ");
                 if (bankIdInput === null) handleGracefulStop();
-                const bankId = bankIdInput || "3";
+                const bankId = bankIdInput || "2";
 
-                const accNumInput = readlineSync.question("Masukkan Account Number (Default 123132123): ");
+                const accNumInput = readlineSync.question("Masukkan Account Number (Default 12340995811): ");
                 if (accNumInput === null) handleGracefulStop();
-                const accNum = accNumInput || "123132123";
+                const accNum = accNumInput || "12340995811";
 
                 const accNameInput = readlineSync.question("Masukkan Account Name (Default Ujang): ");
                 if (accNameInput === null) handleGracefulStop();
