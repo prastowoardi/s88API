@@ -253,7 +253,7 @@ async function apiEx() {
                     break;
                 }
                 case 5: {
-                    const targetRef = readlineSync.question("Masukkan No Partner Reference: ");
+                    const targetRef = readlineSync.question("Masukkan No Transaksi Pay-Out: ");
                     if (targetRef.trim()) await runInquiryWithdrawal(token, targetRef.trim());
                     break;
                 }
