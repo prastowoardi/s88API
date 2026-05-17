@@ -139,15 +139,17 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
     let channelType = "domestic_transfer";
 
     const payload = {
-        no_transaction: transactionCode,
+        no_reference: transactionCode,
         amount: Number(amount),
         channel: channelType,
         currency_code: currency,
         bank_id: bankId || "2",
         account_holder_name: accountName || "Ujang",
-        account_number: accountNumber || "12340995811"
+        account_number: accountNumber || "12340995811",
+        description:"testing"
     };
 
+    // logger.info(`Payload: ${JSON.stringify(payload, null, 2)}`)
     try {
         const res = await fetch(`${BASE_URL}/api/withdrawal-balance`, {
             method: "POST",
