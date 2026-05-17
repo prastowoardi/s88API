@@ -1,5 +1,7 @@
 import fetch from "node-fetch";
 import logger from "../logger.js";
+import { generateEmail } from "./utils.js";
+import { randomPhoneNumber } from "./depositHelper.js"
 import { BASE_URL, MERCHANT_API_KEY_IDR, SECRET_TOKEN } from "../Config/config.js";
 
 function getCurrentCurrency() {
@@ -19,8 +21,19 @@ function getHeaders(token = null) {
     return headers;
 }
 
+async function userGenerate() {
+    const user = await generateEmail();
+
+    const name = user.name;
+    const email = user.email;
+
+    return { name, email };
+}
+
+const userData = await userGenerate();
+
 export async function runAuthentication() {
-    logger.info("======== 🔐 PAYBO AUTHENTICATION ========");
+    logger.info("======== 🔐 API AUTHENTICATION ========");
     
     try {
         const res = await fetch(`${BASE_URL}/api/auth/generate-token`, {
@@ -53,9 +66,9 @@ export async function runGenerateQRIS(token, amount, transactionCode) {
     logger.info("======== 📱 GENERATE QRIS PAYMENT ========");
     const currency = getCurrentCurrency();
 
-    let paymentChannel = "VABNI"; 
+    let paymentChannel = "QRIS"; 
     if (currency === "IDR") {
-        paymentChannel = "VABNI";
+        paymentChannel = "qris";
     }
 
     const payload = {
@@ -63,11 +76,12 @@ export async function runGenerateQRIS(token, amount, transactionCode) {
         amount: Number(amount),
         payment_channel: paymentChannel,
         currency_code: currency,
-        fullname: "TES",
-        email: "example@mail.com",
-        phone_number: "081234567891"
+        fullname: userData.name,
+        email: userData.email,
+        phone_number: await randomPhoneNumber("idr")
     };
 
+    // logger.info(`Payload: ${JSON.stringify(payload, null, 2)}`);
     try {
         const res = await fetch(`${BASE_URL}/api/payment/generate-qris`, {
             method: "POST",
@@ -95,9 +109,9 @@ export async function runGenerateVA(token, amount, channel, transactionCode) {
         amount: Number(amount),
         payment_channel: channel || "VABNI",
         currency_code: currency,
-        fullname: "TES",
-        email: "example@mail.com",
-        phone_number: "081234567891"
+        fullname: userData.name,
+        email: userData.email,
+        phone_number: await randomPhoneNumber("idr")
     };
 
     try {
