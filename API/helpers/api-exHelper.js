@@ -152,7 +152,7 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
         channel: channelType,
         currency_code: currency,
         bank_id: bankId || "2",
-        account_holder_name: "Ujang",
+        account_holder_name: accountName|| "Ujang",
         account_number: accountNumber || "12340995811",
         description: "testing"
     };
