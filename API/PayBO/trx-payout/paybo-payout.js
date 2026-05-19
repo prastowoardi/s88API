@@ -200,7 +200,16 @@ class PayoutService {
       
       return await this.makePayoutRequest(config, payload);
     } catch (error) {
-      logger.error(`❌ Payout Error: ${error.message}`);
+      const data = JSON.parse(error.message.split(' - ')[1]);
+
+      console.log(`[${new Date().toISOString()}] INFO: Response [400]: ${JSON.stringify({
+        ...data,
+        message: `${data.message}. error code ${data.error?.code}`,
+        error: {
+          ...data.error,
+          message: `${data.error?.message}. error code ${data.error?.code}`
+        }
+      }, null, 2)}`);
     }
   }
 
