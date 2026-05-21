@@ -203,8 +203,8 @@ async function sendDeposit() {
         }
 
         const userInfo = {
-            name: user.name,
-            email: user.email,
+            name: xxx.name,
+            email: xxx.email,
             accountNumber: cardNumber
         };
 
