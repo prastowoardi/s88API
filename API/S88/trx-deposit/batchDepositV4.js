@@ -252,13 +252,15 @@ class BatchDepositV4Service {
             let resultDP;
             
             try {
-                resultDP = JSON.parse(responseBody);
+                const parsedData = JSON.parse(responseBody);
+                resultDP = Array.isArray(parsedData) ? parsedData[0] : parsedData;
             } catch (parseError) {
                 throw new Error(`Failed to parse response JSON: ${parseError.message}`);
             }
 
-            if (resultDP.status === "success") {
+            if (resultDP && resultDP.status === "success") {
                 const transactionNo = resultDP.transaction_no;
+                const actualAmount = resultDP.amount;
                 let utr = " ";
 
                 if (config.requiresUTR) {
@@ -268,7 +270,7 @@ class BatchDepositV4Service {
                     }
                 }
 
-                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Pay URL: ${resultDP.pay_url}`;
+                let logMsg = `✅ ${transactionNo} | Request Amount: ${amount} (${currency}) | Actual Amount: ${actualAmount} (${currency}) | Pay URL: ${resultDP.pay_url}`;
                 if (currency === "INR") logMsg += ` | UTR: ${utr}`;
                 // logMsg += ` | Success: ${resultDP.message}`;
                 logger.info(logMsg);

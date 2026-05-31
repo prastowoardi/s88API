@@ -157,15 +157,33 @@ class BatchDepositV2Service {
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
             const payURL = `${config.BASE_URL}/${config.merchantCode}/v2/dopayment?key=${encrypted}`;
 
-            logger.info(`🔗 PayURL (${transactionCode}): ${payURL}`);
+            
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
 
-            this.stats.success++;
-            return { success: true, payURL };
+            const response = await fetch(payURL, { 
+                method: "GET",
+                signal: controller.signal 
+            });
+            clearTimeout(timeout);
+
+            if (response.ok || (response.status >= 300 && response.status < 400)) {
+                logger.info(`✅ PayURL Aktif (${response.status}) [${transactionCode}]: ${payURL}`);
+                this.stats.success++;
+                return { success: true, payURL };
+            } else {
+                throw new Error(`Halaman mengembalikan status HTTP ${response.status}`);
+            }
 
         } catch (error) {
-            logger.error(`❌ Failed to create deposit (${transactionCode}):`, error.message);
+            let errorMsg = error.message;
+            if (error.name === 'AbortError') {
+                errorMsg = "Request timeout / website lambat merespon";
+            }
+            
+            logger.error(`❌ PayURL TIDAK BISA DIBUKA (${transactionCode}): ${errorMsg}`);
             this.stats.failed++;
-            return { success: false, error: error.message };
+            return { success: false, error: errorMsg };
         }
     }
 
