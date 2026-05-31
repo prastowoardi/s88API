@@ -83,10 +83,13 @@ if (!isPayBO) {
     if (!PMI_DP_URL || !PMI_WD_URL) throw new Error("PMI BASE_URL is required and cannot be empty.");
     if (!PMI_AUTHORIZATION) throw new Error("PMI authorization is required and cannot be empty.");
 } else {
-    // Validasi khusus untuk env PayBO / Monebash
     if (!BASE_URL) throw new Error("BASE_URL is required for PayBO environment.");
-    if (!MERCHANT_API_KEY_IDR || !SECRET_TOKEN) {
-        throw new Error("PAYBO_X_API_KEY and PAYBO_SECRET_TOKEN are required in your .paybo_* file.");
+    const currentCurrency = process.env.CURRENCY; 
+
+    if (currentCurrency === 'IDR') {
+        if (!MERCHANT_API_KEY_IDR || !SECRET_TOKEN) {
+            throw new Error("MERCHANT_API_KEY_IDR and SECRET_TOKEN are required for IDR transactions.");
+        }
     }
 }
 
