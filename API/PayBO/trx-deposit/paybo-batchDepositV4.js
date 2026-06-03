@@ -7,7 +7,7 @@ import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName } from "..
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR, randomAmount } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const UTR_CURRENCIES = ["INR", "BDT"];
+const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 const RETRY_ATTEMPTS = 3;
@@ -82,12 +82,18 @@ class BatchDepositV4Service {
         const utr = generateUTR(currency);
         const config = getCurrencyConfig(currency);
 
+        if (currency === 'MMK' && (!utr || utr.trim() === "")) {
+            utr = Math.floor(10000 + Math.random() * 90000).toString();
+        }
+
         const encryptedPayload = encryptDecrypt(
             "encrypt",
             `transaction_code=${transactionCode}&utr=${utr}`,
             config.merchantAPI,
             config.secretKey
         );
+
+        logger.info(`UTR: ${utr} | Encrypted: ${encryptedPayload}`);
 
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {

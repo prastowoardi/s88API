@@ -8,7 +8,7 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { generateUTR, randomAmount } from "../../helpers/depositHelper.js";
 
-const UTR_CURRENCIES = ["INR", "BDT"];
+const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;
 const REQUEST_TIMEOUT = 30000; // 30 seconds
@@ -99,6 +99,10 @@ class BatchDepositV3Service {
         const utr = generateUTR(currency);
         const config = getCurrencyConfig(currency);
 
+        if (currency === 'MMK' && (!utr || utr.trim() === "")) {
+            utr = Math.floor(10000 + Math.random() * 90000).toString();
+        }
+
         const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
         const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
 
@@ -165,7 +169,7 @@ class BatchDepositV3Service {
         return payloadParts.join('&');
     }
 
-    async sendDeposit({ currency, amount, transactionCode }) {
+    async sendDeposit({ currency, amount, transactionCode, customBankCode }) {
         let config;
         try {
             config = getCurrencyConfig(currency);
@@ -182,6 +186,10 @@ class BatchDepositV3Service {
             let bankCode = "";
             if (config.bankCodeOptions) {
                 bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
+            }
+            
+            if (currency === "MMK" && customBankCode) {
+                bankCode = customBankCode;
             }
 
             let phone = "";
@@ -221,18 +229,27 @@ class BatchDepositV3Service {
 
             if (resultDP.status === "success") {
                 const transactionNo = resultDP.transaction_no;
-                const utr = generateUTR(currency);
                 const remark = resultDP?.data?.additional?.remark || "-";
 
-                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark}`;
-                if (currency === "INR") logMsg += ` | UTR: ${utr}`;
-                logMsg += ` | Success: ${resultDP.message}`;
+                let utrLog = "";
+                if (UTR_CURRENCIES.includes(currency)) {
+                    utrLog = generateUTR(currency);
+                    if (currency === 'MMK' && (!utrLog || utrLog.trim() === "")) {
+                        utrLog = Math.floor(10000 + Math.random() * 90000).toString();
+                    }
+                }
+
+                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency})`;
+                if (UTR_CURRENCIES.includes(currency)) {
+                    logMsg += ` | UTR: ${utrLog}`;
+                }
+                logMsg += ` | Remark: ${remark} | Success: ${resultDP.message}`;
                 logger.info(logMsg);                
 
                 this.stats.success++;
 
                 if (UTR_CURRENCIES.includes(currency)) {
-                    await this.submitUTR(currency, transactionCode);
+                    await this.submitUTR(currency, transactionCode, utrLog);
                 }
 
                 return { success: true, transactionNo, result: resultDP };
@@ -290,7 +307,6 @@ class BatchDepositV3Service {
         let currenciesToProcess = [];
 
         if (envCurrency) {
-            // Validasi currency ada di depositConfigMap
             try {
                 getCurrencyConfig(envCurrency);
                 currenciesToProcess = [envCurrency];
@@ -319,7 +335,19 @@ class BatchDepositV3Service {
             amounts = Array.from({ length: jumlah }, () => randomAmount(min, max));
         }
 
-        return { currenciesToProcess, jumlah, amounts };
+        let selectedBankCode = "";
+        if (currenciesToProcess.includes("MMK")) {
+            const inputBank = readlineSync.question("Masukkan Bank Code: ").trim().toUpperCase();
+            
+            const fallbackOptions = ["KBZPAY", "WAVEPAY"];
+            const randomBank = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
+            
+            selectedBankCode = inputBank || randomBank;
+
+            logger.info(`ℹ️ Menggunakan Bank Code MMK: ${selectedBankCode}`);
+        }
+
+        return { currenciesToProcess, jumlah, amounts, selectedBankCode };
     }
 
     async batchDeposit() {
@@ -327,7 +355,7 @@ class BatchDepositV3Service {
             logger.info("======== Batch Deposit V3 Request ========");
             this.stats.startTime = Date.now();
 
-            const { currenciesToProcess, jumlah, amounts } = this.getUserInput();
+            const { currenciesToProcess, jumlah, amounts, selectedBankCode } = this.getUserInput();
 
             logger.info(`Currency: ${currenciesToProcess.join(", ")} | Merchant: ${process.env.CURRENT_MERCHANT || "-"}`);
 
@@ -340,7 +368,12 @@ class BatchDepositV3Service {
                     const transactionCode = transactionCodes[i];
                     const amount = amounts[i] || amounts[0];
                     
-                    tasks.push(() => this.sendDeposit({ currency, amount, transactionCode }));
+                    tasks.push(() => this.sendDeposit({ 
+                        currency, 
+                        amount, 
+                        transactionCode, 
+                        customBankCode: selectedBankCode 
+                    }));
                 }
             }
 

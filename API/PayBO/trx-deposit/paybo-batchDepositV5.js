@@ -24,7 +24,7 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { BASE_URL, CALLBACK_URL } from "../../Config/config.js";
 
 const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR"];
-const UTR_CURRENCIES = ["INR", "BDT"];
+const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;
 const REQUEST_TIMEOUT = 30000;
@@ -51,10 +51,15 @@ class BatchDepositV5Service {
         };
     }
 
-    async submitUTR(currency, transactionCode) {
+    async submitUTR(currency, transactionCode, bankCode) {
         if (!UTR_CURRENCIES.includes(currency)) return;
 
-        const reference = generateUTR(currency);
+        let reference = generateUTR(currency);
+
+        if (currency === 'MMK' && (bankCode === 'KBZPAY' || bankCode === 'WAVEPAY')) {
+            reference = reference.substring(0, 5);
+        }
+
         const config = getCurrencyConfig(currency);
         const payloadObj = { transaction_code: transactionCode, reference };
         const payloadStr = JSON.stringify(payloadObj);
@@ -71,7 +76,6 @@ class BatchDepositV5Service {
 
             const text = await res.text();
             const result = JSON.parse(text);
-            // logger.info(`Submit UTR Response: ${JSON.stringify(result)}`);
             this.stats.utrSubmitted++;
         } catch (err) {
             logger.error(`❌ Submit UTR Error: ${err.message}`);
