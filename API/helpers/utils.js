@@ -200,7 +200,7 @@ export function getAccountNumber(length = 8) {
 }
 
 export async function generateEmail({
-    domain = "example.com"
+    domain = "yopmail.com"
 } = {}) {
     const name = await getRandomName();
 
