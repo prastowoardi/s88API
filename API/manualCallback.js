@@ -33,19 +33,20 @@ async function inputAndSendCallbacks() {
   const transactions = [];
 
   for (let i = 0; i < total; i++) {
-    logger.info(`🔸 Transaksi ke-${i + 1}`);
 
-    const transactionNo = readlineSync.question("Transaction No (contoh: DP123456, WD123456): ").toUpperCase();
-    if (!/^(DP|WD)\d+$/i.test(transactionNo)) {
-      logger.warn("⚠️ Format Transaction No tidak sesuai (harus diawali DP atau WD diikuti angka).");
+    let transactionNo = "";
+    while (true) {
+      transactionNo = readlineSync.question(`Transaction No (${i + 1}): `).toUpperCase();
+      if (/^(DP|WD)\d+$/i.test(transactionNo)) {
+        break;
+      }
+      logger.warn("⚠️ Format Transaction No tidak sesuai. Silakan coba lagi.");
     }
 
-    const amount = readlineSync.questionFloat("Amount: ");
+    const amount = readlineSync.questionFloat(`Amount Transaction (${i + 1}): `);
     const status = Math.random() < 0.8 ? 0 : 1;
     const transactionType = getTransactionTypeFromPrefix(transactionNo);
     const systemOrderId = Math.floor(Math.random() * 100000).toString();
-
-    logger.info(`  🔸Transaction No : ${transactionNo}, Amount : ${amount}`)
 
     transactions.push({
       transactionNo,
@@ -57,24 +58,28 @@ async function inputAndSendCallbacks() {
     });
   }
 
-  logger.info(`🚀 Mengirim ${transactions.length} callback secara paralel...\n`);
+  const repeatCount = readlineSync.questionInt("Mau kirim berapa kali callback untuk setiap transaksi? ") || 1;
 
-  const promises = transactions.map(tx => {
-    const payload = {
-      ...tx,
-      utr: tx.status === 0 ? generateCustomUTR() : null,
-      closeTime: new Date().toISOString(),
-    };
+  logger.info(`🚀 Mengirim ${transactions.length * repeatCount} callback secara paralel...\n`);
 
-    logger.info(`\n📦 Payload:\n${JSON.stringify(payload, null, 2)}`);
+  const promises = transactions.flatMap((tx) => {
+    return Array.from({ length: repeatCount }).map((_, index) => {
+      const payload = {
+        ...tx,
+        utr: tx.status === 0 ? generateCustomUTR() : null,
+        closeTime: new Date().toISOString(),
+      };
 
-    return sendCallback(payload)
-      .then(() => {
-        logger.info(`✅ Callback sent for ${tx.transactionNo}: ${tx.status === 0 ? "SUCCESS" : "FAILED"}`);
-      })
-      .catch(error => {
-        logger.error(`❌ Gagal kirim callback untuk ${tx.transactionNo}: ${error.message}`);
-      });
+      // logger.info(`\n📦 [Hit ke-${index + 1}] Payload untuk ${tx.transactionNo}:\n${JSON.stringify(payload, null, 2)}`);
+
+      return sendCallback(payload)
+        .then(() => {
+          logger.info(`✅ [Hit ke-${index + 1}] Callback sent for ${tx.transactionNo}: ${tx.status === 0 ? "SUCCESS" : "FAILED"}`);
+        })
+        .catch(error => {
+          logger.error(`❌ [Hit ke-${index + 1}] Gagal kirim callback untuk ${tx.transactionNo}: ${error.message}`);
+        });
+    });
   });
 
   await Promise.all(promises);
