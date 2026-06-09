@@ -8,7 +8,7 @@ import { encryptDecrypt, signVerify, getRandomIP, getRandomName, generateEmail, 
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR"];
+const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR", "MYR"];
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -65,11 +65,11 @@ function getPhone(currency, bankCode) {
 
 async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNumber) {
     const name = await getRandomName();
+    const user = await generateEmail();
+
     switch(currency) {
         // Uncomment for Erfolgpay
         case "INR":
-            const user = await generateEmail();
-
             payload.product_name="pillow",
             payload.cust_name=user.name,
             payload.cust_email=user.email,
@@ -112,6 +112,11 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
             payload.rate = readlineSync.question("Masukkan Rate: ").trim() || null;
             payload.bank_code = bankCode;
             payload.lang = readlineSync.question("Choose Language (en/id): ").trim() || null;
+            break;
+        case "MYR":
+            payload.cust_name=user.name,
+            payload.cust_email=user.email,
+            payload.cust_phone=await randomPhoneNumber("my")
             break;
     }
     return payload;

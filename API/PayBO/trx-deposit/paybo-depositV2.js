@@ -9,7 +9,7 @@ import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 dotenv.config();
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR", "MYR"];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -38,11 +38,11 @@ function getPhone(currency, bankCode) {
 
 async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber) {
   const userName = await getRandomName();
+  const user = await generateEmail();
+
   switch (currency) {
     // Uncomment for Erfolgpay
     case "INR":
-      const user = await generateEmail();
-
       payloadObj.product_name="pillow",
       payloadObj.cust_name=user.name,
       payloadObj.cust_email=user.email,
@@ -86,6 +86,11 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       break;
     case "IDR":
       payloadObj.cust_phone = randomPhoneNumber("idr");
+      break;
+    case "MYR":
+      payloadObj.cust_name = user.name;
+      payloadObj.cust_email = user.email;
+      payloadObj.cust_phone = await randomPhoneNumber("my");
       break;
   }
   return payloadObj;

@@ -7,7 +7,7 @@ import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import CoinKey from 'coinkey';
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT", "MYR"];
 const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"];
 const BANK_ACCOUNT_NUMBER = getAccountNumber(6) || "11133322";
@@ -131,6 +131,11 @@ class PayoutService {
 
       const cryptoAmountInput = await this.ask(`Masukkan Crypto Amount (Enter untuk pakai estimasi amount ${estimasi}): `);
       payload.crypto_amount = cryptoAmountInput.trim() || String(estimasi);
+    }
+
+    if (currency === "MYR") {
+      payload.bank_account_number = getAccountNumber(8);
+      // payload.bank_code = "TEST";
     }
 
     if (currency === "IDR") {

@@ -69,8 +69,8 @@ export async function sendCallback({
       ? `${BASE_URL}/api/v2/${pathPrefix}/deposit/notification`
       : `${BASE_URL}/api/v2/${pathPrefix}/payout/notification`;
 
-  logger.info(`➡️ Sending callback to ${callbackUrl}`);
-  logger.info(`Payload : ${JSON.stringify(payload, null, 2)}`);
+  // logger.info(`➡️ Sending callback to ${callbackUrl}`);
+  // logger.info(`Payload : ${JSON.stringify(payload, null, 2)}`);
 
   try {
     const response = await fetch(callbackUrl, {
