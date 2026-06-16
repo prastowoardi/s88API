@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, registeredDate } from "../../helpers/utils.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { fakerJA } from "@faker-js/faker";
@@ -260,6 +260,11 @@ class regularPayout {
 
     if (currency === "THB") {
       enhancedPayload.bank_name = BANK_CONFIG.THB.bank_name;
+      enhancedPayload.lat_withdrawal_date = new Date().toISOString().slice(0, 10);
+      enhancedPayload.last_deposit_date = new Date().toISOString().slice(0, 10);
+      enhancedPayload.last_register_date = registeredDate();
+      enhancedPayload.total_deposit_amount = amount * 2;
+      enhancedPayload.total_turnover_amount = amount * 100;
     }
 
     if (currency === "JPY") {

@@ -2,11 +2,12 @@ import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, registeredDate } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
 import open from "open";
+import { register } from 'module';
 
 dotenv.config();
 
@@ -95,6 +96,10 @@ class DepositV2Service {
                 depositor_bank: depositorBank,
                 depositor_name: await getRandomName('th', true),
                 depositor_account_number: user.accountNumber,
+                last_deposit_date: new Date().toISOString().slice(0, 10),
+                last_register_date: registeredDate(),
+                total_deposit_amount: Math.max(tx.amount * 100, 100000),
+                total_turnover_amount: Math.max(tx.amount * 100, 300000),
             });
         }
 

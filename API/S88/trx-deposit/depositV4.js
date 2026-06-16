@@ -3,13 +3,14 @@ import readline from "readline";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import open from "open";
-import { encryptDecrypt, getRandomIP, getRandomName } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, registeredDate } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
+const today = new Date();
 
 class DepositService {
     constructor() {
@@ -101,6 +102,11 @@ class DepositService {
             if (!/^[a-z0-9A-Z]+$/.test(depositorBank))
                 throw new Error("Depositor Bank must contain only letters");
                 basePayload.depositor_bank = depositorBank;
+
+            basePayload.last_deposit_date = new Date().toISOString().slice(0, 10);
+            basePayload.last_register_date = registeredDate();
+            basePayload.total_deposit_amount = Math.max(tx.amount * 100, 100000);
+            basePayload.total_turnover_amount = Math.max(tx.amount * 100, 300000);
         }
 
         if (tx.currency === "JPY") {
@@ -232,7 +238,11 @@ class DepositService {
 
         let url;
 
-        if (baseURL.includes("singhapay")) {
+        const useV3 = ["singhapay", "xyz"].some(keyword =>
+            baseURL.includes(keyword)
+        );
+
+        if (useV3) {
             url = `${baseURL}/api/${config.merchantCode}/v3/submit-utr`;
             console.log("Endpoint: ", url);
         } else {

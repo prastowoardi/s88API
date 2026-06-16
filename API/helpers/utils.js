@@ -359,3 +359,13 @@ export async function pollKYCStatus(customerId, config) {
         return { status: "ERROR", message: err.message };
     }
 }
+
+export function registeredDate() {
+    const randomDaysAgo = Math.floor(Math.random() * (30 - 2 + 1)) + 2; 
+    
+    const date = new Date();
+    date.setDate(date.getDate() - randomDaysAgo);
+    
+    const opsiLokal = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Jakarta' };
+    return date.toLocaleDateString('fr-CA', opsiLokal);
+}
