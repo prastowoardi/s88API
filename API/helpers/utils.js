@@ -9,8 +9,16 @@ import fs from 'fs';
 import FormData from 'form-data';
 
 export const encryptDecrypt = (action, data, apikey, secretkey) => {
-    const key = CryptoJS.SHA256(apikey); 
-    const iv = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256(secretkey).toString(CryptoJS.enc.Hex).substring(0, 16)); 
+    const PBKDF2_ITERATIONS = 100000;
+    const key = CryptoJS.PBKDF2(apikey, CryptoJS.enc.Utf8.parse(secretkey), {
+        keySize: 256 / 32,
+        iterations: PBKDF2_ITERATIONS,
+    });
+    const ivMaterial = CryptoJS.PBKDF2(secretkey, CryptoJS.enc.Utf8.parse(apikey), {
+        keySize: 128 / 32,
+        iterations: PBKDF2_ITERATIONS,
+    });
+    const iv = CryptoJS.lib.WordArray.create(ivMaterial.words.slice(0, 4), 16);
 
     if (!['encrypt', 'decrypt'].includes(action)) {
         console.error("Invalid action. Use 'encrypt' or 'decrypt'.");
@@ -37,8 +45,16 @@ export const encryptDecrypt = (action, data, apikey, secretkey) => {
 };
 
 export const encryptDecryptPayout = (action, data, apikey, secretkey) => {
-    const key = CryptoJS.SHA256(apikey);
-    const iv = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256(secretkey).toString(CryptoJS.enc.Hex).substring(0, 16));
+    const PBKDF2_ITERATIONS = 100000;
+    const key = CryptoJS.PBKDF2(apikey, CryptoJS.enc.Utf8.parse(secretkey), {
+        keySize: 256 / 32,
+        iterations: PBKDF2_ITERATIONS,
+    });
+    const ivMaterial = CryptoJS.PBKDF2(secretkey, CryptoJS.enc.Utf8.parse(apikey), {
+        keySize: 128 / 32,
+        iterations: PBKDF2_ITERATIONS,
+    });
+    const iv = CryptoJS.lib.WordArray.create(ivMaterial.words.slice(0, 4), 16);
 
     if (!['encrypt', 'decrypt'].includes(action)) {
         console.error("Invalid action. Use 'encrypt' or 'decrypt'.");
