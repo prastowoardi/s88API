@@ -234,7 +234,7 @@ export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "
             type: type,
             from: fromCurrency,
             to: toCurrency,
-            address: wallet.publicAddress
+            // address: wallet.publicAddress
         };
 
         logger.info(`Requesting Rate: ${fromCurrency} -> ${toCurrency} (${type})`);
