@@ -56,11 +56,12 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       break;
     case "KRW":
       payloadObj.bank_code = bankCode;
-      payloadObj.card_holder_name = await getRandomName("kr", true);
-      payloadObj.card_number = cardNumber;
-      payloadObj.cust_name = await getRandomName("kr", true);
+      payloadObj.card_holder_name = await getRandomName();
       payloadObj.bank_account_number = await getAccountNumber(5);
       payloadObj.bank_name = bankCode;
+      payloadObj.cust_birthdate = "1990-10-14";
+      payloadObj.cust_name=user.name;
+      payloadObj.cust_email=user.email;
       break;
     case "THB":
       const accountType = await ask("Masukkan Account Type: ");
@@ -149,7 +150,15 @@ async function depositV2() {
       callback_url: config.callbackURL,
     };
 
+    let isNeedKYC = true;
     if (currency === "JPY") {
+        const kycAnswer = readlineSync.question("Apakah JPY memerlukan proses KYC? (Y/n): ").trim().toLowerCase();
+        if (kycAnswer === 'n' || kycAnswer === 'no') {
+            isNeedKYC = false;
+        }
+    }
+
+    if (currency === "JPY" && isNeedKYC) {
         logger.info("🔹 Registering KYC JPY...");
         
         try {

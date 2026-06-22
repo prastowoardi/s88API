@@ -86,7 +86,10 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
             payload.bank_name = bankCode;
             payload.bank_code = bankCode;
             payload.bank_account_number = await getAccountNumber(5);
-            payload.card_holder_name = await getRandomName("kr", true);
+            payload.card_holder_name = await getRandomName();
+            payload.cust_birthdate = "1990-10-05";
+            payload.cust_email=user.email;
+            payload.cust_phone="9812763405";
             // payload.card_number = cardNumber;
             break;
         case "JPY":
@@ -174,7 +177,15 @@ async function sendDeposit() {
         if (phone) payload.cust_phone = phone;
         if (cardNumber) payload.card_number = cardNumber;
 
+        let isNeedKYC = true;
         if (currency === "JPY") {
+            const kycAnswer = readlineSync.question("Apakah JPY memerlukan proses KYC? (Y/n): ").trim().toLowerCase();
+            if (kycAnswer === 'n' || kycAnswer === 'no') {
+                isNeedKYC = false;
+            }
+        }
+
+        if (currency === "JPY" && isNeedKYC) {
             logger.info("🔹 Registering KYC JPY...");
             
             try {

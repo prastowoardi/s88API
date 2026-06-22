@@ -33,10 +33,13 @@ async function buildPayload(config, tx, userInfo = {}) {
             account_type: tx.accountType
         }),
         ...(tx.currency === "KRW" && {
-            cust_name: userInfo.name,
+            cust_name: xxx.name,
             bank_account_number: await getAccountNumber(5),
             bank_name: tx.bankCode,
             card_holder_name: await getRandomName("kr", true),
+            cust_email: xxx.email,
+            cust_phone: "9812763405",
+            cust_birthdate: "1990-10-13"
         }),
         ...(tx.currency === "HKD" && {
             card_number: "3566111111111113",
@@ -151,8 +154,16 @@ async function sendDeposit() {
         const transactionCode = `TEST-DP-V3-${timestamp}`;
         const config = getCurrencyConfig(currency);
 
-        let kycName = null;
+        let isNeedKYC = true;
         if (currency === "JPY") {
+            const kycAnswer = readlineSync.question("Apakah JPY memerlukan proses KYC? (Y/n): ").trim().toLowerCase();
+            if (kycAnswer === 'n' || kycAnswer === 'no') {
+                isNeedKYC = false;
+            }
+        }
+
+        let kycName = null;
+        if (currency === "JPY" && isNeedKYC) {
             logger.info(`🔹 Registering KYC JPY for User: ${userID}`);
             try {
                 const kycRegResponse = await registerCustomerJPY(config, userID);
