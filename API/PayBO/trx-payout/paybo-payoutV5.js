@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber, getCryptoRate } from "../../helpers/utils.js";
+import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber, getCryptoRate, jpyBankList } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { fileURLToPath } from 'url';
@@ -56,7 +56,6 @@ const buildBasePayload = async (userID, currency, amount, transactionCode, name,
     currency_code: currency,
     payout_code: config.payoutMethod,
     account_name: name,
-    // account_name: "Ram Kumar",
     ip_user: getRandomIP(),
     callback_url: callbackURL || config.callbackURL,
     ...(currency === "KRW" && { cust_name: await getRandomName("kr", true) }),
@@ -77,7 +76,7 @@ const addINRSpecificFields = async (payload) => {
   };
 };
 
-const addBankCodeFields = (payload, bankCode, currency) => {
+const addBankCodeFields = (payload, bankCode, currency, branchCode, bankName, branchName) => {
   const updatedPayload = {
     ...payload,
     bank_code: bankCode,
@@ -90,7 +89,13 @@ const addBankCodeFields = (payload, bankCode, currency) => {
 
   if (currency === "KRW") updatedPayload.bank_name = "우리은행";
   if (currency === "THB") updatedPayload.bank_name = "SCB";
-  if (currency === "JPY") updatedPayload.branch_code = "MIZUHO BANK";
+  
+  if (currency === "JPY") {
+    updatedPayload.branch_code = branchCode;
+    if (bankName) updatedPayload.bank_name = bankName;
+    if (branchName) updatedPayload.branch_name = branchName;
+  }
+
   if (currency === "MMK") {
     updatedPayload.bank_name = bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY";
   }
@@ -98,7 +103,7 @@ const addBankCodeFields = (payload, bankCode, currency) => {
   return updatedPayload;
 };
 
-async function payout(userID, currency, amount, transactionCode, name, bankCode, callbackURL) {
+async function payout(userID, currency, amount, transactionCode, name, bankCode, branchCode, bankName, branchName, callbackURL) {
   const config = getPayoutConfig(currency);
   if (!config) throw new Error(`No config found for currency: ${currency}`);
 
@@ -112,7 +117,7 @@ async function payout(userID, currency, amount, transactionCode, name, bankCode,
   }
 
   if (BANK_CODE_REQUIRED.includes(currency)) {
-    payload = addBankCodeFields(payload, bankCode, currency);
+    payload = addBankCodeFields(payload, bankCode, currency, branchCode, bankName, branchName);
   }
 
   if (currency === "USDT") {
@@ -218,15 +223,68 @@ async function collectInputs(existingCurrency) {
   }
 
   let bankCode = "";
-  if (BANK_CODE_REQUIRED.includes(currency)) {
+  let branchCode = "";
+  let bankName = "";
+  let branchName = "";
+  
+  if (currency === "JPY") {
+    logger.info("🔍 Fetching JPY Bank List...");
+    const config = getPayoutConfig("JPY");
+    const bankListResponse = await jpyBankList(config);
+
+    if (bankListResponse && bankListResponse.code === 0 && Array.isArray(bankListResponse.data) && bankListResponse.data.length > 0) {
+      const randomBank = bankListResponse.data[Math.floor(Math.random() * bankListResponse.data.length)];
+      bankCode = randomBank.code;
+      bankName = randomBank.name;
+      
+      logger.info(`🏢 Selected JPY Bank: ${bankName} (${bankCode})`);
+      logger.info(`🌐 Fetching Branch ${bankCode}...`);
+
+      try {
+        const branchResponse = await fetch(`https://zengin-code.github.io/api/branches/${bankCode}.json`);
+        if (branchResponse.ok) {
+          const branches = await branchResponse.json();
+          const branchKeys = Object.keys(branches);
+          
+          if (branchKeys.length > 0) {
+            const randomBranchKey = branchKeys[Math.floor(Math.random() * branchKeys.length)];
+            const selectedBranch = branches[randomBranchKey];
+            
+            branchCode = selectedBranch.code;
+            branchName = selectedBranch.name;
+            
+            logger.info(`🎲 Combined Branch Online: ${branchName} (${branchCode})`);
+          }
+        }
+      } catch (zenginErr) {
+        logger.warn(`⚠️ Gagal fetch Zengin API: ${zenginErr.message}`);
+      }
+
+      if (!branchCode) {
+        branchCode = `00${Math.floor(Math.random() * 9) + 1}`;
+        branchName = "Main Branch";
+        logger.info(`🔄 Using fallback branch: ${branchName} (${branchCode})`);
+      }
+
+    } else {
+      logger.error("❌ Gagal mendapatkan bank list JPY otomatis. Silakan input manual.");
+      bankCode = await ask(`Enter Bank Code for ${currency}: `);
+      branchCode = await ask(`Enter Branch Code for ${currency} (Default 001): `) || "001";
+      bankName = await ask(`Enter Bank Name for ${currency}: `);
+      branchName = await ask(`Enter Branch Name for ${currency} (Default Main Branch): `) || "Main Branch";
+    }
+  } else if (BANK_CODE_REQUIRED.includes(currency)) {
     bankCode = await ask(`Enter Bank Code for ${currency}: `);
+  }
+
+  if (BANK_CODE_REQUIRED.includes(currency)) {
     validateBankCode(bankCode, currency);
   }
 
   const amountInput = await ask("Enter Amount: ");
   const amount = validateAmount(amountInput);
 
-  return { currency, bankCode, amount };
+  return { currency, bankCode, branchCode, bankName, branchName, amount };
 }
 
 async function sendPayout() {
@@ -234,13 +292,13 @@ async function sendPayout() {
     logger.info("============== START PAYOUT ==============");
 
     const envCurrency = process.env.CURRENCY;
-    const { currency, bankCode, amount } = await collectInputs(envCurrency);
+    const { currency, bankCode, branchCode, bankName, branchName, amount } = await collectInputs(envCurrency);
 
     const userID = currency === "JPY" ? "NASHEED" : randomInt(100, 999).toString();
-    const transactionCode = `TEST-WD-${Date.now()}`;
+    const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
     const name = await getRandomName();
 
-    const result = await payout(userID, currency, amount, transactionCode, name, bankCode, null);
+    const result = await payout(userID, currency, amount, transactionCode, name, bankCode, branchCode, bankName, branchName, null);
     
     logger.info("============== PROCESS DONE ==============");
     return result;

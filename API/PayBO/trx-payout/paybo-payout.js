@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, getCryptoRate } from "../../helpers/utils.js";
+import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, getCryptoRate, jpyBankList } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import CoinKey from 'coinkey';
@@ -18,6 +18,12 @@ class PayoutService {
       input: process.stdin,
       output: process.stdout,
     });
+    this.jpyData = {
+      bankCode: "",
+      branchCode: "",
+      bankName: "",
+      branchName: ""
+    };
   }
 
   ask(question) {
@@ -96,7 +102,19 @@ class PayoutService {
     }
 
     if (currency === "THB") payload.bank_name = "SCB";
-    if (currency === "JPY") payload.branch_code = "MIZUHO BANK";
+    
+    if (currency === "JPY") {
+      payload.branch_code = this.jpyData.branchCode || "001";
+      
+      if (this.jpyData.bankName) {
+        payload.bank_name = this.jpyData.bankName;
+      }
+      
+      if (this.jpyData.branchName) {
+        payload.branch_name = this.jpyData.branchName;
+      }
+    }
+    
     if (currency === "MMK") {
       payload.bank_name = bankCode === "WAVEPAY" ? "WAVEPAY" : "KBZPAY";
     }
@@ -135,7 +153,6 @@ class PayoutService {
 
     if (currency === "MYR") {
       payload.bank_account_number = getAccountNumber(8);
-      // payload.bank_code = "TEST";
     }
 
     if (currency === "IDR") {
@@ -223,10 +240,69 @@ class PayoutService {
       return "";
     }
 
+    if (currency === "JPY") {
+      logger.info("🔍 Fetching JPY Bank List dari API...");
+      const config = getPayoutConfig("JPY");
+      
+      try {
+        const bankListResponse = await jpyBankList(config);
+
+        if (bankListResponse && bankListResponse.code === 0 && Array.isArray(bankListResponse.data) && bankListResponse.data.length > 0) {
+          const randomBank = bankListResponse.data[Math.floor(Math.random() * bankListResponse.data.length)];
+          
+          this.jpyData.bankCode = randomBank.code;
+          this.jpyData.bankName = randomBank.name;
+          
+          logger.info(`🏢 Selected Bank: ${this.jpyData.bankName} (${this.jpyData.bankCode})`);
+          logger.info(`🌐 Find Branch ${this.jpyData.bankCode}...`);
+
+          try {
+            const branchResponse = await fetch(`https://zengin-code.github.io/api/branches/${this.jpyData.bankCode}.json`);
+            if (branchResponse.ok) {
+              const branches = await branchResponse.json();
+              const branchKeys = Object.keys(branches);
+              
+              if (branchKeys.length > 0) {
+                const randomBranchKey = branchKeys[Math.floor(Math.random() * branchKeys.length)];
+                const selectedBranch = branches[randomBranchKey];
+                
+                this.jpyData.branchCode = selectedBranch.code;
+                this.jpyData.branchName = selectedBranch.name;
+                
+                logger.info(`🎲 Combined Branch: ${this.jpyData.branchName} (${this.jpyData.branchCode})`);
+              }
+            }
+          } catch (zenginErr) {
+            logger.warn(`⚠️ Gagal fetch Zengin API: ${zenginErr.message}`);
+          }
+
+          if (!this.jpyData.branchCode) {
+            this.jpyData.branchCode = `00${Math.floor(Math.random() * 9) + 1}`;
+            this.jpyData.branchName = "Main Branch";
+            logger.info(`🔄 Menggunakan fallback branch code: ${this.jpyData.branchCode}`);
+          }
+
+          return this.jpyData.bankCode;
+        }
+      } catch (err) {
+        logger.error(`❌ Gagal mengambil JPY Bank List otomatis: ${err.message}`);
+      }
+      
+      logger.info("⚠️ Beralih ke input manual...");
+    }
+
     const bankCode = await this.ask(`Masukkan Bank Code untuk ${currency}: `);
     if (!bankCode) {
       throw new Error(`Bank Code wajib diisi untuk ${currency}!`);
     }
+
+    if (currency === "JPY") {
+      this.jpyData.bankCode = bankCode;
+      this.jpyData.branchCode = await this.ask("Masukkan Branch Code untuk JPY (Default 001): ") || "001";
+      this.jpyData.bankName = await this.ask("Masukkan Bank Name untuk JPY (Opsional): ");
+      this.jpyData.branchName = await this.ask("Masukkan Branch Name untuk JPY (Opsional): ") || "Main Branch";
+    }
+
     return bankCode;
   }
 
@@ -239,10 +315,12 @@ class PayoutService {
       let currency;
       if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
           currency = envCurrency;
-          // logger.info(`Currency: ${currency}`);
+      } else {
+          const inputCurrency = await this.ask("Masukkan Currency: ");
+          currency = this.validateCurrency(inputCurrency);
       }
 
-      const userID = randomInt(100, 999);
+      const userID = randomInt(100, 999).toString();
       const bankCode = await this.promptForBankCode(currency);
       const amountInput = await this.ask("Masukkan Amount: ");
       const amount = this.validateAmount(amountInput);
@@ -258,8 +336,7 @@ class PayoutService {
       logger.info("======== REQUEST DONE ========\n");
       
     } catch (error) {
-      // logger.error(`❌ Error: ${error.message}`);
-      throw error;
+      logger.error(`❌ Error: ${error.message}`);
     } finally {
       this.cleanup();
     }
