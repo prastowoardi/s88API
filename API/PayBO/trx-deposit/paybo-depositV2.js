@@ -152,7 +152,7 @@ async function depositV2() {
 
     let isNeedKYC = true;
     if (currency === "JPY") {
-        const kycAnswer = readlineSync.question("Apakah JPY memerlukan proses KYC? (Y/n): ").trim().toLowerCase();
+        const kycAnswer = await ask("Apakah JPY memerlukan proses KYC? (Y/n): ");
         if (kycAnswer === 'n' || kycAnswer === 'no') {
             isNeedKYC = false;
         }
