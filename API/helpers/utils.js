@@ -369,3 +369,30 @@ export function registeredDate() {
     const opsiLokal = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Jakarta' };
     return date.toLocaleDateString('fr-CA', opsiLokal);
 }
+
+export async function jpyBankList(config) {
+    const { merchantCode, BASE_URL, secretKey, merchantAPI, } = config;
+    const url = `${BASE_URL}/api/${merchantCode}/v4/bank-list`;
+    
+    try {
+        const encryptedMerchantCode = encryptDecrypt("encrypt", merchantCode, merchantAPI, secretKey);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Encrypted-MerchantCode': encryptedMerchantCode,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ currency_code: "JPY" }) 
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            return { status: "ERROR", message: `HTTP Error ${response.status}: ${errText}` };
+        }
+
+        return await response.json(); 
+    } catch (err) {
+        return { status: "ERROR", message: err.message };
+    }
+}
