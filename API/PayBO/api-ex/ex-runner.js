@@ -35,23 +35,8 @@ readlineSync.setDefaultOptions({
 
 const ENV_FILES = {
     PayBO_staging: ".paybo_staging",
-    PayBO_production: ".paybo_production",
-    PayBO_ezyplus: ".paybo_ezyplus",
-    PayBO_wandpay: ".paybo_wandpay",
-    PayBO_swftx: ".paybo_swftx",
-    PayBO_rangoon: ".paybo_rangoon",
-    PayBO_bajix: ".paybo_bajix",
-    PayBO_dreampay: ".paybo_dreampay",
-    PayBO_erfolgpay: ".paybo_erfolgpay",
-    PayBO_commspay: ".paybo_commspay",
-    PayBO_demo: ".paybo_demo",
-    PayBO_apollo: ".paybo_apollo",
-    PayBO_apollo_INR: ".paybo_apollo_inr",
-    PayBO_xcpay: ".paybo_xcpay",
-    PayBO_tiger: ".paybo_tiger",
-    PayBO_next8: ".paybo_next8",
-    PayBO_cosmospay: ".paybo_cosmospay",
-    PayBO_snappay: ".paybo_snappay"
+    gempita_staging: ".staging_gempita",
+    PayBO_snappay: ".paybo_snappay",
 };
 
 function getMerchantNames(envFilePath, currency = "IDR") {
