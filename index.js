@@ -17,7 +17,7 @@ const ENV_CONFIGS = {
   singhapay_staging:   { file: ".env_singhaStag",    label: "Singhapay Staging"    },
   singhapay:           { file: ".env_singhapay",     label: "Singhapay Production" },
   PayBO_staging:       { file: ".paybo_staging",     label: "PayBO Staging"        },
-  gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging"      },
+  gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging",     actions: ["payboApiEx"] },
   PayBO_production:    { file: ".paybo_production",  label: "PayBO Production"     },
   PayBO_ezyplus:       { file: ".paybo_ezyplus",     label: "PayBO Ezyplus"        },
   PayBO_wandpay:       { file: ".paybo_wandpay",     label: "PayBO Wandpay"        },
@@ -34,7 +34,7 @@ const ENV_CONFIGS = {
   PayBO_tiger:         { file: ".paybo_tiger",       label: "PayBO Tiger2378"      },
   PayBO_next8:         { file: ".paybo_next8",       label: "PayBO Next8"          },
   PayBO_cosmospay:     { file: ".paybo_cosmospay",   label: "PayBO Cosmospay"      },
-  PayBO_snappay:       { file: ".paybo_snappay",     label: "PayBO Snappay"        },
+  PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx"] },
 };
 
 
@@ -66,11 +66,11 @@ const SCRIPT_ACTIONS = {
   payboBatchPayoutV5:   { path: "API/PayBO/trx-payout/paybo-batchPayoutV5.js",  label: "PayBO Batch Withdraw V5", type: "PayBO", kind: "payout"  },
 
   // Other
-  payboApiEx:      { path: "API/PayBO/api-ex/ex-runner.js",                label: "PayBO API Ex (GPTPay)",  type: "PayBO", kind: null },
-  callback:        { path: "API/manualCallback.js",                          label: "Manual Callback",   type: "Other", kind: null },
-  checkStatus:     { path: "API/PayBO/additional/check-wd-status-v5.js",     label: "Check WD Status V5",type: "PayBO", kind: null },
-  depositEncrypt:  { path: "API/encrypt_decrypt/depositEncrypt.js",          label: "Deposit Encrypt",   type: "Other", kind: null },
-  payoutEncrypt:   { path: "API/encrypt_decrypt/payoutEncrypt.js",           label: "Withdraw Encrypt",  type: "Other", kind: null },
+  payboApiEx:      { path: "API/PayBO/api-ex/ex-runner.js",                  label: "PayBO API Ex (GPTPay)",  type: "PayBO", kind: null },
+  callback:        { path: "API/manualCallback.js",                          label: "Manual Callback",        type: "Other", kind: null },
+  checkStatus:     { path: "API/PayBO/additional/check-wd-status-v5.js",     label: "Check WD Status V5",     type: "PayBO", kind: null },
+  depositEncrypt:  { path: "API/encrypt_decrypt/depositEncrypt.js",          label: "Deposit Encrypt",        type: "Other", kind: null },
+  payoutEncrypt:   { path: "API/encrypt_decrypt/payoutEncrypt.js",           label: "Withdraw Encrypt",       type: "Other", kind: null },
 };
 
 // Actions that need currency + merchant selection
@@ -185,17 +185,26 @@ async function selectEnvironment() {
   );
 }
 
-async function selectScriptType() {
-  const types = [...new Set(Object.values(SCRIPT_ACTIONS).map(s => s.type))];
+function getAvailableActions(envConfig) {
+  if (envConfig.actions) {
+    return Object.fromEntries(
+      envConfig.actions.map(key => [key, SCRIPT_ACTIONS[key]])
+    );
+  }
+  return SCRIPT_ACTIONS;
+}
+
+async function selectScriptType(actions) {
+  const types = [...new Set(Object.values(actions).map(s => s.type))];
   return prompt("list", "scriptType", "Pilih Jenis Script:",
     toChoices(types.map(t => [t, t]))
   );
 }
 
-async function selectAction(scriptType) {
+async function selectAction(scriptType, actions) {
   return prompt("list", "action", "Pilih Action:",
     toChoices(
-      Object.entries(SCRIPT_ACTIONS)
+      Object.entries(actions)
         .filter(([, v]) => v.type === scriptType)
         .map(([k, v]) => [k, v.label])
     )
@@ -237,17 +246,19 @@ async function main() {
 
     loadEnv(envPath, environment);
 
+    const availableActions = getAvailableActions(envConfig);
+
     // Script type loop
     while (true) {
-      const scriptType = await selectScriptType();
+      const scriptType = await selectScriptType(availableActions);
       if (scriptType === "BACK") break;
 
       // Action loop
       while (true) {
-        const action = await selectAction(scriptType);
+        const action = await selectAction(scriptType, availableActions);
         if (action === "BACK") break;
 
-        const scriptConfig = SCRIPT_ACTIONS[action];
+        const scriptConfig = availableActions[action];
         let currency = null;
         let selectedMerchant = null;
 
