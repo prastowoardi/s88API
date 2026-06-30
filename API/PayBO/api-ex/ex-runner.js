@@ -1,4 +1,5 @@
-import readlineSync from "readline-sync";
+import inquirer from "inquirer";
+import readline from "readline";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -19,25 +20,80 @@ const __dirname = path.dirname(__filename);
 
 const handleGracefulStop = () => {
     console.log("\n");
-    logger.info("👋 Menutup session secara aman. Keluar dari PayBO API Ex Runner.");
+    logger.info("👋 Menutup session secara aman. Keluar dari Gempita API Ex Runner.");
     process.exit(0);
 };
 
 process.on("SIGINT", handleGracefulStop);
 process.on("SIGTERM", handleGracefulStop);
 
-readlineSync.setDefaultOptions({
-    cancel: true,
-    keepLoop: false,
-    prompt: "> ",
-    throwOnCancel: true
-});
-
 const ENV_FILES = {
     PayBO_staging: ".paybo_staging",
     gempita_staging: ".staging_gempita",
     PayBO_snappay: ".paybo_snappay",
 };
+
+async function asyncKeyInSelect(choices, message) {
+    return new Promise((resolve) => {
+        console.log(message);
+        choices.forEach((label, i) => {
+            console.log(`  ${i + 1}. ${label}`);
+        });
+        console.log(`  0. Keluar`);
+        process.stdout.write("> ");
+
+        const stdin = process.stdin;
+        const wasRaw = stdin.isRaw;
+        readline.emitKeypressEvents(stdin);
+        if (stdin.isTTY) stdin.setRawMode(true);
+        stdin.resume();
+
+        const cleanup = () => {
+            stdin.removeListener("keypress", onKeypress);
+            if (stdin.isTTY) stdin.setRawMode(wasRaw || false);
+            stdin.pause();
+        };
+
+        const onKeypress = (str, key) => {
+            // Ctrl+C tetap bisa keluar paksa
+            if (key && key.ctrl && key.name === "c") {
+                cleanup();
+                process.emit("SIGINT");
+                return;
+            }
+
+            if (!str) return;
+
+            // Angka 1-9 langsung pilih, tanpa Enter
+            if (/^[1-9]$/.test(str)) {
+                const index = Number(str) - 1;
+                if (index < choices.length) {
+                    console.log(str);
+                    cleanup();
+                    resolve(index);
+                    return;
+                }
+            }
+
+            // 0 atau Esc untuk batal
+            if (str === "0" || (key && key.name === "escape")) {
+                console.log(str === "0" ? "0" : "");
+                cleanup();
+                resolve(-1);
+                return;
+            }
+        };
+
+        stdin.on("keypress", onKeypress);
+    });
+}
+
+async function promptInput(name, message, defaultValue) {
+    const { [name]: answer } = await inquirer.prompt([
+        { type: "input", name, message, default: defaultValue },
+    ]);
+    return answer;
+}
 
 function getMerchantNames(envFilePath, currency = "IDR") {
     if (!fs.existsSync(envFilePath)) return [];
@@ -124,7 +180,7 @@ async function apiEx() {
         if (merchantNames.length === 1) {
             selectedMerchant = merchantNames[0];
         } else {
-            const merchantIndex = readlineSync.keyInSelect(merchantNames, `Pilih Merchant untuk Currency ${currency}:`);
+            const merchantIndex = await asyncKeyInSelect(merchantNames, `Pilih Merchant untuk Currency ${currency}:`);
             if (merchantIndex === -1) {
                 handleGracefulStop();
                 return;
@@ -166,21 +222,21 @@ async function apiEx() {
         return;
     }
 
-    const menus = [
-        "🔄 Regenerate Token (Refresh Auth)",
+    const menuLabels = [
+        "Regenerate Token (Refresh Auth)",
         "Generate QRIS Payment",
         "Generate Virtual Account",
         "Create Withdrawal (Pay-Out)",
         "Inquiry Status Pay-In",
         "Inquiry Status Pay-Out",
         "Check Balance",
-        "List Supported Banks"
+        "List Supported Banks",
     ];
 
     try {
         while (true) {
-            const index = readlineSync.keyInSelect(menus, "Pilih endpoint API Ex yang ingin di-hit:");
-            
+            const index = await asyncKeyInSelect(menuLabels, "Pilih endpoint API Ex yang ingin di-hit:");
+
             if (index === -1) {
                 handleGracefulStop();
                 break;
@@ -199,46 +255,46 @@ async function apiEx() {
                 }
                 case 1: {
                     const transactionCode = generateTrxCode("DP");
-                    const amountInput = readlineSync.question("Masukkan Amount Pay-In (Default 10.000): ");
+                    const amountInput = await promptInput("amount", "Masukkan Amount Pay-In:", "10000");
                     const amount = Number(amountInput || 10000);
                     await runGenerateQRIS(token, amount, transactionCode);
                     break;
                 }
                 case 2: {
                     const transactionCode = generateTrxCode("DP");
-                    const amountInput = readlineSync.question("Masukkan Amount VA: ");
+                    const amountInput = await promptInput("amount", "Masukkan Amount VA:");
                     const amount = Number(amountInput);
 
-                    const channelInput = readlineSync.question("Masukkan Channel (Default QRIS): ");
-                    const channel = channelInput.toUpperCase() || "QRIS";
+                    const channelInput = await promptInput("channel", "Masukkan Channel:", "QRIS");
+                    const channel = (channelInput || "QRIS").toUpperCase();
 
                     await runGenerateVA(token, amount, channel, transactionCode);
                     break;
                 }
                 case 3: {
                     const transactionCode = generateTrxCode("WD");
-                    const amountInput = readlineSync.question("Masukkan Amount Pay-Out (Default 10.000): ");
+                    const amountInput = await promptInput("amount", "Masukkan Amount Pay-Out:", "10000");
                     const amount = Number(amountInput || 10000);
 
-                    const bankIdInput = readlineSync.question("Masukkan Bank ID (Default 2): ");
+                    const bankIdInput = await promptInput("bankId", "Masukkan Bank ID:", "2");
                     const bankId = bankIdInput || "2";
 
-                    const accNumInput = readlineSync.question("Masukkan Account Number (Default 12340995811): ");
+                    const accNumInput = await promptInput("accNum", "Masukkan Account Number:", "12340995811");
                     const accNum = accNumInput || "12340995811";
 
-                    const accNameInput = readlineSync.question("Masukkan Account Name (Default Ujang): ");
+                    const accNameInput = await promptInput("accName", "Masukkan Account Name:", "Ujang");
                     const accName = accNameInput || "Ujang";
 
                     await runCreateWithdrawal(token, amount, bankId, accNum, accName, transactionCode);
                     break;
                 }
                 case 4: {
-                    const targetTrx = readlineSync.question("Masukkan Nomor Transaksi Pay-In: ");
+                    const targetTrx = await promptInput("targetTrx", "Masukkan Nomor Transaksi Pay-In:");
                     if (targetTrx.trim()) await runInquiryDeposit(token, targetTrx.trim());
                     break;
                 }
                 case 5: {
-                    const targetRef = readlineSync.question("Masukkan No Transaksi Pay-Out: ");
+                    const targetRef = await promptInput("targetRef", "Masukkan No Transaksi Pay-Out:");
                     if (targetRef.trim()) await runInquiryWithdrawal(token, targetRef.trim());
                     break;
                 }
