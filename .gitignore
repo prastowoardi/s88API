@@ -26,6 +26,7 @@ node_modules
 .paybo_rangoon
 .paybo_cosmospay
 .paybo_snappay
+.staging_gempita
 
 # src files
 old_bank.json
