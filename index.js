@@ -17,6 +17,7 @@ const ENV_CONFIGS = {
   singhapay_staging:   { file: ".env_singhaStag",    label: "Singhapay Staging"    },
   singhapay:           { file: ".env_singhapay",     label: "Singhapay Production" },
   PayBO_staging:       { file: ".paybo_staging",     label: "PayBO Staging"        },
+  gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging"      },
   PayBO_production:    { file: ".paybo_production",  label: "PayBO Production"     },
   PayBO_ezyplus:       { file: ".paybo_ezyplus",     label: "PayBO Ezyplus"        },
   PayBO_wandpay:       { file: ".paybo_wandpay",     label: "PayBO Wandpay"        },
