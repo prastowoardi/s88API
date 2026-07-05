@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, registeredDate } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber, registeredDate } from "../../helpers/utils.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { fakerJA } from "@faker-js/faker";
@@ -297,8 +297,8 @@ class regularPayout {
       logger.info(`URL: ${url}`);
       logger.info(`Payout request:\n${JSON.stringify(payload, null, 2)}`);
 
-      const encryptedPayload = encryptDecryptPayout(
-        "encrypt", payload, config.merchantAPI, config.secretKey
+      const encryptedPayload = encryptDecrypt(
+        "encrypt", payload, config.merchantAPI, config.secretKey, true
       );
 
       logger.info(`Encrypted Payload: ${encryptedPayload}`);
@@ -334,7 +334,7 @@ class regularPayout {
 
       if (result.parsedResult.encrypted_data) {
         try {
-          const decrypted = encryptDecrypt("decrypt", result.parsedResult.encrypted_data, config.merchantAPI, config.secretKey);
+          const decrypted = encryptDecrypt("decrypt", result.parsedResult.encrypted_data, config.merchantAPI, config.secretKey, true);
           logger.info("🔓 Decrypted Response:", decrypted);
         } catch (decryptError) {
           logger.warn("⚠️ Failed to decrypt response:", decryptError.message);

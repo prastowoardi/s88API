@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import readline from 'readline';
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
-import { encryptDecrypt, encryptDecryptPayout, getRandomIP, getRandomName, getAccountNumber, getCryptoRate, jpyBankList } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber, getCryptoRate, jpyBankList } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import CoinKey from 'coinkey';
@@ -170,7 +170,7 @@ class PayoutService {
     logger.info(`Request URL: ${url}`);
     logger.info(`Request Payload: ${JSON.stringify(payload, null, 2)}`);
 
-    const encryptedPayload = encryptDecryptPayout("encrypt", cleanedPayload, config.merchantAPI, config.secretKey);
+    const encryptedPayload = encryptDecrypt("encrypt", cleanedPayload, config.merchantAPI, config.secretKey, true);
     logger.info(`Encrypted Payload: ${encryptedPayload}`);
 
     let response;
@@ -208,7 +208,7 @@ class PayoutService {
     logger.info(`Response Status: ${response.status}`);
 
     if (result.encrypted_data) {
-      const decryptedPayload = encryptDecrypt("decrypt", result.encrypted_data, config.merchantAPI, config.secretKey);
+      const decryptedPayload = encryptDecrypt("decrypt", result.encrypted_data, config.merchantAPI, config.secretKey, true);
       logger.info(`Decrypted Response Payload: ${decryptedPayload}`);
     }
 

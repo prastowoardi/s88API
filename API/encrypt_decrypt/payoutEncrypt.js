@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import { randomInt } from "crypto";
 import readlineSync from "readline-sync";
-import { encryptDecrypt, encryptDecryptPayout, getRandomName } from "../helpers/utils.js";
+import { encryptDecrypt, getRandomName } from "../helpers/utils.js";
 import { getPayoutConfig } from "../helpers/payoutConfigMap.js";
 import { getValidIFSC } from "../helpers/payoutHelper.js";
 
@@ -57,10 +57,10 @@ async function payoutEncrypt() {
 
     console.log("\n📜 Request Payload:", JSON.stringify(payload, null, 2));
 
-    const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.apiKey, config.secretKey);
+    const encryptedPayload = encryptDecrypt("encrypt", payload, config.apiKey, config.secretKey, true);
     console.log(`\n🔑 Encrypted Payload:`, encryptedPayload);
 
-    const decryptedPayload = encryptDecrypt("decrypt", encryptedPayload, config.apiKey, config.secretKey);
+    const decryptedPayload = encryptDecrypt("decrypt", encryptedPayload, config.apiKey, config.secretKey, true);
     console.log("\n🔓 Decrypted Payload:", decryptedPayload);
 
     console.log(`\n======================================== DONE ======================================== `);

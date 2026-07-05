@@ -8,37 +8,11 @@ import { fakerJA as faker } from '@faker-js/faker';
 import fs from 'fs';
 import FormData from 'form-data';
 
-export const encryptDecrypt = (action, data, apikey, secretkey) => {
-    const key = CryptoJS.SHA256(apikey); 
-    const iv = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256(secretkey).toString(CryptoJS.enc.Hex).substring(0, 16)); 
-
-    if (!['encrypt', 'decrypt'].includes(action)) {
-        console.error("Invalid action. Use 'encrypt' or 'decrypt'.");
-        return null;
-    }
-
-    if (action === "encrypt") {
-        return encodeURIComponent(
-            CryptoJS.AES.encrypt(data, key, {
-                iv,
-                mode: CryptoJS.mode.CBC,
-                padding: CryptoJS.pad.Pkcs7
-            }).toString()
-        );
-    }
-
-    if (action === "decrypt") {
-        return CryptoJS.AES.decrypt(decodeURIComponent(data), key, {
-            iv,
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7
-        }).toString(CryptoJS.enc.Utf8);
-    }
-};
-
-export const encryptDecryptPayout = (action, data, apikey, secretkey) => {
+export const encryptDecrypt = (action, data, apikey, secretkey, isJson = false) => {
     const key = CryptoJS.SHA256(apikey);
-    const iv = CryptoJS.enc.Utf8.parse(CryptoJS.SHA256(secretkey).toString(CryptoJS.enc.Hex).substring(0, 16));
+    const iv = CryptoJS.enc.Utf8.parse(
+        CryptoJS.SHA256(secretkey).toString(CryptoJS.enc.Hex).substring(0, 16)
+    );
 
     if (!['encrypt', 'decrypt'].includes(action)) {
         console.error("Invalid action. Use 'encrypt' or 'decrypt'.");
@@ -46,7 +20,7 @@ export const encryptDecryptPayout = (action, data, apikey, secretkey) => {
     }
 
     if (action === "encrypt") {
-        const dataString = JSON.stringify(data);
+        const dataString = isJson ? JSON.stringify(data) : data;
         return encodeURIComponent(
             CryptoJS.AES.encrypt(dataString, key, {
                 iv,
@@ -62,7 +36,9 @@ export const encryptDecryptPayout = (action, data, apikey, secretkey) => {
             mode: CryptoJS.mode.CBC,
             padding: CryptoJS.pad.Pkcs7
         }).toString(CryptoJS.enc.Utf8);
-        
+
+        if (!isJson) return decryptedData;
+
         try {
             return JSON.parse(decryptedData);
         } catch (e) {

@@ -3,7 +3,7 @@ import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { payoutConfigMap, getPayoutConfig } from "../../helpers/payoutConfigMap.js";
-import { encryptDecryptPayout, getRandomName, getAccountNumber, getRandomIP } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomName, getAccountNumber, getRandomIP } from "../../helpers/utils.js";
 import * as AllConfigs from "../../Config/config.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { fakerJA } from "@faker-js/faker";
@@ -99,7 +99,7 @@ async function payout(userID, currency, amount, transactionCode, name, options =
   try {
     const config = CURRENCY_CONFIG.get(currency);
     const payload = buildPayload(userID, currency, amount, transactionCode, name, options);
-    const encryptedPayload = encryptDecryptPayout("encrypt", payload, config.apiKey, config.secretKey);
+    const encryptedPayload = encryptDecrypt("encrypt", payload, config.apiKey, config.secretKey, true);
 
     // logger.info(`📝 Payload [${transactionCode}]: ${JSON.stringify(payload, null, 2)}`);
     const result = await retryWithBackoff(async () => {
@@ -130,7 +130,7 @@ async function payout(userID, currency, amount, transactionCode, name, options =
     });
 
     if (result.encrypted_data) {
-      result.decrypted = encryptDecryptPayout("decrypt", result.encrypted_data, config.apiKey, config.secretKey);
+      result.decrypted = encryptDecrypt("decrypt", result.encrypted_data, config.apiKey, config.secretKey, true);
     }
 
     return { success: true, data: result };
