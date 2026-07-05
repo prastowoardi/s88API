@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import CryptoJS from 'crypto-js';
 import logger from "../logger.js";
 import { API_NINJAS_KEY } from "../Config/config.js";
+import { localNames } from "./local-names.js";
 import CoinKey from 'coinkey';
 import { v4 as uuidv4 } from 'uuid';
 import { fakerJA as faker } from '@faker-js/faker';
@@ -126,19 +127,6 @@ export function getRandomIP() {
             Math.floor(Math.random() * 256)
         ).join('.');
     }
-}
-
-const localNames = {
-    th: ["สมชาย ใจดี", "สุดา นารี", "นภัทร พานิช", "ชนิดา เล็ก", "กิตติชัย วงศ์สุวรรณ", "พิมพ์พรรณ ศรีทอง", "อภิชัย เดชะ", "วาสนา ศิริกุล", "ศักดิ์สิทธิ์ จันทรา", "มัลลิกา ภู่วัฒน์"],
-    cn: ["李伟", "王芳", "张伟", "陈杰", "刘洋", "赵静", "杨磊", "黄娜", "吴强", "周丽"],
-    jp: ["佐藤 太郎", "中村 優希", "鈴木 彩", "田中 翔", "高橋 健", "山本 美咲", "伊藤 海斗", "渡辺 花子", "小林 涼", "松本 愛"],
-    in: ["आरव शर्मा", "प्रिया सिंह", "रोहन पटेल", "अनन्या गुप्ता", "विवान वर्मा", "काव्या मिश्रा", "अर्जुन यादव", "नेहा अग्रवाल", "आदित्य चौहान", "इशिता मेहता"],
-    bd: ["রাহিম হোসেন", "ফাতিমা আক্তার", "শাকিব আহমেদ", "নুসরাত জাহান", "তানভীর রহমান", "মারিয়া ইসলাম", "রাকিব হাসান", "সাবরিনা ইয়াসমিন", "ইমরান করিম", "সানজিদা আক্তার"],
-    kr: ["김민준", "박지우", "이수진", "최현", "정은지", "한서준", "윤하린", "오지민", "장도윤", "서예린"],
-    my: ["အောင်ကျော်", "မြသုဇာ", "ထက်နိုင်", "သန္တာဝင်း", "မောင်မောင်ဦး", "ခင်ခင်ဝင်း", "ဇေယျာထွန်း", "ဆုမြတ်လှိုင်", "အေးချိုစံ", "သက်နိုင်ဦး"],
-    vn: ["Nguyễn Văn An", "Trần Thị Mai", "Lê Quang Huy", "Phạm Thị Lan", "Hoàng Đức Minh", "Vũ Thị Hằng", "Đặng Quốc Toàn", "Bùi Thị Hương", "Đỗ Văn Long", "Trịnh Ngọc Ánh"],
-    id: ["Andi Pratama", "Siti Nurhaliza", "Budi Santoso", "Cindy Melati", "Rizky Hidayat", "Dewi Lestari", "Ahmad Fauzan", "Tania Putri", "Doni Saputra", "Laras Wulandari"],
-    en: ["John Smith", "Emily Brown", "Michael Johnson", "Sarah Davis", "David Miller", "Jessica Wilson", "Daniel Taylor", "Olivia Moore", "James Anderson", "Sophia Thomas"]
 }
 
 export async function getRandomName(locale = "en", forceLocal = false) {
