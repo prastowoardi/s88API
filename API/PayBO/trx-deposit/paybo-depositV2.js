@@ -9,7 +9,7 @@ import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 dotenv.config();
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR", "MYR", "PKR"];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -92,6 +92,10 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       payloadObj.cust_name = user.name;
       payloadObj.cust_email = user.email;
       payloadObj.cust_phone = await randomPhoneNumber("my");
+      break;
+    case "PKR":
+      payloadObj.cust_phone = await randomPhoneNumber("pkr"),
+      payloadObj.cust_email = user.email
       break;
   }
   return payloadObj;

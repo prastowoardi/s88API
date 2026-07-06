@@ -7,7 +7,7 @@ import { encryptDecrypt, getRandomIP, getRandomName, generateEmail, getAccountNu
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR", "MYR", "PKR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 const xxx = await generateEmail();
@@ -70,6 +70,10 @@ async function buildPayload(config, tx, userInfo = {}) {
             cust_name: xxx.name,
             cust_email: xxx.email,
             cust_phone: await randomPhoneNumber("my")
+        }),
+        ...(tx.currency === "PKR" && {
+            cust_phone: await randomPhoneNumber('pkr'),
+            cust_email: xxx.email
         }),
         callback_url: config.callbackURL,
     };

@@ -114,6 +114,13 @@ const internalCurrencies = {
       merchantAPI: MERCHANT_API_KEY_JPY,
       requiresBankCode: true,
   },
+  PKR: {
+      merchantCode: MERCHANT_CODE_PKR,
+      payoutMethod: PAYOUT_METHOD_PKR,
+      secretKey: SECRET_KEY_PKR,
+      merchantAPI: MERCHANT_API_KEY_PKR,
+      requiresBankCode: true,
+  },
   USDT: {
       merchantCode: MERCHANT_CODE_USDT,
       payoutMethod: PAYOUT_METHOD_USDT,

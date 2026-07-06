@@ -8,7 +8,7 @@ import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, generateE
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR", "MYR", "PKR"];
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -126,6 +126,10 @@ async function applyCurrencySpecifics(payload, currency, bankCode, cardNumber) {
             payload.cust_name=user.name,
             payload.cust_email=user.email,
             payload.cust_phone=await randomPhoneNumber("my")
+            break;
+        case "PKR":
+            payload.cust_phone = await randomPhoneNumber("pkr"),
+            payload.cust_email = user.email
             break;
     }
     return payload;
