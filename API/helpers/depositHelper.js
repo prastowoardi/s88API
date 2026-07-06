@@ -24,6 +24,7 @@ export function randomPhoneNumber(currency = "default") {
     thb: { prefixes: ['08'], digits: 8, pad: 7 },
     idr: { prefixes: ['081', '085', '088'], digits: 9, pad: 9 },
     inr: { prefixes: ['919', '918', '917'], digits: 7, pad: 6 },
+    pkr: { prefixes: ['0300', '0312', '0333', '0345'], digits: 7, pad: 7 },
     default: { prefixes: ['017', '018', '019', '016', '015'], digits: 6, pad: 6 }
   };
 
