@@ -90,12 +90,11 @@ class BatchDepositV3Service {
         }
     }
 
-    async submitUTR(currency, transactionCode, retries = RETRY_ATTEMPTS) {
+    async submitUTR(currency, transactionCode, utr, retries = RETRY_ATTEMPTS) {
         if (!UTR_CURRENCIES.includes(currency)) {
             return { success: true, skipped: true };
         }
 
-        const utr = generateUTR(currency);
         const config = getCurrencyConfig(currency);
 
         const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
@@ -220,8 +219,12 @@ class BatchDepositV3Service {
 
             if (resultDP.status === "success") {
                 const transactionNo = resultDP.transaction_no;
-                const utr = generateUTR(currency);
                 const remark = resultDP?.data?.additional?.remark || "-";
+
+                let utr = "-";
+                if (UTR_CURRENCIES.includes(currency)) {
+                    utr = generateUTR(currency); 
+                }
 
                 let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark}`;
                 if (currency === "INR") logMsg += ` | UTR: ${utr}`;
@@ -231,7 +234,7 @@ class BatchDepositV3Service {
                 this.stats.success++;
 
                 if (UTR_CURRENCIES.includes(currency)) {
-                    await this.submitUTR(currency, transactionCode);
+                    await this.submitUTR(currency, transactionCode, utr); 
                 }
 
                 return { success: true, transactionNo, result: resultDP };
