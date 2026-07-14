@@ -161,11 +161,10 @@ class DepositV2Service {
             const payload = await this.buildPayload(config, tx, user);
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
-            const urls = [
-                config.BASE_URL,
-                process.env.BASE_URL_2,
-                process.env.BASE_URL_3,
-            ].filter(Boolean);
+            const urls = Object.keys(process.env)
+                .filter(key => key.startsWith('BASE_URL'))
+                .map(key => process.env[key])
+                .filter(Boolean); // Otomatis dapet URL dari .env
 
             logger.info(`Request Payload: ${payload}\n`);
             logger.info(`Encrypted Payload: ${encrypted}\n`);
