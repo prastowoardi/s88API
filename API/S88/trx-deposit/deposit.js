@@ -1,11 +1,17 @@
 import fetch from "node-fetch";
 import readline from "readline";
 import logger from "../../logger.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP,  getRandomName, registeredDate } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP,  getRandomName, registeredDate, submitProofMMK } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const RECEIPT_DIR = path.join(__dirname, "../../resources/public");
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
@@ -262,6 +268,37 @@ class DepositService {
 
     }
 
+    getRandomReceiptPath() {
+        const allowedExt = [".jpeg", ".jpg", ".png"];
+        const files = fs.readdirSync(RECEIPT_DIR).filter((file) =>
+            allowedExt.includes(path.extname(file).toLowerCase())
+        );
+
+        if (files.length === 0) {
+            throw new Error(`Tidak ada file gambar (jpeg/jpg/png) di folder: ${RECEIPT_DIR}`);
+        }
+
+        const randomFile = files[Math.floor(Math.random() * files.length)];
+        return path.join(RECEIPT_DIR, randomFile);
+    }
+
+    async submitProof(transactionCode, config, baseURL) {
+        const receiptPath = this.getRandomReceiptPath();
+        logger.info(`🖼️  Using receipt: ${receiptPath}`);
+
+        try {
+            const result = await submitProofMMK(
+                { ...config, BASE_URL: baseURL },
+                transactionCode,
+                receiptPath
+            );
+
+            logger.info(`Submit Proof Response:\n${JSON.stringify(result, null, 2)}`);
+        } catch (err) {
+            logger.error(`❌ Submit Proof Error: ${err.message}`);
+        }
+    }
+
     async processStandardDeposit(currency, amount, config, transactionCode) {
         const userInfo = {
             name: await getRandomName(localCurrency[currency], true),
@@ -288,6 +325,12 @@ class DepositService {
             const wantUTR = await this.askYesNo("Input UTR?");
             if (wantUTR) await this.submitUTR(currency, transactionCode, url);
             else logger.info("➡️ Skip Submit UTR");
+        }
+
+        if (currency === "MMK") {
+            const wantProof = await this.askYesNo("Submit Proof?");
+            if (wantProof) await this.submitProof(transactionCode, config, url);
+            else logger.info("➡️ Skip Submit Proof");
         }
 
         return result;

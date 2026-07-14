@@ -1,11 +1,12 @@
+import { API_NINJAS_KEY } from "../Config/config.js";
+import { localNames } from "./local-names.js";
+import { v4 as uuidv4 } from 'uuid';
+import { fakerJA as faker } from '@faker-js/faker';
 import fetch from "node-fetch";
 import CryptoJS from 'crypto-js';
 import logger from "../logger.js";
-import { API_NINJAS_KEY } from "../Config/config.js";
-import { localNames } from "./local-names.js";
 import CoinKey from 'coinkey';
-import { v4 as uuidv4 } from 'uuid';
-import { fakerJA as faker } from '@faker-js/faker';
+import axios from 'axios';
 import fs from 'fs';
 import FormData from 'form-data';
 
@@ -358,5 +359,70 @@ export async function jpyBankList(config) {
         return await response.json(); 
     } catch (err) {
         return { status: "ERROR", message: err.message };
+    }
+}
+
+export async function submitProofMMK(config, transactionCode, receiptPath) {
+    const { merchantCode, BASE_URL, secretKey, merchantAPI } = config;
+    const url = `${BASE_URL}/api/${merchantCode}/v4/upload-proof`;
+
+    if (!fs.existsSync(receiptPath)) {
+        logger.error(`❌ File receipt tidak ditemukan di path: ${receiptPath}`);
+        throw new Error(`File receipt tidak ditemukan: ${receiptPath}`);
+    }
+    const { size } = fs.statSync(receiptPath);
+    const maxSizeBytes = 3 * 1024 * 1024; // 3 MB
+
+    if (size > maxSizeBytes) {
+        logger.error(`❌ File receipt terlalu besar: ${(size / 1024 / 1024).toFixed(2)} MB (max 3MB)`);
+        throw new Error('Ukuran file receipt melebihi batas maksimum 3 MB');
+    }
+    const allowedExt = ['.jpeg', '.jpg', '.png'];
+    const ext = receiptPath.slice(receiptPath.lastIndexOf('.')).toLowerCase();
+    if (!allowedExt.includes(ext)) {
+        logger.error(`❌ Ekstensi file tidak didukung: ${ext}`);
+        throw new Error('Format file receipt harus jpeg, jpg, atau png');
+    }
+
+    const rawString = `transaction_code=${transactionCode}`;
+
+    const key = encryptDecrypt('encrypt', rawString, merchantAPI, secretKey);
+
+    const form = new FormData();
+    form.append('key', key);
+    form.append('receipt', fs.createReadStream(receiptPath));
+
+    try {
+        logger.info(`Submitting proof for transaction: ${transactionCode}`);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: form,
+            headers: {
+                ...form.getHeaders(),
+            },
+        });
+
+        const resText = await response.text();
+
+        let resData;
+        try {
+            resData = JSON.parse(resText);
+        } catch (e) {
+            resData = { message: "Invalid JSON response", raw: resText };
+        }
+
+        if (!response.ok) {
+            logger.error(`❌ Submit Proof Failed for ${transactionCode} (${response.status})`);
+
+            return resData;
+        }
+
+        logger.info(`✅ Submit Proof Success for ${transactionCode}`);
+
+        return resData;
+    } catch (error) {
+        logger.error(`❌ Submit Proof Error for ${transactionCode}: ${error.message}`);
+        throw error;
     }
 }
