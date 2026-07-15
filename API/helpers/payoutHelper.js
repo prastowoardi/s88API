@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import fetch from 'node-fetch';
+import logger from "../logger.js";
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +37,7 @@ export async function getRandomIFSC() {
 
     return validBank.MIFSCCODE;
   } catch (error) {
-    console.error(`❌ Error saat membaca IFSC data: ${error.message}`);
+    logger.error(`❌ Error saat membaca IFSC data: ${error.message}`);
     return null;
   }
 }
@@ -49,10 +50,10 @@ export async function getValidIFSC(currency, maxRetries = 5) {
       const isValid = await validateIFSC(ifscCode);
       if (isValid) return ifscCode;
     }
-    console.warn(`⚠️ Percobaan ${attempts + 1} gagal mendapatkan IFSC. Mencoba lagi...`);
+    logger.warn(`⚠️ Percobaan ${attempts + 1} gagal mendapatkan IFSC. Mencoba lagi...`);
     attempts++;
   }
-  console.error("❌ Gagal mendapatkan IFSC setelah beberapa percobaan.");
+  logger.error("❌ Gagal mendapatkan IFSC setelah beberapa percobaan.");
   return null;
 }
 
@@ -61,7 +62,7 @@ export async function validateIFSC(ifscCode) {
     const response = await fetch(`https://ifsc-prod-p1.rubikpay.com/${ifscCode}`);
     
     if (!response.ok) {
-      console.error(`❌ Validasi IFSC gagal: ${response.statusText}`);
+      logger.error(`❌ Validasi IFSC gagal: ${response.statusText}`);
       return false;
     }
 
@@ -71,23 +72,23 @@ export async function validateIFSC(ifscCode) {
     try {
       data = JSON.parse(textResponse);
     } catch (error) {
-      console.error('❌ Gagal parse respons API:', error.message);
+      logger.error('❌ Gagal parse respons API:', error.message);
       data = textResponse;
     }
 
     if (data && data.IFSC && data.BANKCODE && data.BANK) {
-      console.log("API Response:", JSON.stringify({
-        ifsc_status: `${ifscCode} Valid!`,
-        response: data
-      }, null, 2));
+      // console.log("API Response:", JSON.stringify({
+      //   ifsc_status: `${ifscCode} Valid!`,
+      //   response: data
+      // }, null, 2));
 
       return true;
     } else {
-      console.error(`❌ IFSC Code ${ifscCode} tidak valid. Respons tidak lengkap.`);
+      logger.error(`❌ IFSC Code ${ifscCode} tidak valid. Respons tidak lengkap.`);
       return false;
     }
   } catch (error) {
-    console.error(`❌ Error saat memvalidasi IFSC Code: ${error.message}`);
+    logger.error(`❌ Error saat memvalidasi IFSC Code: ${error.message}`);
     return false;
   }
 }
