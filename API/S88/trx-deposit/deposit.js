@@ -5,7 +5,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP,  getRandomName, registeredDate, submitProofMMK } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP,  getRandomName, registeredDate, submitProofMMK, generateEmail } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
@@ -13,9 +13,9 @@ import { localCurrency } from "../../helpers/currencyConfigMap.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RECEIPT_DIR = path.join(__dirname, "../../resources/public");
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
-const PHONE_CURRENCIES = ["INR", "BDT"];
+const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];
 
 class DepositService {
     constructor() {
@@ -68,7 +68,7 @@ class DepositService {
     }
 
     async getBankCode(config) {
-        if (config.requiresBankCode) {
+        if (config.requiresBankCode && currency != "MYR") {
             return this.validateBankCode(await this.ask("Masukkan Bank Code: "));
         }
         return config.bankCodeOptions?.[Math.floor(Math.random() * config.bankCodeOptions.length)] || "";
@@ -110,7 +110,7 @@ class DepositService {
                 throw new Error("Depositor Bank must contain only letters");
 
             Object.assign(payload, {
-                depositor_name: user.name,
+                depositor_name: user.data.name,
                 depositor_bank: depositorBank,
                 depositor_account_number: user.accountNumber,
                 last_deposit_date: new Date().toISOString().slice(0, 10),
@@ -122,10 +122,11 @@ class DepositService {
 
         if (tx.currency === "MYR") {
             payload.bank_code = "DUITNOW";
+            payload.email = user.data.email;
         }
 
         if (tx.currency === "KRW") {
-            payload.depositor_name = user.name;
+            payload.depositor_name = user.data.name;
             payload.depositor_account_number = user.accountNumber;
         }
 
@@ -301,8 +302,8 @@ class DepositService {
 
     async processStandardDeposit(currency, amount, config, transactionCode) {
         const userInfo = {
-            name: await getRandomName(localCurrency[currency], true),
             accountNumber: randomCardNumber(),
+            data: await generateEmail(),
         };
 
         const transactionData = {

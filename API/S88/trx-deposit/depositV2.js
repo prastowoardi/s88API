@@ -2,7 +2,7 @@ import readline from 'readline';
 import logger from "../../logger.js";
 import dotenv from 'dotenv';
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName, registeredDate } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, generateEmail } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
@@ -11,8 +11,8 @@ import { register } from 'module';
 
 dotenv.config();
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY"];
-const PHONE_CURRENCIES = ["INR", "BDT"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR"];
+const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];
 
 class DepositV2Service {
     constructor() {
@@ -50,7 +50,7 @@ class DepositV2Service {
     }
 
     async getBankCode(config) {
-        if (config.requiresBankCode) {
+        if (config.requiresBankCode && currency != "MYR") {
             return this.validateBankCode(await this.ask("Masukkan Bank Code: "));
         }
         return config.bankCodeOptions?.[Math.floor(Math.random() * config.bankCodeOptions.length)] || "";
@@ -94,13 +94,17 @@ class DepositV2Service {
 
             Object.assign(payload, {
                 depositor_bank: depositorBank,
-                depositor_name: await getRandomName('th', true),
+                depositor_name: user.data.name,
                 depositor_account_number: user.accountNumber,
                 last_deposit_date: new Date().toISOString().slice(0, 10),
                 last_register_date: registeredDate(),
                 total_deposit_amount: Math.max(tx.amount * 100, 100000),
                 total_turnover_amount: Math.max(tx.amount * 100, 300000),
             });
+        }
+
+        if (tx.currency === "MYR") {
+            payload.email = user.data.email;
         }
 
         // Only for Erfolg provider
@@ -142,8 +146,8 @@ class DepositV2Service {
 
             const user = {
                 id: randomInt(100, 999),
-                name: await getRandomName(localCurrency[currency], true),
                 accountNumber: randomCardNumber(),
+                data: await generateEmail(),
             };
 
             const tx = {

@@ -6,14 +6,15 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { randomInt } from "crypto";
-import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProofMMK } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProofMMK, generateEmail } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY", "MYR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
-const PHONE_CURRENCIES = ["INR", "BDT"];
+const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];
 const today = new Date();
+const user = await generateEmail();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RECEIPT_DIR = path.join(__dirname, "../../resources/public");
@@ -60,7 +61,7 @@ class DepositService {
     }
 
     async getBankCode(config, currency) {
-        if (config.requiresBankCode) {
+        if (config.requiresBankCode && currency != "MYR") {
             const input = await this.ask("Masukkan Bank Code: ");
             return this.validateBankCode(input.trim(), currency);
         }
@@ -122,6 +123,11 @@ class DepositService {
         if (tx.currency === "KRW") {
             basePayload.depositor_name = await getRandomName('kr', true);
             basePayload.depositor_account_number = userInfo.accountNumber
+        }
+
+        if (tx.currency === "MYR") {
+            basePayload.email = user.email;
+            basePayload.bank_code = "DUITNOW"
         }
 
         // Only for Erfolg provider
