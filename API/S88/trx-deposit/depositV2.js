@@ -49,7 +49,7 @@ class DepositV2Service {
         return code;
     }
 
-    async getBankCode(config) {
+    async getBankCode(config, currency) {
         if (config.requiresBankCode && currency != "MYR") {
             return this.validateBankCode(await this.ask("Masukkan Bank Code: "));
         }
@@ -105,6 +105,7 @@ class DepositV2Service {
 
         if (tx.currency === "MYR") {
             payload.email = user.data.email;
+            payload.bank_code = "DUITNOW"
         }
 
         // Only for Erfolg provider

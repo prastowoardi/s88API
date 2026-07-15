@@ -67,7 +67,7 @@ class DepositService {
         return `TEST-DP-V3-${Math.floor(Date.now() / 1000)}`;
     }
 
-    async getBankCode(config) {
+    async getBankCode(config, currency) {
         if (config.requiresBankCode && currency != "MYR") {
             return this.validateBankCode(await this.ask("Masukkan Bank Code: "));
         }
