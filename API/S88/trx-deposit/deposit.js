@@ -68,7 +68,7 @@ class DepositService {
     }
 
     async getBankCode(config, currency) {
-        if (config.requiresBankCode && currency != "MYR") {
+        if (config.requiresBankCode) {
             return this.validateBankCode(await this.ask("Masukkan Bank Code: "));
         }
         return config.bankCodeOptions?.[Math.floor(Math.random() * config.bankCodeOptions.length)] || "";
@@ -121,7 +121,6 @@ class DepositService {
         }
 
         if (tx.currency === "MYR") {
-            payload.bank_code = "DUITNOW";
             payload.email = user.data.email;
         }
 
@@ -291,7 +290,8 @@ class DepositService {
             const result = await submitProofMMK(
                 { ...config, BASE_URL: baseURL },
                 transactionCode,
-                receiptPath
+                receiptPath,
+                'v3'
             );
 
             logger.info(`Submit Proof Response:\n${JSON.stringify(result, null, 2)}`);

@@ -362,9 +362,9 @@ export async function jpyBankList(config) {
     }
 }
 
-export async function submitProofMMK(config, transactionCode, receiptPath) {
+export async function submitProofMMK(config, transactionCode, receiptPath, version = 'v4') {
     const { merchantCode, BASE_URL, secretKey, merchantAPI } = config;
-    const url = `${BASE_URL}/api/${merchantCode}/v4/upload-proof`;
+    const url = `${BASE_URL}/api/${merchantCode}/${version}/upload-proof`;
 
     if (!fs.existsSync(receiptPath)) {
         logger.error(`❌ File receipt tidak ditemukan di path: ${receiptPath}`);
@@ -393,7 +393,7 @@ export async function submitProofMMK(config, transactionCode, receiptPath) {
     form.append('receipt', fs.createReadStream(receiptPath));
 
     try {
-        logger.info(`Submitting proof for transaction: ${transactionCode}`);
+        logger.info(`Submitting proof (${version}) for transaction: ${transactionCode}`);
 
         const response = await fetch(url, {
             method: 'POST',

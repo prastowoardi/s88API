@@ -61,7 +61,7 @@ class DepositService {
     }
 
     async getBankCode(config, currency) {
-        if (config.requiresBankCode && currency != "MYR") {
+        if (config.requiresBankCode) {
             const input = await this.ask("Masukkan Bank Code: ");
             return this.validateBankCode(input.trim(), currency);
         }
@@ -127,7 +127,6 @@ class DepositService {
 
         if (tx.currency === "MYR") {
             basePayload.email = user.email;
-            basePayload.bank_code = "DUITNOW"
         }
 
         // Only for Erfolg provider
