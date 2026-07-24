@@ -83,8 +83,8 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
             break;
         case "KRW":
             payload.cust_name = await getRandomName("kr", true);
-            payload.bank_name = bankCode;
-            payload.bank_code = bankCode;
+            // payload.bank_name = bankCode;
+            // payload.bank_code = bankCode;
             payload.bank_account_number = await getAccountNumber(5);
             payload.card_holder_name = await getRandomName();
             payload.cust_birthdate = "1990-10-05";

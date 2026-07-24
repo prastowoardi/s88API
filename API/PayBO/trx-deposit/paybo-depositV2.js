@@ -55,10 +55,10 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       payloadObj.cust_website_url="https://api.mins31.com"
       break;
     case "KRW":
-      payloadObj.bank_code = bankCode;
+      // payloadObj.bank_code = bankCode;
       payloadObj.card_holder_name = await getRandomName();
       payloadObj.bank_account_number = await getAccountNumber(5);
-      payloadObj.bank_name = bankCode;
+      // payloadObj.bank_name = bankCode;
       payloadObj.cust_birthdate = "1990-10-14";
       payloadObj.cust_name=user.name;
       payloadObj.cust_email=user.email;

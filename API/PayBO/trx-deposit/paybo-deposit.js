@@ -35,7 +35,7 @@ async function buildPayload(config, tx, userInfo = {}) {
         ...(tx.currency === "KRW" && {
             cust_name: xxx.name,
             bank_account_number: await getAccountNumber(5),
-            bank_name: tx.bankCode,
+            // bank_name: tx.bankCode,
             card_holder_name: await getRandomName("kr", true),
             cust_email: xxx.email,
             cust_phone: "9812763405",
