@@ -28,6 +28,7 @@ node_modules
 .paybo_snappay
 .staging_gempita
 .paybo_flexipay
+.staging_swftx
 
 # src files
 old_bank.json
