@@ -248,7 +248,7 @@ class DepositService {
 
         let url;
 
-        const useV3 = ["singhapay", "xyz"].some(keyword =>
+        const useV3 = ["singhapay", "xyz", "apex"].some(keyword =>
             baseURL.includes(keyword)
         );
 
