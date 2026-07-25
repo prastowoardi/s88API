@@ -29,6 +29,7 @@ node_modules
 .staging_gempita
 .paybo_flexipay
 .staging_swftx
+.apexpay_prod
 
 # src files
 old_bank.json
