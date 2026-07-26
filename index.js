@@ -38,7 +38,7 @@ const ENV_CONFIGS = {
 const SCRIPT_ACTIONS = {
   // S88 / Singhapay
   depositV2:       { path: "API/S88/trx-deposit/depositV2.js",         label: "Deposit V2",           type: "S88/Singhapay", kind: "deposit"  },
-  depositV3:       { path: "API/S88/trx-deposit/deposit.js",           label: "Deposit V3",           type: "S88/Singhapay", kind: "deposit"  },
+  depositV3:       { path: "API/S88/trx-deposit/depositV3.js",           label: "Deposit V3",           type: "S88/Singhapay", kind: "deposit"  },
   depositV4:       { path: "API/S88/trx-deposit/depositV4.js",         label: "Deposit V4",           type: "S88/Singhapay", kind: "deposit"  },
   payout:          { path: "API/S88/trx-payout/payout.js",             label: "Payout",               type: "S88/Singhapay", kind: "payout"   },
   batchDepositV2:  { path: "API/S88/trx-deposit/batchDepositV2.js",    label: "Batch Deposit V2",     type: "S88/Singhapay", kind: "deposit"  },
@@ -50,7 +50,7 @@ const SCRIPT_ACTIONS = {
 
   // PayBO
   payboDepositV2:       { path: "API/PayBO/trx-deposit/paybo-depositV2.js",     label: "PayBO Deposit V2",        type: "PayBO", kind: "deposit" },
-  payboDepositV3:       { path: "API/PayBO/trx-deposit/paybo-deposit.js",       label: "PayBO Deposit V3",        type: "PayBO", kind: "deposit" },
+  payboDepositV3:       { path: "API/PayBO/trx-deposit/paybo-depositV3.js",       label: "PayBO Deposit V3",        type: "PayBO", kind: "deposit" },
   payboDepositV4:       { path: "API/PayBO/trx-deposit/paybo-depositV4.js",     label: "PayBO Deposit V4",        type: "PayBO", kind: "deposit" },
   payboDepositV5:       { path: "API/PayBO/trx-deposit/paybo-depositV5.js",     label: "PayBO Deposit V5",        type: "PayBO", kind: "deposit" },
   payboPayout:          { path: "API/PayBO/trx-payout/paybo-payout.js",         label: "PayBO Withdraw",          type: "PayBO", kind: "payout"  },
