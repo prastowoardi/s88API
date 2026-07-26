@@ -1,6 +1,5 @@
 import readline from 'readline';
 import logger from "../../logger.js";
-import dotenv from 'dotenv';
 import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, generateEmail } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
@@ -8,8 +7,6 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
 import open from "open";
 import { register } from 'module';
-
-dotenv.config();
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];

@@ -31,10 +31,7 @@ class DepositService {
     }
 
     async askYesNo(question) {
-        let answer;
-        do {
-        answer = (await this.ask(`${question} (YES/NO): `)).toUpperCase();
-        } while (!["YES", "NO"].includes(answer));
+        const answer = (await this.ask(`${question} (YES/NO): `)).trim().toUpperCase();
         return answer === "YES";
     }
 
