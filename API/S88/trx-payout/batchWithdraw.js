@@ -17,8 +17,8 @@ const CURRENCY_CONFIG = new Map(
       ...config,
       apiKey: config.merchantAPI, 
       // Default value
-      bankAccount: cur === 'VND' ? "2206491508" : `${getAccountNumber(cur === 'JPY' ? 7 : 6)}`,
-      bankCodes: cur === 'VND' ? ["970436", "970407", "970416", "970422", "970418"] : []
+      bankAccount: `${getAccountNumber(cur === 'JPY' ? 7 : 8)}`,
+
     }];
   })
 );
@@ -76,8 +76,7 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
     case 'BDT':
       return { ...basePayload, bank_code: options.bankCode};
     case 'VND':
-      const randomBankCode = config.bankCodes[Math.floor(Math.random() * config.bankCodes.length)];
-      return { ...basePayload, bank_code: randomBankCode };
+      return { ...basePayload, bank_code: options.bankCode };
     case 'MMK':
       return { ...basePayload, bank_code: options.bankCode, bank_name: "bankName" };
     case 'JPY':
