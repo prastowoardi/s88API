@@ -8,6 +8,8 @@ const envFiles = {
     singhapay: '.env_singhapay',
     singhapay_staging: '.env_singhaStag',
     production: '.env_production',
+    apexpay_production: '.apexpay_prod',
+    apexpay_staging: '.apexpay_staging',
     PayBO_staging: '.paybo_staging',
     PayBO_wandpay: '.paybo_wandpay',
     PayBO_swftx: '.paybo_swftx',

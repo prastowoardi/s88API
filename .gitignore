@@ -30,6 +30,7 @@ node_modules
 .paybo_flexipay
 .staging_swftx
 .apexpay_prod
+.apexpay_staging
 
 # src files
 old_bank.json

@@ -16,6 +16,7 @@ const ENV_CONFIGS = {
   production:          { file: ".env_production",    label: "Seapay Production"    },
   singhapay_staging:   { file: ".env_singhaStag",    label: "Singhapay Staging"    },
   singhapay:           { file: ".env_singhapay",     label: "Singhapay Production" },
+  apexpay_staging:     { file: ".apexpay_staging",   label: "Apexpay Staging"      },
   apexpay_production:  { file: ".apexpay_prod",      label: "Apexpay Production"   },
   PayBO_staging:       { file: ".paybo_staging",     label: "PayBO Staging"        },
   gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging",     actions: ["payboApiEx"] },
