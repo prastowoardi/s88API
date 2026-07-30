@@ -15,6 +15,7 @@ import {
     PAYOUT_METHOD_MYR, MERCHANT_CODE_MYR, MERCHANT_API_KEY_MYR, SECRET_KEY_MYR,
     PAYOUT_METHOD_JPY, MERCHANT_CODE_JPY, MERCHANT_API_KEY_JPY, SECRET_KEY_JPY,
     PAYOUT_METHOD_PKR, MERCHANT_CODE_PKR, MERCHANT_API_KEY_PKR, SECRET_KEY_PKR,
+    PAYOUT_METHOD_NPR, MERCHANT_CODE_NPR, MERCHANT_API_KEY_NPR, SECRET_KEY_NPR,
     PAYOUT_METHOD_USDT, MERCHANT_CODE_USDT, MERCHANT_API_KEY_USDT, SECRET_KEY_USDT
 } from "../Config/config.js";
 
@@ -120,6 +121,13 @@ const internalCurrencies = {
       payoutMethod: PAYOUT_METHOD_PKR,
       secretKey: SECRET_KEY_PKR,
       merchantAPI: MERCHANT_API_KEY_PKR,
+      requiresBankCode: true,
+  },
+  NPR: {
+      merchantCode: MERCHANT_CODE_NPR,
+      payoutMethod: PAYOUT_METHOD_NPR,
+      secretKey: SECRET_KEY_NPR,
+      merchantAPI: MERCHANT_API_KEY_NPR,
       requiresBankCode: true,
   },
   USDT: {

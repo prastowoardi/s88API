@@ -13,9 +13,9 @@ import { localCurrency } from "../../helpers/currencyConfigMap.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RECEIPT_DIR = path.join(__dirname, "../../resources/public");
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR", "NPR", "PKR"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
-const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];
+const PHONE_CURRENCIES = ["INR", "BDT", "MYR", "NPR", "PKR"];
 
 class DepositService {
     constructor() {
@@ -128,6 +128,11 @@ class DepositService {
 
         if (tx.currency === "JPY") {
             payload.depositor_name = await getRandomName('jp', true);
+        }
+
+        if (tx.currency === "NPR") {
+            payload.depositor_name = await getRandomName();
+            payload.depositor_account_number = user.accountNumber;
         }
 
         // Only for Erfolg provider

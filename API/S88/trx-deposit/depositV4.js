@@ -10,9 +10,9 @@ import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProof
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY", "MYR", "NPR", "PKR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
-const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];
+const PHONE_CURRENCIES = ["INR", "BDT", "MYR", "NPR", "PKR"];
 const today = new Date();
 const user = await generateEmail();
 
@@ -118,6 +118,11 @@ class DepositService {
 
         if (tx.currency === "JPY") {
             basePayload.depositor_name = await getRandomName('jp', true);
+        }
+
+        if (tx.currency === "NPR") {
+            basePayload.depositor_name = await getRandomName();
+            basePayload.depositor_account_number = userInfo.accountNumber;
         }
 
         if (tx.currency === "KRW") {
