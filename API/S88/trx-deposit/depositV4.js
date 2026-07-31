@@ -13,8 +13,7 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY", "MYR", "NPR", "PKR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR", "NPR", "PKR"];
-const today = new Date();
-const user = await generateEmail();
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RECEIPT_DIR = path.join(__dirname, "../../resources/public");
@@ -29,6 +28,11 @@ class DepositService {
 
     ask(question) {
         return new Promise((resolve) => this.rl.question(question, resolve));
+    }
+
+    async askYesNo(question) {
+        const answer = (await this.ask(`${question} (YES/NO): `)).trim().toUpperCase();
+        return answer === "YES";
     }
 
     close() {
@@ -131,7 +135,7 @@ class DepositService {
         }
 
         if (tx.currency === "MYR") {
-            basePayload.email = user.email;
+            basePayload.email = userInfo.data.email;
         }
 
         // Only for Erfolg provider
@@ -176,6 +180,16 @@ class DepositService {
         }
     }
 
+    async tryParseJSON(text, url) {
+        try {
+            return JSON.parse(text);
+        } catch (err) {
+            console.log(`Response Text from ${url}:\n${text}\n`);
+            logger.error(`Failed to parse JSON from ${url}: ${err.message}`);
+            return null;
+        }
+    }
+
     async makeDepositRequest(config, payload) {
         const encrypted = encryptDecrypt(
             "encrypt",
@@ -187,7 +201,7 @@ class DepositService {
         const urls = Object.keys(process.env)
             .filter(key => key.startsWith('BASE_URL'))
             .map(key => process.env[key])
-            .filter(Boolean); // Otomatis dapet URL dari .env
+            .filter(Boolean);
 
         logger.info(`Payload: ${payload}\n`);
         logger.info(`Encrypted: ${encrypted}\n`);
@@ -205,19 +219,13 @@ class DepositService {
                 });
 
                 const text = await response.text();
-                
-                let json;
-                try {
-                    json = JSON.parse(text);
-                } catch (e) {
-                    console.error("Error Message:", e.message);
-                    console.log("Raw Response Body:", text); 
-                    continue;
-                }
+                const json = await this.tryParseJSON(text, url);
+
+                if (!json) continue;
 
                 if (!response.ok) {
                     if (json.message === "[DP] Unauthorize" || response.status === 401) {
-                        logger.warn(`⚠️ Unauthorized at ${base}, trying next URL...\n`);
+                        logger.warn(`⚠️ Unauthorized at ${base}, trying next...\n`);
                         continue;
                     }
                     throw new Error(`HTTP ${response.status}: ${text}`);
@@ -226,11 +234,11 @@ class DepositService {
                 return { result: json, url: base };
             } catch (err) {
                 if (err.message.includes("HTTP")) throw err;
-                logger.error(`🚫 Network error on ${base}: ${err.message}`);
+                continue;
             }
         }
 
-        throw new Error("All API URLs failed (Unauthorized or Network Error)");
+        throw new Error("All API URLs failed (Unauthorized or Connection Issue)");
     }
 
     async submitUTR(currency, transactionCode, baseURL) {
@@ -305,6 +313,11 @@ class DepositService {
     }
 
     async processStandardDeposit(currency, amount, config, transactionCode) {
+        const userInfo = {
+            accountNumber: randomCardNumber(),
+            data: await generateEmail(),
+        };
+
         const tx = {
             code: transactionCode,
             timestamp: Math.floor(Date.now() / 1000).toString(),
@@ -316,11 +329,6 @@ class DepositService {
         };
 
         tx.phone = this.getPhoneNumber(currency, tx.bankCode);
-
-        const userInfo = {
-            name: await getRandomName(),
-            accountNumber: randomCardNumber(),
-        };
 
         const payload = await this.buildPayload(config, tx, userInfo);
         const { result, url } = await this.makeDepositRequest(config, payload);
@@ -338,18 +346,14 @@ class DepositService {
         }
 
         if (UTR_CURRENCIES.includes(currency)) {
-            const confirm = (await this.ask("Input UTR (YES/NO): "))
-                .trim()
-                .toUpperCase();
-            if (confirm === "YES") await this.submitUTR(currency, transactionCode, url);
+            const wantUTR = await this.askYesNo("Input UTR?");
+            if (wantUTR) await this.submitUTR(currency, transactionCode, url);
             else logger.info("Skip Submit UTR.");
         }
 
         if (currency === "MMK") {
-            const confirmProof = (await this.ask("Submit Proof (YES/NO): "))
-                .trim()
-                .toUpperCase();
-            if (confirmProof === "YES") await this.submitProof(transactionCode, config, url);
+            const wantProof = await this.askYesNo("Submit Proof?");
+            if (wantProof) await this.submitProof(transactionCode, config, url);
             else logger.info("Skip Submit Proof.");
         }
 

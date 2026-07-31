@@ -54,7 +54,7 @@ class DepositService {
         return numAmount;
     }
 
-    validateBankCode(bankCode) {
+    validateBankCode(bankCode, currency) {
         if (!/^[a-zA-Z0-9]+$/.test(bankCode))
         throw new Error("Bank Code must contain only letters and numbers");
         return bankCode;
@@ -66,19 +66,18 @@ class DepositService {
 
     async getBankCode(config, currency) {
         if (config.requiresBankCode) {
-            return this.validateBankCode(await this.ask("Masukkan Bank Code: "));
+            const input = await this.ask("Masukkan Bank Code: ");
+            return this.validateBankCode(input.trim(), currency);
         }
         return config.bankCodeOptions?.[Math.floor(Math.random() * config.bankCodeOptions.length)] || "";
     }
 
     getPhoneNumber(currency, bankCode) {
-        if (PHONE_CURRENCIES.includes(currency)) {
+        if (PHONE_CURRENCIES.includes(currency))
             return randomPhoneNumber(currency.toLowerCase());
-        }
-
         if (currency === "MMK" && bankCode === "WAVEPAY") {
             const phone = randomMyanmarPhoneNumber();
-            logger.info(`WavePay Phone: ${phone}`);
+            logger.info(`Phone Number WavePay: ${phone}`);
             return phone;
         }
         return "";
@@ -327,13 +326,13 @@ class DepositService {
         if (["INR", "BDT"].includes(currency)) {
             const wantUTR = await this.askYesNo("Input UTR?");
             if (wantUTR) await this.submitUTR(currency, transactionCode, url);
-            else logger.info("➡️ Skip Submit UTR");
+            else logger.info("Skip Submit UTR");
         }
 
         if (currency === "MMK") {
             const wantProof = await this.askYesNo("Submit Proof?");
             if (wantProof) await this.submitProof(transactionCode, config, url);
-            else logger.info("➡️ Skip Submit Proof");
+            else logger.info("Skip Submit Proof");
         }
 
         return result;
