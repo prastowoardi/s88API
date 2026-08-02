@@ -1,3 +1,5 @@
+import { randomInt } from "crypto";
+
 export function generateUTR(currency) {
   if (currency === "INR") {
     return Math.floor(100000000000 + Math.random() * 900000000000).toString();
@@ -49,7 +51,15 @@ export function randomMyanmarPhoneNumber() {
 }
 
 export function randomCardNumber() {
-    return Math.floor(1000000000000000 + Math.random() * 9000000000000000);
+    let cardNumber = "";
+
+    // Keep 16 digits and avoid leading zero (matches prior 10^15..10^16-1 range intent)
+    cardNumber += randomInt(1, 10).toString();
+    for (let i = 1; i < 16; i++) {
+        cardNumber += randomInt(0, 10).toString();
+    }
+
+    return Number(cardNumber);
 }
 
 export function randomAmount(min, max) {
