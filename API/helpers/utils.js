@@ -9,6 +9,7 @@ import CoinKey from 'coinkey';
 import axios from 'axios';
 import fs from 'fs';
 import FormData from 'form-data';
+import { randomInt } from 'crypto';
 
 export const encryptDecrypt = (action, data, apikey, secretkey, isJson = false) => {
     const key = CryptoJS.SHA256(apikey);
@@ -159,7 +160,7 @@ export function getAccountNumber(length = 8) {
     if (!Number.isInteger(length) || length <= 0) return '';
     let s = '';
     for (let i = 0; i < length; i++) {
-        s += Math.floor(Math.random() * 10); // 0..9
+        s += randomInt(0, 10); // 0..9 (cryptographically secure)
     }
     return s;
 }
