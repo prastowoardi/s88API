@@ -116,17 +116,17 @@ export function verifySign(bizContent, sign, secretKey) {
 }
 
 export function getRandomIP() {
-    const isIPv6 = Math.random() > 0.5;
+    const isIPv6 = randomInt(0, 2) === 1;
 
     if (isIPv6) {
         // IPv6: 8 blok angka heksadesimal (0x0000 – 0xFFFF)
         return Array.from({ length: 8 }, () =>
-            Math.floor(Math.random() * 0x10000).toString(16)
+            randomInt(0, 0x10000).toString(16)
         ).join(':');
     } else {
         // IPv4: 4 blok angka desimal (0–255)
         return Array.from({ length: 4 }, () =>
-            Math.floor(Math.random() * 256)
+            randomInt(0, 256)
         ).join('.');
     }
 }
@@ -152,7 +152,7 @@ export async function getRandomName(locale = "en", forceLocal = false) {
     }
 
     const selectedLocale = localNames[normalizedLocale] || localNames["en"];
-    const randomIndex = Math.floor(Math.random() * selectedLocale.length);
+    const randomIndex = randomInt(0, selectedLocale.length);
     return selectedLocale[randomIndex];
 }
 
@@ -177,7 +177,7 @@ export async function generateEmail({
         .filter(Boolean)
         .join(".");
 
-    const randomNum = Math.floor(Math.random() * 1000);
+    const randomNum = randomInt(0, 1000);
     const email = `${emailBase}${randomNum}@${domain}`;
 
     return {
