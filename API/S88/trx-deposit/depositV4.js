@@ -114,10 +114,10 @@ class DepositService {
                 throw new Error("Depositor Bank must contain only letters");
                 basePayload.depositor_bank = depositorBank;
 
-            basePayload.last_deposit_date = new Date().toISOString().slice(0, 10);
-            basePayload.last_register_date = registeredDate();
-            basePayload.total_deposit_amount = Math.max(tx.amount * 100, 100000);
-            basePayload.total_turnover_amount = Math.max(tx.amount * 100, 300000);
+            // basePayload.last_deposit_date = new Date().toISOString().slice(0, 10);
+            // basePayload.last_register_date = registeredDate();
+            // basePayload.total_deposit_amount = Math.max(tx.amount * 100, 100000);
+            // basePayload.total_turnover_amount = Math.max(tx.amount * 100, 300000);
         }
 
         if (tx.currency === "JPY") {

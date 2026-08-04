@@ -93,10 +93,10 @@ class DepositV2Service {
                 depositor_bank: depositorBank,
                 depositor_name: user.data.name,
                 depositor_account_number: user.accountNumber,
-                last_deposit_date: new Date().toISOString().slice(0, 10),
-                last_register_date: registeredDate(),
-                total_deposit_amount: Math.max(tx.amount * 100, 100000),
-                total_turnover_amount: Math.max(tx.amount * 100, 300000),
+                // last_deposit_date: new Date().toISOString().slice(0, 10),
+                // last_register_date: registeredDate(),
+                // total_deposit_amount: Math.max(tx.amount * 100, 100000),
+                // total_turnover_amount: Math.max(tx.amount * 100, 300000),
             });
         }
 

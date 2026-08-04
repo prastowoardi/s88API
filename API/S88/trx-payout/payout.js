@@ -233,7 +233,7 @@ class regularPayout {
     };
   }
 
-  static async enhancePayload(payload, currency, config, inputHandler) {
+  static async enhancePayload(payload, currency, amount, config, inputHandler) {
     const enhancedPayload = { ...payload };
 
     if (config.requiresIFSC) {
@@ -261,11 +261,11 @@ class regularPayout {
 
     if (currency === "THB") {
       enhancedPayload.bank_name = BANK_CONFIG.THB.bank_name;
-      enhancedPayload.lat_withdrawal_date = new Date().toISOString().slice(0, 10);
-      enhancedPayload.last_deposit_date = new Date().toISOString().slice(0, 10);
-      enhancedPayload.last_register_date = registeredDate();
-      enhancedPayload.total_deposit_amount = amount * 2;
-      enhancedPayload.total_turnover_amount = amount * 100;
+      // enhancedPayload.lat_withdrawal_date = new Date().toISOString().slice(0, 10);
+      // enhancedPayload.last_deposit_date = new Date().toISOString().slice(0, 10);
+      // enhancedPayload.last_register_date = registeredDate();
+      // enhancedPayload.total_deposit_amount = amount * 2;
+      // enhancedPayload.total_turnover_amount = amount * 100;
     }
 
     if (currency === "JPY") {
@@ -292,7 +292,7 @@ class regularPayout {
       );
 
       payload = await regularPayout.enhancePayload(
-        payload, currency, config, inputHandler
+        payload, currency, amount, config, inputHandler
       );
 
       logger.info(`URL: ${url}`);
@@ -407,6 +407,12 @@ class PayoutOrchestrator {
       logger.info(`Duration: ${duration.toFixed(2)}s`);
       
       if (!result.success) {
+        if (result.error) {
+          logger.error(`❌ Error: ${result.error}`);
+        }
+        if (result.readableError) {
+          logger.error(`❌ Detail: ${result.readableError}`);
+        }
         if(result.resultText) {
             try {
                 const errObj = JSON.parse(result.resultText);
