@@ -10,7 +10,7 @@ import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProof
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB","PHP", "JPY", "MYR", "NPR", "PKR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB","PHP", "JPY", "MYR", "NPR", "PKR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR", "NPR", "PKR"];
 
@@ -368,7 +368,7 @@ class DepositService {
             : null;
 
         if (!currency) {
-            const input = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): ");
+            const input = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW): ");
             currency = this.validateCurrency(input.trim().toUpperCase());
         }
 

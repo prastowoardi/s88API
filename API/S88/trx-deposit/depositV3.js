@@ -13,7 +13,7 @@ import { localCurrency } from "../../helpers/currencyConfigMap.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RECEIPT_DIR = path.join(__dirname, "../../resources/public");
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "PMI", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR", "NPR", "PKR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR", "NPR", "PKR"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR", "NPR", "PKR"];
 
@@ -338,15 +338,11 @@ class DepositService {
         return result;
     }
 
-    async processPMIDeposit(transactionCode, amount, config) {
-        logger.info("⚙️ PMI deposit belum diimplementasi di CLI ini.");
-    }
-
     async getUserInput() {
         const envCurrency = process.env.CURRENCY;
         const currency = envCurrency
         ? this.validateCurrency(envCurrency)
-        : this.validateCurrency(await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW/PMI): "));
+        : this.validateCurrency(await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW): "));
 
         const amount = this.validateAmount(await this.ask("Masukkan Amount: "));
         return { currency, amount };
@@ -359,11 +355,7 @@ class DepositService {
             const config = getCurrencyConfig(currency);
             const transactionCode = this.generateTransactionCode();
 
-            if (currency === "PMI") {
-                await this.processPMIDeposit(transactionCode, amount, config);
-            } else {
-                await this.processStandardDeposit(currency, amount, config, transactionCode);
-            }
+            await this.processStandardDeposit(currency, amount, config, transactionCode);
 
             logger.info("======== REQUEST DONE ========\n");
         } catch (err) {

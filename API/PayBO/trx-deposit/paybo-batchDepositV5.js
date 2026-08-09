@@ -23,7 +23,7 @@ import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
 import { BASE_URL, CALLBACK_URL } from "../../Config/config.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","PMI","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR"];
+const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;

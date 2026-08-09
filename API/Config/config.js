@@ -30,13 +30,11 @@ dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 
 const currencies = ['INR', 'VND', 'BDT', 'MMK', 'BRL', 'IDR', 'THB', 'MXN', 'KRW', 'PHP', 'HKD', "KHR", "MYR", 'JPY'];
 const merchantFields = ['SECRET_KEY', 'DEPOSIT_METHOD', 'PAYOUT_METHOD', 'MERCHANT_API_KEY', 'MERCHANT_CODE'];
-const pmiFields = ['PMI_WD_URL', 'PMI_DP_URL', 'PMI_AUTHORIZATION', 'MERCHANT_CODE_PMI', 'SECRET_KEY_PMI', 'DEPOSIT_METHOD_PMI', 'PAYOUT_METHOD_PMI', 'MERCHANT_API_KEY_PMI'];
 const staticFields = ['BASE_URL', 'API_NINJAS_KEY', 'MERCHANT_API_KEY_IDR', 'SECRET_TOKEN'];
 
 const allFields = [
     ...staticFields,
-    ...currencies.flatMap(curr => merchantFields.map(field => `${field}_${curr}`)),
-    ...pmiFields
+    ...currencies.flatMap(curr => merchantFields.map(field => `${field}_${curr}`))
 ];
 
 const exports = {};
@@ -64,8 +62,7 @@ export const {
     SECRET_KEY_MYR, DEPOSIT_METHOD_MYR, PAYOUT_METHOD_MYR, MERCHANT_API_KEY_MYR, MERCHANT_CODE_MYR,
     SECRET_KEY_PKR, DEPOSIT_METHOD_PKR, PAYOUT_METHOD_PKR, MERCHANT_API_KEY_PKR, MERCHANT_CODE_PKR,
     SECRET_KEY_NPR, DEPOSIT_METHOD_NPR, PAYOUT_METHOD_NPR, MERCHANT_API_KEY_NPR, MERCHANT_CODE_NPR,
-    SECRET_KEY_USDT, DEPOSIT_METHOD_USDT, PAYOUT_METHOD_USDT, MERCHANT_API_KEY_USDT, MERCHANT_CODE_USDT,
-    PMI_WD_URL, PMI_DP_URL, PMI_AUTHORIZATION, MERCHANT_CODE_PMI, SECRET_KEY_PMI, DEPOSIT_METHOD_PMI, PAYOUT_METHOD_PMI, MERCHANT_API_KEY_PMI
+    SECRET_KEY_USDT, DEPOSIT_METHOD_USDT, PAYOUT_METHOD_USDT, MERCHANT_API_KEY_USDT, MERCHANT_CODE_USDT
 } = process.env;
 
 export const CALLBACK_URL = "https://webhook.prastowoardi616.workers.dev/webhook";
@@ -79,8 +76,6 @@ if (!isPayBO) {
         console.error(`❌ Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
         throw new Error(`Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
     }
-    if (!PMI_DP_URL || !PMI_WD_URL) throw new Error("PMI BASE_URL is required and cannot be empty.");
-    if (!PMI_AUTHORIZATION) throw new Error("PMI authorization is required and cannot be empty.");
 } else {
     if (!BASE_URL) throw new Error("BASE_URL is required for PayBO environment.");
     const currentCurrency = process.env.CURRENCY; 

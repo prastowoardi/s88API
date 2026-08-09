@@ -8,7 +8,7 @@ import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { fakerJA } from "@faker-js/faker";
 
 const CONFIG = {
-  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "PMI", "MYR", "PHP", "JPY", "KRW", "NPR", "PKR"],
+  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "MYR", "PHP", "JPY", "KRW", "NPR", "PKR"],
   REQUEST_TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
@@ -119,98 +119,6 @@ const utils = {
     );
   }
 };
-
-class PMIPayout {
-  static async createPayload(amount, config) {
-    const timestamp = Math.floor(Date.now() / 1000);
-    
-    return {
-      invoice_id: utils.generateTransactionCode(),
-      amount: Number(amount),
-      country: "IN",
-      currency: "INR",
-      payer: await PMIPayout.generatePayer(),
-      bank_account: await PMIPayout.generateBankAccount(),
-      payment_method: config.payoutMethod,
-      description: "test description",
-      client_ip: getRandomIP(),
-      url: {
-        callback_url: config.callbackURL
-      },
-      test: 1,
-      language: "en"
-    };
-  }
-
-  static async generatePayer() {
-    const phone = randomPhoneNumber("inr");
-    return {
-      id: randomInt(10000000000000, 99999999999999).toString(),
-      document: randomInt(10000000000, 99999999999).toString(),
-      first_name: "Test",
-      last_name: "User",
-      phone: phone,
-      email: `test.user.${Date.now()}@example.com`,
-      address: {
-        street: "Test Street 123",
-        city: "New Delhi",
-        state: "Delhi",
-        zip_code: "110057"
-      }
-    };
-  }
-
-  static async generateBankAccount() {
-    const name = await getRandomName();
-    return {
-      bank_account_number: randomInt(10000000000000, 99999999999999).toString(),
-      bank_branch: randomInt(100000, 999999).toString(),
-      bank_code: "HDFC0011965",
-      bank_beneficiary: name,
-      card_number: "1234123412341234",
-      card_exp_date: "12/25",
-      card_holder: name
-    };
-  }
-
-  static async send(config, amount) {
-    try {
-      const payload = await PMIPayout.createPayload(amount, config);
-      
-      logger.info("🚀 Sending PMI Payout...");
-      logger.debug("PMI Payload:", JSON.stringify(payload, null, 2));
-
-      const result = await utils.retryWithBackoff(async () => {
-        const response = await fetch(config.BASE_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": config.authorization,
-            "x-api-key": config.merchantAPI,
-            "User-Agent": "PayoutSystem/2.0"
-          },
-          body: JSON.stringify(payload),
-          timeout: CONFIG.REQUEST_TIMEOUT
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        return response.json();
-      });
-
-      logger.info("✅ PMI Payout Success:");
-      logger.info("Response:", JSON.stringify(result, null, 2));
-      
-      return { success: true, data: result };
-
-    } catch (error) {
-      logger.error("❌ PMI Payout Error:", error.message);
-      return { success: false, error: error.message };
-    }
-  }
-}
 
 class regularPayout {
   static async createBasePayload(userID, currency, amount, transactionCode, name, config) {
@@ -392,13 +300,9 @@ class PayoutOrchestrator {
       }
 
       let result;
-      if (config.isExternal) {
-        result = await PMIPayout.send(config, amount);
-      } else {
-        result = await regularPayout.send(
-          userID, currency, amount, transactionCode, name, config, this.inputHandler
-        );
-      }
+      result = await regularPayout.send(
+        userID, currency, amount, transactionCode, name, config, this.inputHandler
+      );
 
       const duration = (Date.now() - startTime) / 1000;
       
@@ -452,7 +356,6 @@ async function sendPayout() {
 
 export { 
   PayoutOrchestrator, 
-  PMIPayout, 
   regularPayout, 
   sendPayout,
   CONFIG,

@@ -8,7 +8,7 @@ import * as AllConfigs from "../../Config/config.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { fakerJA } from "@faker-js/faker";
 
-const SUPPORTED_CURRENCIES = Object.keys(payoutConfigMap).filter(cur => cur !== 'PMI');
+const SUPPORTED_CURRENCIES = Object.keys(payoutConfigMap);
 
 const CURRENCY_CONFIG = new Map(
   SUPPORTED_CURRENCIES.map(cur => {
@@ -197,7 +197,7 @@ async function batchPayout() {
   const startTime = Date.now();
   try {
     const envCurrency = process.env.CURRENCY?.toUpperCase();
-    const availableCurrencies = Object.keys(payoutConfigMap).filter(cur => cur !== 'PMI');
+    const availableCurrencies = Object.keys(payoutConfigMap);
     
     let currencies = (envCurrency === "ALL") ? availableCurrencies : [envCurrency];
 

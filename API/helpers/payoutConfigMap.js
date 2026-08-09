@@ -37,23 +37,12 @@ const internalCurrencies = Object.fromEntries(
     ])
 );
 
-export const payoutConfigMap = {
-    PMI: {
-        isExternal: true,
-        BASE_URL: Config.PMI_WD_URL,
-        callbackURL: Config.CALLBACK_URL,
-        merchantAPI: Config.MERCHANT_API_KEY_PMI,
-        payoutMethod: Config.PAYOUT_METHOD_PMI,
-        secretKey: Config.SECRET_KEY_PMI,
-        authorization: Config.PMI_AUTHORIZATION,
-    },
-    ...Object.fromEntries(
-        Object.entries(internalCurrencies).map(([currency, config]) => [
-            currency,
-            { ...defaultInternalConfig, ...config },
-        ])
-    ),
-};
+export const payoutConfigMap = Object.fromEntries(
+    Object.entries(internalCurrencies).map(([currency, config]) => [
+        currency,
+        { ...defaultInternalConfig, ...config },
+    ])
+);
 
 export function getPayoutConfig(currency) {
     const config = payoutConfigMap[currency];
