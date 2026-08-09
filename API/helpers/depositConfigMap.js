@@ -1,60 +1,49 @@
-import { 
-  BASE_URL,
-  CALLBACK_URL,
-  MERCHANT_CODE_INR, SECRET_KEY_INR, MERCHANT_API_KEY_INR, DEPOSIT_METHOD_INR,
-  MERCHANT_CODE_VND, SECRET_KEY_VND, MERCHANT_API_KEY_VND, DEPOSIT_METHOD_VND,
-  MERCHANT_CODE_BDT, SECRET_KEY_BDT, MERCHANT_API_KEY_BDT, DEPOSIT_METHOD_BDT,
-  MERCHANT_CODE_MMK, SECRET_KEY_MMK, MERCHANT_API_KEY_MMK, DEPOSIT_METHOD_MMK,
-  MERCHANT_CODE_BRL, SECRET_KEY_BRL, MERCHANT_API_KEY_BRL, DEPOSIT_METHOD_BRL,
-  MERCHANT_CODE_IDR, SECRET_KEY_IDR, MERCHANT_API_KEY_IDR, DEPOSIT_METHOD_IDR,
-  MERCHANT_CODE_THB, SECRET_KEY_THB, MERCHANT_API_KEY_THB, DEPOSIT_METHOD_THB,
-  MERCHANT_CODE_MXN, SECRET_KEY_MXN, MERCHANT_API_KEY_MXN, DEPOSIT_METHOD_MXN,
-  MERCHANT_CODE_KRW, SECRET_KEY_KRW, MERCHANT_API_KEY_KRW, DEPOSIT_METHOD_KRW,
-  MERCHANT_CODE_PHP, SECRET_KEY_PHP, MERCHANT_API_KEY_PHP, DEPOSIT_METHOD_PHP,
-  MERCHANT_CODE_JPY, SECRET_KEY_JPY, MERCHANT_API_KEY_JPY, DEPOSIT_METHOD_JPY,
-  MERCHANT_CODE_HKD, SECRET_KEY_HKD, MERCHANT_API_KEY_HKD, DEPOSIT_METHOD_HKD,
-  MERCHANT_CODE_KHR, SECRET_KEY_KHR, MERCHANT_API_KEY_KHR, DEPOSIT_METHOD_KHR,
-  MERCHANT_CODE_MYR, SECRET_KEY_MYR, MERCHANT_API_KEY_MYR, DEPOSIT_METHOD_MYR,
-  MERCHANT_CODE_PKR, SECRET_KEY_PKR, MERCHANT_API_KEY_PKR, DEPOSIT_METHOD_PKR,
-  MERCHANT_CODE_NPR, SECRET_KEY_NPR, MERCHANT_API_KEY_NPR, DEPOSIT_METHOD_NPR,
-  MERCHANT_CODE_USDT, SECRET_KEY_USDT, MERCHANT_API_KEY_USDT, DEPOSIT_METHOD_USDT
-} from "../Config/config.js";
+import * as Config from "../Config/config.js";
 
 const defaultConfig = {
-  BASE_URL,
-  callbackURL: CALLBACK_URL,
+    BASE_URL: Config.BASE_URL,
+    callbackURL: Config.CALLBACK_URL,
 };
 
-const currencyConfigs = {
-  INR: { merchantCode: MERCHANT_CODE_INR, depositMethod: DEPOSIT_METHOD_INR, secretKey: SECRET_KEY_INR, merchantAPI: MERCHANT_API_KEY_INR },
-  VND: { merchantCode: MERCHANT_CODE_VND, depositMethod: DEPOSIT_METHOD_VND, secretKey: SECRET_KEY_VND, merchantAPI: MERCHANT_API_KEY_VND, requiresBankCode: true },
-  BDT: { merchantCode: MERCHANT_CODE_BDT, depositMethod: DEPOSIT_METHOD_BDT, secretKey: SECRET_KEY_BDT, merchantAPI: MERCHANT_API_KEY_BDT, requiresBankCode: true },
-  MMK: { merchantCode: MERCHANT_CODE_MMK, depositMethod: DEPOSIT_METHOD_MMK, secretKey: SECRET_KEY_MMK, merchantAPI: MERCHANT_API_KEY_MMK, requiresBankCode: true },
-  BRL: { merchantCode: MERCHANT_CODE_BRL, depositMethod: DEPOSIT_METHOD_BRL, secretKey: SECRET_KEY_BRL, merchantAPI: MERCHANT_API_KEY_BRL, requiresBankCode: true },
-  IDR: { merchantCode: MERCHANT_CODE_IDR, depositMethod: DEPOSIT_METHOD_IDR, secretKey: SECRET_KEY_IDR, merchantAPI: MERCHANT_API_KEY_IDR, requiresBankCode: true, cardNumber: false },
-  THB: { merchantCode: MERCHANT_CODE_THB, depositMethod: DEPOSIT_METHOD_THB, secretKey: SECRET_KEY_THB, merchantAPI: MERCHANT_API_KEY_THB, requiresBankCode: true, cardNumber: true },
-  MXN: { merchantCode: MERCHANT_CODE_MXN, depositMethod: DEPOSIT_METHOD_MXN, secretKey: SECRET_KEY_MXN, merchantAPI: MERCHANT_API_KEY_MXN, requiresBankCode: true },
-  KRW: { merchantCode: MERCHANT_CODE_KRW, depositMethod: DEPOSIT_METHOD_KRW, secretKey: SECRET_KEY_KRW, merchantAPI: MERCHANT_API_KEY_KRW, requiresBankCode: false, cardNumber: true },
-  PHP: { merchantCode: MERCHANT_CODE_PHP, depositMethod: DEPOSIT_METHOD_PHP, secretKey: SECRET_KEY_PHP, merchantAPI: MERCHANT_API_KEY_PHP, requiresBankCode: true },
-  JPY: { merchantCode: MERCHANT_CODE_JPY, depositMethod: DEPOSIT_METHOD_JPY, secretKey: SECRET_KEY_JPY, merchantAPI: MERCHANT_API_KEY_JPY, requiresBankCode: false },
-  HKD: { merchantCode: MERCHANT_CODE_HKD, depositMethod: DEPOSIT_METHOD_HKD, secretKey: SECRET_KEY_HKD, merchantAPI: MERCHANT_API_KEY_HKD },
-  KHR: { merchantCode: MERCHANT_CODE_KHR, depositMethod: DEPOSIT_METHOD_KHR, secretKey: SECRET_KEY_KHR, merchantAPI: MERCHANT_API_KEY_KHR, requiresBankCode: true },
-  MYR: { merchantCode: MERCHANT_CODE_MYR, depositMethod: DEPOSIT_METHOD_MYR, secretKey: SECRET_KEY_MYR, merchantAPI: MERCHANT_API_KEY_MYR, requiresBankCode: true },
-  PKR: { merchantCode: MERCHANT_CODE_PKR, depositMethod: DEPOSIT_METHOD_PKR, secretKey: SECRET_KEY_PKR, merchantAPI: MERCHANT_API_KEY_PKR, requiresBankCode: true },
-  NPR: { merchantCode: MERCHANT_CODE_NPR, depositMethod: DEPOSIT_METHOD_NPR, secretKey: SECRET_KEY_NPR, merchantAPI: MERCHANT_API_KEY_NPR, requiresBankCode: true },
-  USDT: { merchantCode: MERCHANT_CODE_USDT, depositMethod: DEPOSIT_METHOD_USDT, secretKey: SECRET_KEY_USDT, merchantAPI: MERCHANT_API_KEY_USDT, requiresBankCode: true },
+const currencyFlags = {
+    INR: {},
+    VND: { requiresBankCode: true },
+    BDT: { requiresBankCode: true },
+    MMK: { requiresBankCode: true },
+    BRL: { requiresBankCode: true },
+    IDR: { requiresBankCode: true, cardNumber: false },
+    THB: { requiresBankCode: true, cardNumber: true },
+    MXN: { requiresBankCode: true },
+    KRW: { requiresBankCode: false, cardNumber: true },
+    PHP: { requiresBankCode: true },
+    JPY: { requiresBankCode: false },
+    HKD: {},
+    KHR: { requiresBankCode: true },
+    MYR: { requiresBankCode: true },
+    PKR: { requiresBankCode: true },
+    NPR: { requiresBankCode: true },
+    USDT: { requiresBankCode: true },
 };
 
-const currencyConfigMap = Object.keys(currencyConfigs).reduce((map, currency) => {
-  map[currency] = { ...defaultConfig, ...currencyConfigs[currency] };
-  return map;
-}, {});
+const currencyConfigMap = Object.fromEntries(
+    Object.entries(currencyFlags).map(([currency, flags]) => [
+        currency,
+        {
+            ...defaultConfig,
+            merchantCode: Config[`MERCHANT_CODE_${currency}`],
+            depositMethod: Config[`DEPOSIT_METHOD_${currency}`],
+            secretKey: Config[`SECRET_KEY_${currency}`],
+            merchantAPI: Config[`MERCHANT_API_KEY_${currency}`],
+            ...flags,
+        },
+    ])
+);
 
 export function getCurrencyConfig(currency) {
-  const config = currencyConfigMap[currency];
-  if (!config) {
-    console.error(`Config untuk currency '${currency}' tidak ditemukan.`);
-    throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
-  }
-  return { ...config, currency };
+    const config = currencyConfigMap[currency];
+    if (!config) {
+        console.error(`Config untuk currency '${currency}' tidak ditemukan.`);
+        throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
+    }
+    return { ...config, currency };
 }

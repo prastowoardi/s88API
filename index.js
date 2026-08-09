@@ -38,20 +38,20 @@ const ENV_CONFIGS = {
 // Script Actions
 const SCRIPT_ACTIONS = {
   // S88 / Singhapay
-  depositV2:       { path: "API/S88/trx-deposit/depositV2.js",         label: "Deposit V2",           type: "S88/Singhapay", kind: "deposit"  },
-  depositV3:       { path: "API/S88/trx-deposit/depositV3.js",           label: "Deposit V3",           type: "S88/Singhapay", kind: "deposit"  },
-  depositV4:       { path: "API/S88/trx-deposit/depositV4.js",         label: "Deposit V4",           type: "S88/Singhapay", kind: "deposit"  },
-  payout:          { path: "API/S88/trx-payout/payout.js",             label: "Payout",               type: "S88/Singhapay", kind: "payout"   },
-  batchDepositV2:  { path: "API/S88/trx-deposit/batchDepositV2.js",    label: "Batch Deposit V2",     type: "S88/Singhapay", kind: "deposit"  },
-  batchDepositV3:  { path: "API/S88/trx-deposit/batchDeposit.js",      label: "Batch Deposit V3",     type: "S88/Singhapay", kind: "deposit"  },
-  batchDepositV4:  { path: "API/S88/trx-deposit/batchDepositV4.js",    label: "Batch Deposit V4",     type: "S88/Singhapay", kind: "deposit"  },
-  batchWithdraw:   { path: "API/S88/trx-payout/batchWithdraw.js",      label: "Batch Withdraw",       type: "S88/Singhapay", kind: "payout"   },
-  manualINR:       { path: "API/S88/trx-payout/manualINR.js",          label: "Manual Withdraw INR",  type: "S88/Singhapay", kind: "payout"   },
-  manualVND:       { path: "API/S88/trx-payout/manualVND.js",          label: "Manual Withdraw VND",  type: "S88/Singhapay", kind: "payout"   },
+  depositV2:       { path: "API/S88/trx-deposit/depositV2.js",         label: "Deposit V2",           type: "S88/Singhapay/Apex", kind: "deposit"  },
+  depositV3:       { path: "API/S88/trx-deposit/depositV3.js",         label: "Deposit V3",           type: "S88/Singhapay/Apex", kind: "deposit"  },
+  depositV4:       { path: "API/S88/trx-deposit/depositV4.js",         label: "Deposit V4",           type: "S88/Singhapay/Apex", kind: "deposit"  },
+  payout:          { path: "API/S88/trx-payout/payout.js",             label: "Payout",               type: "S88/Singhapay/Apex", kind: "payout"   },
+  batchDepositV2:  { path: "API/S88/trx-deposit/batchDepositV2.js",    label: "Batch Deposit V2",     type: "S88/Singhapay/Apex", kind: "deposit"  },
+  batchDepositV3:  { path: "API/S88/trx-deposit/batchDeposit.js",      label: "Batch Deposit V3",     type: "S88/Singhapay/Apex", kind: "deposit"  },
+  batchDepositV4:  { path: "API/S88/trx-deposit/batchDepositV4.js",    label: "Batch Deposit V4",     type: "S88/Singhapay/Apex", kind: "deposit"  },
+  batchWithdraw:   { path: "API/S88/trx-payout/batchWithdraw.js",      label: "Batch Withdraw",       type: "S88/Singhapay/Apex", kind: "payout"   },
+  manualINR:       { path: "API/S88/trx-payout/manualINR.js",          label: "Manual Withdraw INR",  type: "S88/Singhapay/Apex", kind: "payout"   },
+  manualVND:       { path: "API/S88/trx-payout/manualVND.js",          label: "Manual Withdraw VND",  type: "S88/Singhapay/Apex", kind: "payout"   },
 
   // PayBO
   payboDepositV2:       { path: "API/PayBO/trx-deposit/paybo-depositV2.js",     label: "PayBO Deposit V2",        type: "PayBO", kind: "deposit" },
-  payboDepositV3:       { path: "API/PayBO/trx-deposit/paybo-depositV3.js",       label: "PayBO Deposit V3",        type: "PayBO", kind: "deposit" },
+  payboDepositV3:       { path: "API/PayBO/trx-deposit/paybo-depositV3.js",     label: "PayBO Deposit V3",        type: "PayBO", kind: "deposit" },
   payboDepositV4:       { path: "API/PayBO/trx-deposit/paybo-depositV4.js",     label: "PayBO Deposit V4",        type: "PayBO", kind: "deposit" },
   payboDepositV5:       { path: "API/PayBO/trx-deposit/paybo-depositV5.js",     label: "PayBO Deposit V5",        type: "PayBO", kind: "deposit" },
   payboPayout:          { path: "API/PayBO/trx-payout/paybo-payout.js",         label: "PayBO Withdraw",          type: "PayBO", kind: "payout"  },
