@@ -15,21 +15,18 @@ const CURRENCY_CONFIG = new Map(
     const config = getPayoutConfig(cur);
     return [cur, {
       ...config,
-      apiKey: config.merchantAPI, 
-      // Default value
-      bankAccount: `${getAccountNumber(cur === 'JPY' ? 7 : 8)}`,
-
+      apiKey: config.merchantAPI,
+      bankAccount: cur === 'JPY' ? getAccountNumber(7) : cur === 'PKR' ? `03${getAccountNumber(9)}` : getAccountNumber(8),
     }];
   })
 );
 
 const CONFIG = {
-  SUPPORTED_CURRENCIES: SUPPORTED_CURRENCIES,
-  MAX_CONCURRENT_REQUESTS: 5,
+  MAX_CONCURRENT_REQUESTS: 10,
   REQUEST_DELAY: 100,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
-  BATCH_SIZE: 10,
+  BATCH_SIZE: 20,
   REQUEST_TIMEOUT: 20000
 };
 
@@ -74,15 +71,11 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
     case 'INR':
       return { ...basePayload, ifsc_code: options.ifscCode };
     case 'BDT':
-      return { ...basePayload, bank_code: options.bankCode};
     case 'VND':
-      return { ...basePayload, bank_code: options.bankCode };
     case 'MMK':
-      return { ...basePayload, bank_code: options.bankCode, bank_name: "bankName" };
     case 'PKR':
-      return { ...basePayload, bank_code: options.bankCode, bank_name: "bankName" };
     case 'NPR':
-      return { ...basePayload, bank_code: options.bankCode, bank_name: "bankName" };
+      return { ...basePayload, bank_code: options.bankCode };
     case 'JPY':
       return { 
         ...basePayload, 
@@ -143,27 +136,50 @@ async function payout(userID, currency, amount, transactionCode, name, options =
   }
 }
 
+async function runWithConcurrency(tasks, concurrency) {
+  const results = new Array(tasks.length);
+  let index = 0;
+
+  async function worker() {
+    while (index < tasks.length) {
+      const current = index++;
+      await delay(CONFIG.REQUEST_DELAY);
+      try {
+        results[current] = await tasks[current]();
+      } catch (err) {
+        results[current] = { success: false, error: err.message };
+      }
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, tasks.length) }, worker)
+  );
+  return results;
+}
+
 async function batchProcess(requests) {
   const results = [];
+  const totalBatches = Math.ceil(requests.length / CONFIG.BATCH_SIZE);
+
   for (let i = 0; i < requests.length; i += CONFIG.BATCH_SIZE) {
     const batch = requests.slice(i, i + CONFIG.BATCH_SIZE);
-    logger.info(`📦 Batch ${Math.floor(i / CONFIG.BATCH_SIZE) + 1}/${Math.ceil(requests.length / CONFIG.BATCH_SIZE)}`);
-    
-    const batchPromises = batch.map(async (req, idx) => {
-      if (idx > 0) await delay(CONFIG.REQUEST_DELAY * idx);
-      return payout(req.userID, req.currency, req.amount, req.transactionCode, req.name, req.options);
-    });
-    
-    const batchResults = await Promise.allSettled(batchPromises);
+    logger.info(`📦 Batch ${Math.floor(i / CONFIG.BATCH_SIZE) + 1}/${totalBatches}`);
+
+    const tasks = batch.map(req => () =>
+      payout(req.userID, req.currency, req.amount, req.transactionCode, req.name, req.options)
+    );
+
+    const batchResults = await runWithConcurrency(tasks, CONFIG.MAX_CONCURRENT_REQUESTS);
+
     batchResults.forEach((res, idx) => {
-      const req = batch[idx];
-      if (res.status === 'fulfilled' && res.value.success) {
-        logger.info(`✅ ${req.transactionCode} Success`);
-        results.push({ ...res.value, transactionCode: req.transactionCode });
+      const code = batch[idx].transactionCode;
+      if (res.success) {
+        logger.info(`✅ ${code} Success`);
+        results.push({ ...res, transactionCode: code });
       } else {
-        const errorMsg = res.status === 'rejected' ? res.reason.message : res.value.error;
-        logger.error(`❌ ${req.transactionCode} Failed: ${errorMsg}`);
-        results.push({ success: false, error: errorMsg, transactionCode: req.transactionCode });
+        logger.error(`❌ ${code} Failed: ${res.error}`);
+        results.push({ success: false, error: res.error, transactionCode: code });
       }
     });
   }
@@ -172,12 +188,9 @@ async function batchProcess(requests) {
 
 async function preloadIFSCCodes(count) {
   logger.info(`⏳ Loading ${count} IFSC Codes...`);
-  const codes = [];
-  for (let i = 0; i < count; i++) {
-    const code = await getValidIFSC();
-    if (code) codes.push(code);
-  }
-  return codes;
+  const tasks = Array.from({ length: count }, () => () => getValidIFSC());
+  const codes = await runWithConcurrency(tasks, CONFIG.MAX_CONCURRENT_REQUESTS);
+  return codes.filter(Boolean);
 }
 
 async function batchPayout() {
@@ -203,6 +216,9 @@ async function batchPayout() {
       logger.info(`--- Preparing ${jumlah} transactions for ${cur} ---`);
 
       let ifsc = (cur === "INR") ? await preloadIFSCCodes(jumlah) : [];
+      const names = await Promise.all(
+        Array.from({ length: jumlah }, () => getRandomName())
+      );
       
       let sharedBankCode = "";
       if (config.requiresBankCode) {
@@ -234,7 +250,7 @@ async function batchPayout() {
           currency: cur,
           amount,
           transactionCode: `TEST-BATCH-WD-${cur}-${lastWithdrawTimestamp}`,
-          name: await getRandomName(),
+          name: names[i],
           options
         });
       }
