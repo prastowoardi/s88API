@@ -125,6 +125,12 @@ class DepositService {
         }
 
         if (tx.currency === "NPR") {
+            const depositorBank = await this.ask("Masukkan Depositor Bank: ");
+            if (!/^[a-z0-9A-Z]+$/.test(depositorBank))
+                throw new Error("Depositor Bank must contain only letters");
+            
+            basePayload.bank_code = "FONEPAY";
+            basePayload.depositor_bank_code = depositorBank;
             basePayload.depositor_name = await getRandomName();
             basePayload.depositor_account_number = userInfo.accountNumber;
         }

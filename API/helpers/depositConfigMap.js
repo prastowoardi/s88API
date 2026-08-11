@@ -21,7 +21,7 @@ const currencyFlags = {
     KHR: { requiresBankCode: true },
     MYR: { requiresBankCode: true },
     PKR: { requiresBankCode: true },
-    NPR: { requiresBankCode: true },
+    NPR: { requiresBankCode: false },
     USDT: { requiresBankCode: true },
 };
 
