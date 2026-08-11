@@ -73,9 +73,10 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
     case 'BDT':
     case 'VND':
     case 'MMK':
-    case 'PKR':
     case 'NPR':
       return { ...basePayload, bank_code: options.bankCode };
+    case 'PKR':
+      return { ...basePayload, phone_number: config.bankAccount };
     case 'JPY':
       return { 
         ...basePayload, 

@@ -167,6 +167,10 @@ class regularPayout {
       enhancedPayload.bank_account_number = BANK_CONFIG[currency]?.bank_account_number || "2206491508";
     }
 
+    if (currency === "PKR") {
+      enhancedPayload.phone_number = BANK_CONFIG.PKR.bank_account_number;
+    }
+
     if (currency === "THB") {
       enhancedPayload.bank_name = BANK_CONFIG.THB.bank_name;
       // enhancedPayload.lat_withdrawal_date = new Date().toISOString().slice(0, 10);
