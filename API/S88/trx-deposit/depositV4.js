@@ -55,8 +55,8 @@ class DepositService {
     }
 
     validateBankCode(bankCode, currency) {
-        if (!/^[a-zA-Z0-9]+$/.test(bankCode))
-        throw new Error("Bank Code must contain only letters and numbers");
+        // if (!/^[a-zA-Z0-9]+$/.test(bankCode))
+        // throw new Error("Bank Code must contain only letters and numbers");
         return bankCode;
     }
 
