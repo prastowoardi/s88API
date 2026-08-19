@@ -42,7 +42,7 @@ export async function getRandomIFSC() {
   }
 }
 
-export async function getValidIFSC(currency, maxRetries = 5) {
+export async function getValidIFSC(currency, maxRetries = 3) {
   let attempts = 0;
   while (attempts < maxRetries) {
     const ifscCode = await getRandomIFSC(currency);
@@ -53,8 +53,8 @@ export async function getValidIFSC(currency, maxRetries = 5) {
     logger.warn(`⚠️ Percobaan ${attempts + 1} gagal mendapatkan IFSC. Mencoba lagi...`);
     attempts++;
   }
-  logger.error("❌ Gagal mendapatkan IFSC setelah beberapa percobaan.");
-  return null;
+  logger.error("⚠️ Tidak dapat mendapatkan IFSC yang valid. Menggunakan default IFSC.");
+  return "HDFC0000001";
 }
 
 export async function validateIFSC(ifscCode) {

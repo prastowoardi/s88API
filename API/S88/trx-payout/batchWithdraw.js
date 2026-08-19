@@ -34,6 +34,16 @@ let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const SPECIAL_CHARACTER_REGEX = /[^a-zA-Z\s.'-]/;
+
+async function getCleanRandomName() {
+  let name;
+  do {
+    name = await getRandomName();
+  } while (SPECIAL_CHARACTER_REGEX.test(name));
+  return name;
+}
+
 async function retryWithBackoff(fn, attempts = CONFIG.RETRY_ATTEMPTS) {
   for (let i = 0; i < attempts; i++) {
     try {
@@ -221,7 +231,7 @@ async function batchPayout() {
 
       let ifsc = (cur === "INR") ? await preloadIFSCCodes(jumlah) : [];
       const names = await Promise.all(
-        Array.from({ length: jumlah }, () => getRandomName())
+        Array.from({ length: jumlah }, () => getCleanRandomName())
       );
       
       let sharedBankCode = "";
@@ -253,7 +263,7 @@ async function batchPayout() {
           userID: randomInt(100, 999),
           currency: cur,
           amount,
-          transactionCode: `TEST-BATCH-WD-${cur}-${lastWithdrawTimestamp}`,
+          transactionCode: `TEST-BATCH-WD-${cur}-${lastWithdrawTimestamp}-${String(i).padStart(4, '0')}`,
           name: names[i],
           options
         });
