@@ -8,7 +8,7 @@ import { localCurrency } from "../../helpers/currencyConfigMap.js";
 import open from "open";
 import { register } from 'module';
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR", "PHP"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];
 
 class DepositV2Service {
