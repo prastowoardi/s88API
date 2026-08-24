@@ -2,6 +2,9 @@ import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
 import { randomInt } from "crypto";
+import http from "http";
+import https from "https";
+import { pathToFileURL } from "url";
 import { payoutConfigMap, getPayoutConfig } from "../../helpers/payoutConfigMap.js";
 import { encryptDecrypt, getRandomName, getAccountNumber, getRandomIP } from "../../helpers/utils.js";
 import * as AllConfigs from "../../Config/config.js";
@@ -30,18 +33,26 @@ const CONFIG = {
   REQUEST_TIMEOUT: 20000
 };
 
+const PAYOUT_URL_PREFIX = `${AllConfigs.BASE_URL}/api/v1/payout/`;
+const HTTP_AGENT = new http.Agent({ keepAlive: true });
+const HTTPS_AGENT = new https.Agent({ keepAlive: true });
+
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const SPECIAL_CHARACTER_REGEX = /[^a-zA-Z\s.'-]/;
+const SPECIAL_CHARACTER_GLOBAL_REGEX = new RegExp(SPECIAL_CHARACTER_REGEX.source, "g");
 
-async function getCleanRandomName() {
-  let name;
-  do {
+const agentFor = (url) => (url.startsWith("https:") ? HTTPS_AGENT : HTTP_AGENT);
+
+async function getCleanRandomName(maxAttempts = 5) {
+  let name = "";
+  for (let i = 0; i < maxAttempts; i++) {
     name = await getRandomName();
-  } while (SPECIAL_CHARACTER_REGEX.test(name));
-  return name;
+    if (!SPECIAL_CHARACTER_REGEX.test(name)) return name;
+  }
+  return name.replace(SPECIAL_CHARACTER_GLOBAL_REGEX, "");
 }
 
 async function retryWithBackoff(fn, attempts = CONFIG.RETRY_ATTEMPTS) {
@@ -61,12 +72,10 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
   const config = CURRENCY_CONFIG.get(currency);
   if (!config) throw new Error(`Config not found for ${currency}`);
 
-  const timestamp = Math.floor(Date.now() / 1000);
-  
   const basePayload = {
     merchant_code: config.merchantCode,
     transaction_code: transactionCode,
-    transaction_timestamp: timestamp,
+    transaction_timestamp: lastWithdrawTimestamp,
     transaction_amount: Number(amount),
     user_id: userID.toString(),
     currency_code: currency,
@@ -85,14 +94,25 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
     case 'MMK':
     case 'NPR':
       return { ...basePayload, bank_code: options.bankCode };
-    case 'PKR':
-      return { ...basePayload, 
+    case 'IDR':
+      return { ...basePayload,
         bank_code: options.bankCode,
-        phone_number: config.bankAccount 
+        bank_name: options.bankCode,
+        phone_number: "08111111111"
+      };
+    case 'KRW':
+      return { ...basePayload,
+        bank_code: options.bankCode,
+        bank_name: options.bankCode
+      };
+    case 'PKR':
+      return { ...basePayload,
+        bank_code: options.bankCode,
+        phone_number: config.bankAccount
       };
     case 'JPY':
-      return { 
-        ...basePayload, 
+      return {
+        ...basePayload,
         branch_name: options.branchName,
         branch_code: options.branchCode,
         bank_code: options.bankCode,
@@ -111,25 +131,29 @@ async function payout(userID, currency, amount, transactionCode, name, options =
     const payload = buildPayload(userID, currency, amount, transactionCode, name, options);
     const encryptedPayload = encryptDecrypt("encrypt", payload, config.apiKey, config.secretKey, true);
 
-    // logger.info(`📝 Payload [${transactionCode}]: ${JSON.stringify(payload, null, 2)}`);
+    // logger.info(`📝 Payload [${transactionCode}]: ${JSON.stringify(payload)}`);
+    const url = `${PAYOUT_URL_PREFIX}${config.merchantCode}`;
+    const body = JSON.stringify({ key: encryptedPayload });
+
     const result = await retryWithBackoff(async () => {
-      const response = await fetch(`${AllConfigs.BASE_URL}/api/v1/payout/${config.merchantCode}`, {
+      const response = await fetch(url, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "User-Agent": "BatchPayoutSystem/2.0"
         },
-        body: JSON.stringify({ key: encryptedPayload }),
-        timeout: CONFIG.REQUEST_TIMEOUT
+        body,
+        agent: agentFor(url),
+        signal: AbortSignal.timeout(CONFIG.REQUEST_TIMEOUT)
       });
 
       const responseText = await response.text();
-      
+
       let parsedResult;
       try {
         parsedResult = JSON.parse(responseText);
       } catch {
-        throw new Error(`Invalid JSON: ${responseText}`);
+        throw new Error(`Invalid JSON: ${responseText.slice(0, 200)}`);
       }
 
       if (!response.ok) {
@@ -144,7 +168,7 @@ async function payout(userID, currency, amount, transactionCode, name, options =
     }
 
     return { success: true, data: result };
-    
+
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -202,21 +226,26 @@ async function batchProcess(requests) {
 
 async function preloadIFSCCodes(count) {
   logger.info(`⏳ Loading ${count} IFSC Codes...`);
-  const tasks = Array.from({ length: count }, () => () => getValidIFSC());
+  const total = count + Math.max(2, Math.ceil(count * 0.1));
+  const tasks = Array.from({ length: total }, () => () => getValidIFSC());
   const codes = await runWithConcurrency(tasks, CONFIG.MAX_CONCURRENT_REQUESTS);
-  return codes.filter(Boolean);
+  return codes.filter(Boolean).slice(0, count);
+}
+
+async function generateNames(count) {
+  const tasks = Array.from({ length: count }, () => () => getCleanRandomName());
+  return runWithConcurrency(tasks, CONFIG.MAX_CONCURRENT_REQUESTS);
 }
 
 async function batchPayout() {
   const startTime = Date.now();
   try {
     const envCurrency = process.env.CURRENCY?.toUpperCase();
-    const availableCurrencies = Object.keys(payoutConfigMap);
-    
-    let currencies = (envCurrency === "ALL") ? availableCurrencies : [envCurrency];
 
-    if (!envCurrency || (!availableCurrencies.includes(envCurrency) && envCurrency !== "ALL")) {
-      logger.error("❌ Invalid CURRENCY env. Choose: " + availableCurrencies.join(", ") + " or ALL");
+    let currencies = (envCurrency === "ALL") ? SUPPORTED_CURRENCIES : [envCurrency];
+
+    if (!envCurrency || (!SUPPORTED_CURRENCIES.includes(envCurrency) && envCurrency !== "ALL")) {
+      logger.error("❌ Invalid CURRENCY env. Choose: " + SUPPORTED_CURRENCIES.join(", ") + " or ALL");
       return;
     }
 
@@ -224,16 +253,16 @@ async function batchPayout() {
     const amount = readlineSync.questionInt("Amount per Transaksi: ");
 
     const allRequests = [];
-    
+
     for (const cur of currencies) {
       const config = CURRENCY_CONFIG.get(cur);
       logger.info(`--- Preparing ${jumlah} transactions for ${cur} ---`);
 
-      let ifsc = (cur === "INR") ? await preloadIFSCCodes(jumlah) : [];
-      const names = await Promise.all(
-        Array.from({ length: jumlah }, () => getCleanRandomName())
-      );
-      
+      const [ifsc, names] = await Promise.all([
+        cur === "INR" ? preloadIFSCCodes(jumlah) : Promise.resolve([]),
+        generateNames(jumlah)
+      ]);
+
       let sharedBankCode = "";
       if (config.requiresBankCode) {
         sharedBankCode = readlineSync.question(`Masukkan Bank Code untuk ${cur} (Shared for this batch): `).toUpperCase();
@@ -244,19 +273,16 @@ async function batchPayout() {
 
       for (let i = 0; i < jumlah; i++) {
         lastWithdrawTimestamp++;
-        
-        const options = { 
-          bankCode: sharedBankCode,
-          callback_url: AllConfigs.CALLBACK_URL 
-        };
+
+        const options = { bankCode: sharedBankCode };
 
         if (cur === "INR") options.ifscCode = ifsc[i];
-        
+
         if (cur === "JPY") {
           const rawBranch = fakerJA.location.city();
           options.branchName = `${rawBranch}支店`;
           options.branchCode = fakerJA.string.numeric(3);
-          options.accountType = Math.random() < 0.5 ? 1 : 2;
+          options.accountType = randomInt(1, 3);
         }
 
         allRequests.push({
@@ -270,11 +296,10 @@ async function batchPayout() {
       }
     }
 
-    // Eksekusi Batch
     logger.info(`🚀 Starting batch processing for total ${allRequests.length} transactions...`);
     const results = await batchProcess(allRequests);
-    
-    const successCount = results.filter(r => r.success).length;
+
+    const successCount = results.reduce((n, r) => n + r.success, 0);
     logger.info("======== SUMMARY ========");
     logger.info(`Total Req: ${allRequests.length}`);
     logger.info(`Success  : ${successCount}`);
@@ -286,11 +311,12 @@ async function batchPayout() {
   }
 }
 
-process.on('SIGINT', () => {
-  logger.info('\n👋 Gracefully shutting down...');
-  process.exit(0);
-});
-
-batchPayout();
-
 export { payout, batchPayout };
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.on('SIGINT', () => {
+    logger.info('\n👋 Gracefully shutting down...');
+    process.exit(0);
+  });
+  batchPayout();
+}
