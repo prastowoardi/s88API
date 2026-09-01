@@ -164,6 +164,7 @@ class regularPayout {
       );
       
       enhancedPayload.bank_code = bankCode;
+      enhancedPayload.bank_name = bankCode; // Assuming bank name is same as bank code for simplicity
       enhancedPayload.bank_account_number = BANK_CONFIG[currency]?.bank_account_number || "2206491508";
     }
 

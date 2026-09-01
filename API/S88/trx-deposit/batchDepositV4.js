@@ -2,13 +2,13 @@ import fetch from "node-fetch";
 import { randomInt } from "crypto";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
-import { encryptDecrypt } from "../../helpers/utils.js";
+import { encryptDecrypt, getRandomIP, getRandomName, generateEmail } from "../../helpers/utils.js";
 import * as AllConfigs from "../../Config/config.js";
-import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
-import { generateUTR, randomAmount } from "../../helpers/depositHelper.js";
+import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR, randomAmount } from "../../helpers/depositHelper.js";
 import { sendCallback } from "../../helpers/callbackHelper.js";
+import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const AVAILABLE_CURRENCIES = ["INR", "BDT", "VND", "MMK"];
+const AVAILABLE_CURRENCIES = ["INR", "VND", "BDT", "MMK", "BRL", "IDR", "THB", "MXN", "KRW", "PHP", "HKD", "KHR", "MYR", "JPY", "PKR", "NPR"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;
@@ -19,6 +19,7 @@ const RETRY_DELAY = 1000; // 1 second base delay
 class BatchDepositV4Service {
     constructor() {
         this.lastTransactionNumber = 0;
+        this.userBankCodes = {};
         this.stats = {
             total: 0,
             success: 0,
@@ -29,34 +30,12 @@ class BatchDepositV4Service {
             endTime: null,
             errors: []
         };
-        this.currencyConfig = this.initializeCurrencyConfig();
     }
 
-    initializeCurrencyConfig() {
-        const configMap = {};
-        const AVAILABLE_CURRENCIES = ["INR", "BDT", "VND", "MMK", "THB", "JPY", "BRL"]; // Tambah sesuai kebutuhan
-
-        AVAILABLE_CURRENCIES.forEach(cur => {
-            configMap[cur] = {
-                BASE_URL: AllConfigs.BASE_URL,
-                merchantCode: AllConfigs[`MERCHANT_CODE_${cur}`],
-                depositMethod: AllConfigs[`DEPOSIT_METHOD_${cur}`],
-                secretKey: AllConfigs[`SECRET_KEY_${cur}`],
-                merchantAPI: AllConfigs[`MERCHANT_API_KEY_${cur}`],
-                bankCodeOptions: this.getDefaultBankCodes(cur),
-                requiresUTR: ["INR", "BDT"].includes(cur),
-                requiresPhone: ["BDT"].includes(cur)
-            };
-        });
-        return configMap;
-    }
-
-    getDefaultBankCodes(currency) {
-        const defaultCodes = {
-            VND: ["eximbank", "techcombank", "mbbank", "tpbank", "vpbank"],
-            BDT: ["1002", "1001", "1004", "1003"],
-        };
-        return defaultCodes[currency] || null;
+    getCurrencyConfig(currency) {
+        const config = getCurrencyConfig(currency);
+        config.bankCodeOptions = this.userBankCodes[currency] || null;
+        return config;
     }
 
     validateCurrency(input) {
@@ -127,11 +106,11 @@ class BatchDepositV4Service {
     }
 
     async submitUTR(currency, transactionCode, retries = RETRY_ATTEMPTS) {
-        const config = this.currencyConfig[currency];
-        if (!config || !config.requiresUTR) {
+        if (!UTR_CURRENCIES.includes(currency)) {
             return { success: true, skipped: true };
         }
 
+        const config = this.getCurrencyConfig(currency);
         const utr = generateUTR(currency);
         const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
         const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
@@ -139,7 +118,7 @@ class BatchDepositV4Service {
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
                 const response = await this.fetchWithTimeout(
-                    `${AllConfigs.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`,
+                    `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -183,7 +162,7 @@ class BatchDepositV4Service {
     //     }
     // }
 
-    buildPayload(config, transactionData) {
+    buildPayload(config, transactionData, userInfo) {
         const payload = {
             callback_url: AllConfigs.CALLBACK_URL,
             merchant_api_key: config.merchantAPI,
@@ -191,23 +170,74 @@ class BatchDepositV4Service {
             transaction_code: transactionData.transactionCode,
             transaction_timestamp: transactionData.timestamp,
             transaction_amount: transactionData.amount,
-            user_id: randomInt(100000, 999999),
+            user_id: transactionData.userID,
             currency_code: transactionData.currency,
-            payment_code: config.depositMethod
+            payment_code: config.depositMethod,
+            ip_address: transactionData.ip
         };
 
         if (transactionData.bankCode) payload.bank_code = transactionData.bankCode;
+        if (transactionData.bank_code) payload.bank_code = transactionData.bank_code;
+        if (transactionData.depositor_bank) payload.depositor_bank = transactionData.depositor_bank;
+        if (transactionData.depositor_bank_code) payload.depositor_bank_code = transactionData.depositor_bank_code;
+        if (transactionData.depositor_name) payload.depositor_name = transactionData.depositor_name;
+        if (transactionData.depositor_account_number) payload.depositor_account_number = transactionData.depositor_account_number;
+        if (transactionData.email) payload.email = transactionData.email;
         if (transactionData.phone) payload.phone = transactionData.phone;
 
         return Object.entries(payload)
-            .map(([key, val]) => `${key}=${val}`)
+            .map(([key, val]) => {
+                if (key === "depositor_name" || key === "callback_url" || key === "redirect_url" || key === "ip_address" || key === "email") return `${key}=${val}`; // biarkan plain (biar tidak double encode)
+                return `${key}=${encodeURIComponent(val)}`;
+            })
             .join('&');
     }
 
+    async applyCurrencySpecificFields(tx, userInfo) {
+        const { currency } = tx;
+
+        const sanitizeName = (name) => String(name || "")
+            .replace(/[^\p{L}\s]/gu, "")
+            .replace(/\s+/g, " ")
+            .trim();
+
+        if (currency === "THB") {
+            const thbBankCodes = this.userBankCodes["THB"] || [];
+            tx.depositor_bank = thbBankCodes.length
+                ? thbBankCodes[Math.floor(Math.random() * thbBankCodes.length)]
+                : await getRandomName('th', true);
+            tx.depositor_name = sanitizeName(await getRandomName('th', true));
+            tx.depositor_account_number = userInfo.accountNumber;
+        }
+
+        if (currency === "JPY") {
+            tx.depositor_name = sanitizeName(await getRandomName('jp', true));
+        }
+
+        if (currency === "NPR") {
+            const nprBankCodes = this.userBankCodes["NPR"] || ["FONEPAY"];
+            tx.bank_code = "FONEPAY";
+            tx.depositor_bank_code = nprBankCodes[Math.floor(Math.random() * nprBankCodes.length)];
+            tx.depositor_name = sanitizeName(await getRandomName());
+            tx.depositor_account_number = userInfo.accountNumber;
+        }
+
+        if (currency === "KRW") {
+            tx.depositor_name = sanitizeName(await getRandomName('kr', true));
+            tx.depositor_account_number = userInfo.accountNumber;
+        }
+
+        if (currency === "MYR") {
+            tx.email = userInfo.data.email;
+        }
+    }
+
     async sendDeposit({ currency, amount, transactionCode }) {
-        const config = this.currencyConfig[currency];
-        if (!config) {
-            const error = `Invalid currency: ${currency}`;
+        let config;
+        try {
+            config = this.getCurrencyConfig(currency);
+        } catch (err) {
+            const error = err.message;
             logger.error(`❌ ${error}`);
             this.stats.failed++;
             this.stats.errors.push({ transactionCode, error });
@@ -216,15 +246,22 @@ class BatchDepositV4Service {
 
         try {
             const timestamp = this.lastTransactionNumber;
-            
+
+            const userInfo = {
+                accountNumber: randomCardNumber(),
+                data: await generateEmail()
+            };
+
             let bankCode = "";
-            if (config.bankCodeOptions) {
+            if (currency !== "NPR" && config.bankCodeOptions) {
                 bankCode = config.bankCodeOptions[Math.floor(Math.random() * config.bankCodeOptions.length)];
             }
 
             let phone = "";
-            if (config.requiresPhone) {
-                phone = randomPhoneNumber();
+            if (currency === "MMK" && bankCode === "wavepay") {
+                phone = randomMyanmarPhoneNumber();
+            } else if (["BDT", "INR", "MYR", "NPR", "PKR"].includes(currency)) {
+                phone = randomPhoneNumber(currency.toLowerCase());
             }
 
             const transactionData = {
@@ -232,11 +269,15 @@ class BatchDepositV4Service {
                 timestamp,
                 amount,
                 currency,
+                userID: randomInt(100, 999),
+                ip: getRandomIP(),
                 bankCode,
                 phone
             };
 
-            const payload = this.buildPayload(config, transactionData);
+            await this.applyCurrencySpecificFields(transactionData, userInfo);
+
+            const payload = this.buildPayload(config, transactionData, userInfo);
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
             const response = await this.fetchWithTimeout(
@@ -263,7 +304,7 @@ class BatchDepositV4Service {
                 const actualAmount = resultDP.amount;
                 let utr = " ";
 
-                if (config.requiresUTR) {
+                if (UTR_CURRENCIES.includes(currency)) {
                     const utrSubmitted = await this.submitUTR(currency, transactionCode);
                     if (utrSubmitted.success) {
                         utr = utrSubmitted.utr;
@@ -340,12 +381,12 @@ class BatchDepositV4Service {
 
     getUserInput() {
         const envCurrency = process.env.CURRENCY;
-        let currenciesToProcess = [];
+        let currencyCode = [];
 
-        if (envCurrency && AVAILABLE_CURRENCIES.includes(envCurrency.trim())) {
-            currenciesToProcess = [envCurrency.trim()];
+        if (envCurrency && AVAILABLE_CURRENCIES.includes(envCurrency.trim().toUpperCase())) {
+            currencyCode = [envCurrency.trim().toUpperCase()];
         } else {
-            console.error(`❌ Invalid currency: ${envCurrency}`);
+            console.error(`❌ Invalid currency: ${envCurrency}. Available: ${AVAILABLE_CURRENCIES.join("/")}`);
             process.exit(1);
         }
 
@@ -365,31 +406,52 @@ class BatchDepositV4Service {
             amounts = Array.from({ length: jumlah }, () => randomAmount(min, max));
         }
 
-        return { currenciesToProcess, jumlah, amounts };
+        return { currencyCode, jumlah, amounts };
     }
 
-    async handleMMKBankCode(currenciesToProcess) {
-        if (currenciesToProcess.includes("MMK")) {
-            const bankCode = readlineSync.question("Masukkan Bank Code untuk MMK: ");
-            if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
-                throw new Error("Bank Code must contain only letters and numbers");
+    async handleBankCodes(currencyCode) {
+        for (const currency of currencyCode) {
+            const config = getCurrencyConfig(currency);
+            const needsBankCode = config.requiresBankCode || currency === "NPR";
+            if (!needsBankCode) continue;
+
+            if (currency === "MMK") {
+                // MMK tetap minta bank code single (biarkan default wavepay)
+                const bankCode = readlineSync.question(`Masukkan Bank Code untuk MMK (default wavepay): `) || "wavepay";
+                if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
+                    throw new Error("Bank Code must contain only letters and numbers");
+                }
+                this.userBankCodes[currency] = [bankCode.toLowerCase()];
+            } else {
+                const hint = currency === "NPR" ? " (depositor bank code, default FONEPAY)" : "";
+                logger.info(`Bisa diisi lebih dari 1, pisahkan dengan koma (misal: KBNK,SCB,BBL). Akan dirandom per transaksi.`);
+                const raw = readlineSync.question(`Bank Code untuk ${currency}${hint}: `);
+                const codes = (raw || (currency === "NPR" ? "FONEPAY" : "")).split(/[,\s]+/).map(c => c.trim()).filter(Boolean);
+                if (codes.length === 0) {
+                    throw new Error(`Bank Code untuk ${currency} wajib diisi.`);
+                }
+                codes.forEach(c => {
+                    if (!/^[a-zA-Z0-9]+$/.test(c)) {
+                        throw new Error(`Bank Code '${c}' untuk ${currency} hanya boleh huruf/angka.`);
+                    }
+                });
+                this.userBankCodes[currency] = codes;
             }
-            this.currencyConfig.MMK.bankCodeOptions = [bankCode.toLowerCase()];
         }
     }
 
     async batchDeposit() {
         try {
-            logger.info("======== Batch Deposit V3 Request ========");
+            logger.info("======== Batch Deposit V4 Request ========");
             this.stats.startTime = Date.now();
 
-            const { currenciesToProcess, jumlah, amounts } = this.getUserInput();
-            await this.handleMMKBankCode(currenciesToProcess);
+            const { currencyCode, jumlah, amounts } = this.getUserInput();
+            await this.handleBankCodes(currencyCode);
 
-            this.stats.total = currenciesToProcess.length * jumlah;
+            this.stats.total = currencyCode.length * jumlah;
 
             const tasks = [];
-            for (const currency of currenciesToProcess) {
+            for (const currency of currencyCode) {
                 const transactionCodes = this.generateTransactionCodes(jumlah);
                 for (let i = 0; i < transactionCodes.length; i++) {
                     const transactionCode = transactionCodes[i];
