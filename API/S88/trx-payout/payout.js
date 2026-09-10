@@ -8,7 +8,7 @@ import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { fakerJA } from "@faker-js/faker";
 
 const CONFIG = {
-  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "MYR", "PHP", "JPY", "KRW", "NPR", "PKR"],
+  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "MYR", "PHP", "JPY", "KRW", "NPR", "PKR", "USDT"],
   REQUEST_TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,

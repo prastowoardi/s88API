@@ -10,7 +10,7 @@ import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProof
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB","PHP", "JPY", "MYR", "NPR", "PKR", "PHP"];
+const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB","PHP", "JPY", "MYR", "NPR", "PKR", "PHP", "USDT"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR", "NPR", "PKR"];
 
