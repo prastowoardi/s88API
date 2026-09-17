@@ -105,6 +105,54 @@ class BatchDepositV4Service {
         }
     }
 
+    async makeDepositRequest(config, encrypted, transactionCode) {
+        const urls = Object.keys(process.env)
+            .filter(key => key.startsWith('BASE_URL'))
+            .map(key => process.env[key])
+            .filter(Boolean);
+
+        for (const base of urls) {
+            const url = `${base}/api/${config.merchantCode}/v4/dopayment`;
+
+            logger.info(`Trying: ${url}`);
+
+            try {
+                const response = await this.fetchWithTimeout(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: encrypted })
+                });
+
+                const responseBody = await response.text();
+                let resultDP;
+
+                try {
+                    const parsedData = JSON.parse(responseBody);
+                    resultDP = Array.isArray(parsedData) ? parsedData[0] : parsedData;
+                } catch (parseError) {
+                    logger.warn(`⚠️ Failed to parse JSON from ${url} (${transactionCode}): ${parseError.message}`);
+                    continue;
+                }
+
+                if (!response.ok) {
+                    if (resultDP?.message === "[DP] Unauthorize" || response.status === 401) {
+                        logger.warn(`⚠️ Unauthorized at ${base}, trying next...`);
+                        continue;
+                    }
+                    throw new Error(`HTTP ${response.status}: ${responseBody}`);
+                }
+
+                return { result: resultDP, url: base };
+            } catch (err) {
+                if (err.message.includes("HTTP")) throw err;
+                logger.warn(`⚠️ Connection issue at ${base} (${transactionCode}): ${err.message}, trying next...`);
+                continue;
+            }
+        }
+
+        throw new Error("All API URLs failed (Unauthorized or Connection Issue)");
+    }
+
     async submitUTR(currency, transactionCode, retries = RETRY_ATTEMPTS) {
         if (!UTR_CURRENCIES.includes(currency)) {
             return { success: true, skipped: true };
@@ -280,24 +328,7 @@ class BatchDepositV4Service {
             const payload = this.buildPayload(config, transactionData, userInfo);
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
-            const response = await this.fetchWithTimeout(
-                `${config.BASE_URL}/api/${config.merchantCode}/v4/dopayment`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: encrypted })
-                }
-            );
-
-            const responseBody = await response.text();
-            let resultDP;
-            
-            try {
-                const parsedData = JSON.parse(responseBody);
-                resultDP = Array.isArray(parsedData) ? parsedData[0] : parsedData;
-            } catch (parseError) {
-                throw new Error(`Failed to parse response JSON: ${parseError.message}`);
-            }
+            const { result: resultDP } = await this.makeDepositRequest(config, encrypted, transactionCode);
 
             if (resultDP && resultDP.status === "success") {
                 const transactionNo = resultDP.transaction_no;

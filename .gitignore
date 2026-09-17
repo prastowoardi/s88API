@@ -28,6 +28,7 @@ node_modules
 .paybo_snappay
 .staging_gempita
 .paybo_flexipay
+.paybo_mcpay
 .staging_swftx
 .apexpay_prod
 .apexpay_staging

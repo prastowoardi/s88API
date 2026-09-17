@@ -30,7 +30,7 @@ const ENV_CONFIGS = {
   PayBO_demo:          { file: ".paybo_demo",        label: "PayBO Demo"           },
   PayBO_next8:         { file: ".paybo_next8",       label: "Next8"                },
   PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx"] },
-  PayBO_flexipay:      { file: ".paybo_flexipay",    label: "Flexipay"             },
+  PayBO_mcpay :        { file: ".paybo_mcpay",       label: "MCPay"                }, 
   // shadow:              { file: ".env_shadow",        label: "Shadow"               },
 };
 
@@ -138,11 +138,11 @@ function injectMerchantVars(vars) {
   for (const [k, v] of Object.entries(vars)) process.env[k] = v;
 }
 
-function runScript(scriptPath) {
+function runScript(scriptPath, envOverride = {}) {
   return new Promise((resolve) => {
     const child = spawn("node", [scriptPath], {
       stdio: "inherit",
-      env: process.env,
+      env: { ...process.env, ...envOverride },
       shell: true,
     });
     child.on("error", (err) => { console.error(`❌ Error: ${err.message}`); resolve(); });
@@ -293,7 +293,7 @@ async function main() {
         }
 
         printRunSummary(envConfig, scriptConfig, currency, selectedMerchant, action);
-        await runScript(scriptPath);
+        await runScript(scriptPath, scriptConfig.envOverride || {});
         process.exit(0);
       }
     }
