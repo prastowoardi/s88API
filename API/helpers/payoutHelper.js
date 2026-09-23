@@ -59,7 +59,7 @@ export async function getValidIFSC(currency, maxRetries = 3) {
 
 export async function validateIFSC(ifscCode) {
   try {
-    const response = await fetch(`https://ifsc-prod-p1.rubikpay.com/${ifscCode}`);
+    const response = await fetch(`https://ifsc.razorpay.com/${ifscCode}`);
     
     if (!response.ok) {
       logger.error(`❌ Validasi IFSC gagal: ${response.statusText}`);
