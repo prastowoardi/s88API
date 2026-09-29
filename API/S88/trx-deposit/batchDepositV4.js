@@ -114,7 +114,7 @@ class BatchDepositV4Service {
         for (const base of urls) {
             const url = `${base}/api/${config.merchantCode}/v4/dopayment`;
 
-            logger.info(`Trying: ${url}`);
+            // logger.info(`Trying: ${url}`);
 
             try {
                 const response = await this.fetchWithTimeout(url, {
