@@ -197,7 +197,7 @@ class BatchDepositV4Service {
             let payload = {
                 transaction_amount: amount,
                 payment_code: config.depositMethod,
-                user_id: currency === "JPY" ? `CUST-JP-${faker.string.numeric(5)}` : randomInt(100, 999).toString(),
+                user_id: currency === "JPY" ? `CUST-JP-${faker.string.numeric(5)}` : crypto.randomUUID(),
                 currency_code: currency,
                 callback_url: config.callbackURL,
                 ip_address: getRandomIP(),

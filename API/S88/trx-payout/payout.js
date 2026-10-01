@@ -113,6 +113,19 @@ const utils = {
     return `TEST-WD-${timestamp}-${random}`;
   },
 
+  // generateTransactionCode: () => {
+  //     const timestamp = Date.now();
+  //     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  //     let randomSuffix = "";
+
+  //     for (let i = 0; i < 2; i++) {
+  //         randomSuffix += chars[randomInt(0, chars.length)];
+  //     }
+
+  //     return `WD-${timestamp}-${randomSuffix}`;
+  // },
+
   sanitizePayload: (payload) => {
     return Object.fromEntries(
       Object.entries(payload).filter(([_, value]) => value != null)
@@ -131,7 +144,7 @@ class regularPayout {
       transaction_code: transactionCode,
       transaction_timestamp: timestamp,
       transaction_amount: Number(amount),
-      user_id: userID.toString(),
+      user_id: userID,
       currency_code: currency,
       payout_code: config.payoutMethod,
       callback_url: config.callbackURL,
@@ -295,7 +308,7 @@ class PayoutOrchestrator {
         );
       }
 
-      const userID = randomInt(100, 999);
+      const userID = crypto.randomUUID();
       const transactionCode = utils.generateTransactionCode();
       const name = await getRandomName();
 

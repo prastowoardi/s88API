@@ -52,7 +52,7 @@ const buildBasePayload = async (userID, currency, amount, transactionCode, name,
     transaction_code: transactionCode,
     transaction_timestamp: String(timestamp),
     transaction_amount: String(amount),
-    user_id: String(userID),
+    user_id: userID,
     currency_code: currency,
     payout_code: config.payoutMethod,
     account_name: name,
@@ -294,7 +294,7 @@ async function sendPayout() {
     const envCurrency = process.env.CURRENCY;
     const { currency, bankCode, branchCode, bankName, branchName, amount } = await collectInputs(envCurrency);
 
-    const userID = currency === "JPY" ? "NASHEED" : randomInt(100, 999).toString();
+    const userID = currency === "JPY" ? "NASHEED" : crypto.randomUUID();
     const transactionCode = `TEST-WD-${Math.floor(Date.now() / 1000)}`;
     const name = await getRandomName();
 

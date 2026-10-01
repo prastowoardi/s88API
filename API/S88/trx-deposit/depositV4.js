@@ -5,7 +5,6 @@ import open from "open";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProofMMK, generateEmail } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
@@ -97,6 +96,7 @@ class DepositService {
             user_id: tx.userID,
             currency_code: tx.currency,
             payment_code: config.depositMethod,
+            redirect_url: "https://x.com",  
             ip_address: tx.ip,
             ...(tx.bankCode && { bank_code: tx.bankCode }),
             ...(tx.phone && { phone: tx.phone }),
@@ -105,7 +105,6 @@ class DepositService {
                 depositor_account_number: userInfo.accountNumber,
             }),
             callback_url: config.callbackURL,
-            redirect_url: "https://x.com",
         };
 
         if (tx.currency === "THB") {
@@ -328,7 +327,7 @@ class DepositService {
             code: transactionCode,
             timestamp: Math.floor(Date.now() / 1000).toString(),
             amount,
-            userID: randomInt(100, 999),
+            userID: crypto.randomUUID(),
             currency,
             ip: getRandomIP(),
             bankCode: await this.getBankCode(config, currency),

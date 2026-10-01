@@ -151,7 +151,7 @@ async function sendDeposit() {
             userID = `CUST-JP-${faker.string.numeric(5)}`; 
             // userID = "NASHEED" // Approved user from QFPay
         } else {
-            userID = randomInt(100, 999).toString();
+            userID = crypto.randomUUID();
         }
 
         const amountInput = readlineSync.question("Masukkan Amount: ").trim();

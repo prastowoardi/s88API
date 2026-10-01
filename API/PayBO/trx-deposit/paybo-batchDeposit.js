@@ -150,6 +150,7 @@ class BatchDepositV3Service {
             bankCode,
             phone
         } = transactionData;
+        const userID = crypto.randomUUID();
 
         const payloadParts = [
             `callback_url=${config.callbackURL || CALLBACK_URL}`,
@@ -158,7 +159,7 @@ class BatchDepositV3Service {
             `transaction_code=${transactionCode}`,
             `transaction_timestamp=${timestamp}`,
             `transaction_amount=${amount}`,
-            `user_id=batchDeposit`,
+            `user_id=${userID}`,
             `currency_code=${currency}`,
             `payment_code=${config.depositMethod}`
         ];

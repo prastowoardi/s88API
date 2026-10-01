@@ -142,7 +142,7 @@ class DepositV2Service {
             const transactionCode = `TEST-DP-V2-${timestamp}`;
 
             const user = {
-                id: randomInt(100, 999),
+                id: crypto.randomUUID(),
                 accountNumber: randomCardNumber(),
                 data: await generateEmail(),
             };

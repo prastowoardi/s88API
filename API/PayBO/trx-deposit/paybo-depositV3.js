@@ -151,9 +151,9 @@ async function sendDeposit() {
             userID = `CUST-JP-${faker.string.numeric(5)}`; 
             // userID = "NASHEED" // Approved user from QFPay
         } else {
-            userID = randomInt(100, 999).toString();
-        }        
-        
+            userID = crypto.randomUUID();
+        }
+
         const timestamp = Math.floor(Date.now() / 1000).toString();
         const transactionCode = `TEST-DP-V3-${timestamp}`;
         const config = getCurrencyConfig(currency);

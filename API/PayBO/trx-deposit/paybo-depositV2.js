@@ -121,7 +121,7 @@ async function depositV2() {
         userID = `CUST-JP-${faker.string.numeric(5)}`; 
         // userID = "NASHEED" // Approved user from QFPay
     } else {
-        userID = randomInt(100, 999).toString();
+        userID = crypto.randomUUID();
     }
 
     const amountInput = await ask("Masukkan Amount: ");

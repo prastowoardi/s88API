@@ -320,7 +320,7 @@ class PayoutService {
           currency = this.validateCurrency(inputCurrency);
       }
 
-      const userID = randomInt(100, 999).toString();
+      const userID = crypto.randomUUID();
       const bankCode = await this.promptForBankCode(currency);
       const amountInput = await this.ask("Masukkan Amount: ");
       const amount = this.validateAmount(amountInput);

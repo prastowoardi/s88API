@@ -77,7 +77,7 @@ function buildPayload(userID, currency, amount, transactionCode, name, options =
     transaction_code: transactionCode,
     transaction_timestamp: lastWithdrawTimestamp,
     transaction_amount: Number(amount),
-    user_id: userID.toString(),
+    user_id: userID,
     currency_code: currency,
     bank_account_number: options.bankAccount || config.bankAccount,
     account_name: name,
@@ -286,7 +286,7 @@ async function batchPayout() {
         }
 
         allRequests.push({
-          userID: randomInt(100, 999),
+          userID: crypto.randomUUID(),
           currency: cur,
           amount,
           transactionCode: `TEST-BATCH-WD-${cur}-${lastWithdrawTimestamp}-${String(i).padStart(4, '0')}`,

@@ -317,7 +317,7 @@ class DepositService {
             transactionCode,
             timestamp: Math.floor(Date.now() / 1000),
             amount,
-            userID: randomInt(100, 999),
+            userID: crypto.randomUUID(),
             currency,
             ip: getRandomIP(),
             bankCode: await this.getBankCode(config, currency),

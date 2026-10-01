@@ -45,7 +45,7 @@ const buildBasePayload = (userID, currency, amount, transactionCode, name, callb
     transaction_code: transactionCode,
     transaction_timestamp: `${timestamp}`,
     transaction_amount: `${amount}`,
-    user_id: userID.toString(),
+    user_id: userID,
     currency_code: currency,
     payout_code: config.payoutMethod,
     account_name: name,
@@ -240,7 +240,7 @@ async function generateBatchRequests(currency, bankCode, amount, count) {
 
   for (let i = 0; i < count; i++) {
     requests.push({
-      userID: randomInt(100, 999),
+      userID: crypto.randomUUID(),
       currency,
       amount,
       transactionCode: `TEST-WD-${baseTimestamp}-${String(i).padStart(4, '0')}`,

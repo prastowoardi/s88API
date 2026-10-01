@@ -344,6 +344,11 @@ class BatchDepositV4Service {
 
                 let logMsg = `✅ ${transactionNo} | Request Amount: ${amount} (${currency}) | Actual Amount: ${actualAmount} (${currency}) | Pay URL: ${resultDP.pay_url}`;
                 if (currency === "INR") logMsg += ` | UTR: ${utr}`;
+
+                const logBankCode = transactionData.bankCode || transactionData.depositor_bank_code || transactionData.depositor_bank;
+                if ((config.requiresBankCode || currency === "NPR") && logBankCode) {
+                    logMsg += ` | Bank Code: ${logBankCode}`;
+                }
                 // logMsg += ` | Success: ${resultDP.message}`;
                 logger.info(logMsg);
 
