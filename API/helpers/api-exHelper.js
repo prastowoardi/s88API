@@ -98,6 +98,7 @@ export async function runGenerateQRIS(token, amount, transactionCode) {
         logger.info(`Response Status: ${res.status}`);
         
         const result = JSON.parse(responseBody);
+        logger.info(`Transaction Code: ${transactionCode}`);
         logger.info(`QRIS Response:\n${JSON.stringify(result, null, 2)}`);
         return result;
     } catch (err) {
@@ -170,6 +171,7 @@ export async function runCreateWithdrawal(token, amount, bankId, accountNumber, 
         logger.info(`Response Status: ${res.status}`);
         
         const result = JSON.parse(responseBody);
+        logger.info(`Transaction Code: ${transactionCode}`);
         logger.info(`Withdrawal Response:\n${JSON.stringify(result, null, 2)}`);
         return result;
     } catch (err) {
