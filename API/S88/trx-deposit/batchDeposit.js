@@ -211,6 +211,59 @@ class BatchDepositV3Service {
         }
     }
 
+    async makeDepositRequest(config, encrypted, transactionCode, currency) {
+        const urls = Object.keys(process.env)
+            .filter(key => key.startsWith('BASE_URL'))
+            .map(key => process.env[key])
+            .filter(Boolean);
+
+        if (!urls.length && config.BASE_URL) {
+            urls.push(config.BASE_URL);
+        }
+
+        const endpoint = currency === "KRW"
+            ? `/api/${config.merchantCode}/v3/krw-payment`
+            : `/api/${config.merchantCode}/v3/dopayment`;
+
+        for (const base of urls) {
+            const url = `${base}${endpoint}`;
+
+            try {
+                const response = await this.fetchWithTimeout(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ key: encrypted })
+                });
+
+                const responseBody = await response.text();
+                let resultDP;
+
+                try {
+                    resultDP = JSON.parse(responseBody);
+                } catch (parseError) {
+                    logger.warn(`⚠️ Failed to parse JSON from ${url} (${transactionCode}): ${parseError.message}`);
+                    continue;
+                }
+
+                if (!response.ok) {
+                    if (resultDP?.message === "[DP] Unauthorize" || response.status === 401) {
+                        logger.warn(`⚠️ Unauthorized at ${base}, trying next...`);
+                        continue;
+                    }
+                    throw new Error(`HTTP ${response.status}: ${responseBody}`);
+                }
+
+                return { result: resultDP, url: base };
+            } catch (err) {
+                if (err.message.includes("HTTP")) throw err;
+                logger.warn(`⚠️ Connection issue at ${base} (${transactionCode}): ${err.message}, trying next...`);
+                continue;
+            }
+        }
+
+        throw new Error("All API URLs failed (Unauthorized or Connection Issue)");
+    }
+
     async sendDeposit({ currency, amount, transactionCode }) {
         let config;
         try {
@@ -263,27 +316,7 @@ class BatchDepositV3Service {
             const payload = this.buildPayload(config, transactionData);
             const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
-            const endpoint = currency === "KRW"
-                ? `/api/${config.merchantCode}/v3/krw-payment`
-                : `/api/${config.merchantCode}/v3/dopayment`;
-
-            const response = await this.fetchWithTimeout(
-                `${config.BASE_URL}${endpoint}`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ key: encrypted })
-                }
-            );
-
-            const responseBody = await response.text();
-            let resultDP;
-            
-            try {
-                resultDP = JSON.parse(responseBody);
-            } catch (parseError) {
-                throw new Error(`Failed to parse response JSON: ${parseError.message}`);
-            }
+            const { result: resultDP } = await this.makeDepositRequest(config, encrypted, transactionCode, currency);
 
             if (resultDP.status === "success") {
                 const transactionNo = resultDP.transaction_no;
