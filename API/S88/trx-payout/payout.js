@@ -110,7 +110,7 @@ const utils = {
   generateTransactionCode: () => {
     const timestamp = Math.floor(Date.now() / 1000);
     const random = randomInt(1000, 9999);
-    return `TEST-WD-${timestamp}-${random}`;
+    return `TEST-WD-${timestamp}`;
   },
 
   // generateTransactionCode: () => {
