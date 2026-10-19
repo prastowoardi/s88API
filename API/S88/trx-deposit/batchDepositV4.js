@@ -457,7 +457,7 @@ class BatchDepositV4Service {
                 if (!/^[a-zA-Z0-9]+$/.test(bankCode)) {
                     throw new Error("Bank Code must contain only letters and numbers");
                 }
-                this.userBankCodes[currency] = [bankCode.toLowerCase()];
+                this.userBankCodes[currency] = [bankCode];
             } else {
                 const hint = currency === "NPR" ? " (depositor bank code, default FONEPAY)" : "";
                 logger.info(`Bisa diisi lebih dari 1, pisahkan dengan koma (misal: KBNK,SCB,BBL). Akan dirandom per transaksi.`);

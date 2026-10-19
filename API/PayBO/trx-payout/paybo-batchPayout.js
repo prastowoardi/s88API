@@ -6,6 +6,7 @@ import { payoutConfigMap, getPayoutConfig } from "../../helpers/payoutConfigMap.
 import { encryptDecrypt, getRandomName, getAccountNumber, getRandomIP } from "../../helpers/utils.js";
 import * as AllConfigs from "../../Config/config.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
+import { retryOperation, sleep } from "../../helpers/common.js";
 import { fakerJA } from "@faker-js/faker";
 
 const SUPPORTED_CURRENCIES = Object.keys(payoutConfigMap);
@@ -35,19 +36,10 @@ const CONFIG = {
 
 let lastWithdrawTimestamp = Math.floor(Date.now() / 1000);
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = sleep;
 
-async function retryWithBackoff(fn, attempts = CONFIG.RETRY_ATTEMPTS) {
-  for (let i = 0; i < attempts; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (i === attempts - 1) throw error;
-      const delayTime = CONFIG.RETRY_DELAY * Math.pow(2, i);
-      logger.warn(`⚠️ Attempt ${i + 1} failed, retrying in ${delayTime}ms...`);
-      await delay(delayTime);
-    }
-  }
+function retryWithBackoff(fn, attempts = CONFIG.RETRY_ATTEMPTS) {
+  return retryOperation(fn, attempts, CONFIG.RETRY_DELAY);
 }
 
 function buildPayload(userID, currency, amount, transactionCode, name, options = {}) {

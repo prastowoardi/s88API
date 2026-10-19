@@ -31,7 +31,7 @@ const ENV_CONFIGS = {
   PayBO_next8:         { file: ".paybo_next8",       label: "Next8"                },
   PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx"] },
   PayBO_mcpay :        { file: ".paybo_mcpay",       label: "MCPay"                }, 
-  // shadow:              { file: ".env_shadow",        label: "Shadow"               },
+  shadow:              { file: ".env_shadow",        label: "Shadow"               },
 };
 
 

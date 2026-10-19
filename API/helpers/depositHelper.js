@@ -1,67 +1,15 @@
-import { randomInt } from "crypto";
+import {
+  generateUTR,
+  randomPhoneNumber,
+  randomMyanmarPhoneNumber,
+  randomCardNumber,
+  randomAmount
+} from "./common.js";
 
-export function generateUTR(currency) {
-  if (currency === "INR") {
-    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
-  } else if (currency === "BDT") {
-    return Math.floor(1000000 + Math.random() * 900000).toString();
-  } else if (currency === "MMK") {
-    return Math.floor(10000 + Math.random() * 90000).toString();
-  }
-  return "";
-}
-
-export function randomPhoneNumber(currency = "default") {
-  const formats = {
-    bdt: { prefixes: ['017', '018', '019', '016', '015'], digits: 8, pad: 7 },
-    brl: {
-      custom: () => {
-        const ddd = ['11', '21', '31', '41'];
-        const area = ddd[Math.floor(Math.random() * ddd.length)];
-        const number = Math.floor(900000000 + Math.random() * 99999999).toString();
-        return `+55${area}${number}`;
-      }
-    },
-    vnd: { prefixes: ['090', '091', '092', '093'], digits: 7, pad: 7 },
-    thb: { prefixes: ['08'], digits: 8, pad: 7 },
-    idr: { prefixes: ['081', '085', '088'], digits: 9, pad: 9 },
-    inr: { prefixes: ['919', '918', '917'], digits: 7, pad: 6 },
-    pkr: { prefixes: ['0300', '0312', '0333', '0345'], digits: 7, pad: 7 },
-    myr: { prefixes: ['01'], digits: 8, pad: 8 },
-    default: { prefixes: ['017', '018', '019', '016', '015'], digits: 6, pad: 6 }
-  };
-
-  const format = formats[currency.toLowerCase()] || formats.default;
-
-  // Custom formatter (ex. BRL)
-  if (typeof format.custom === "function") {
-    return format.custom();
-  }
-
-  const prefix = format.prefixes[Math.floor(Math.random() * format.prefixes.length)];
-  const number = Math.floor(Math.random() * Math.pow(10, format.digits))
-    .toString()
-    .padStart(format.pad, '0');
-
-  return prefix + number;
-}
-
-export function randomMyanmarPhoneNumber() {
-    return '09' + Math.floor(100000000 + Math.random() * 900000000);
-}
-
-export function randomCardNumber() {
-    let cardNumber = "";
-
-    // Keep 16 digits and avoid leading zero (matches prior 10^15..10^16-1 range intent)
-    cardNumber += randomInt(1, 10).toString();
-    for (let i = 1; i < 16; i++) {
-        cardNumber += randomInt(0, 10).toString();
-    }
-
-    return Number(cardNumber);
-}
-
-export function randomAmount(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+export {
+  generateUTR,
+  randomPhoneNumber,
+  randomMyanmarPhoneNumber,
+  randomCardNumber,
+  randomAmount
+};

@@ -4,7 +4,9 @@ import logger from "../../logger.js";
 import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber, registeredDate } from "../../helpers/utils.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
-import { getValidIFSC, randomPhoneNumber } from "../../helpers/payoutHelper.js";
+import { getValidIFSC } from "../../helpers/payoutHelper.js";
+import { ValidationError } from "../../errors/CustomErrors.js";
+import { retryOperation, sleep, randomPhoneNumber } from "../../helpers/common.js";
 import { fakerJA } from "@faker-js/faker";
 
 const CONFIG = {
@@ -23,13 +25,6 @@ const BANK_CONFIG = {
   PKR: { bank_account_number: `03${getAccountNumber(9)}` },
   // BDT: { bank_account_number: `01981325629` }, // real account from rolezpay, used for testing UTR submission
 };
-
-class ValidationError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
 
 const validators = {
   currency: (currency) => {
@@ -91,20 +86,10 @@ class PayoutInput {
 }
 
 const utils = {
-  delay: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
-  
-  retryWithBackoff: async (fn, attempts = CONFIG.RETRY_ATTEMPTS) => {
-    for (let i = 0; i < attempts; i++) {
-      try {
-        return await fn();
-      } catch (error) {
-        if (i === attempts - 1) throw error;
-        
-        const delayTime = CONFIG.RETRY_DELAY * Math.pow(2, i);
-        logger.warn(`⚠️ Attempt ${i + 1} failed, retrying in ${delayTime}ms...`);
-        await utils.delay(delayTime);
-      }
-    }
+  delay: sleep,
+
+  retryWithBackoff: (fn, attempts = CONFIG.RETRY_ATTEMPTS) => {
+    return retryOperation(fn, attempts, CONFIG.RETRY_DELAY);
   },
 
   generateTransactionCode: () => {

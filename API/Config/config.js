@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { validateEnvironment, getEnvConfig, getEnvVar } from './env.js';
 
 // Load environment
 const envFiles = {
@@ -27,6 +28,11 @@ const envFile = envFiles[process.env.NODE_ENV] || '.env_staging';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
+
+// Validate required environment variables via env.js
+validateEnvironment();
+
+const envConfig = getEnvConfig();
 
 const currencies = ['INR', 'VND', 'BDT', 'MMK', 'BRL', 'IDR', 'THB', 'MXN', 'KRW', 'PHP', 'HKD', "KHR", "MYR", 'JPY'];
 const merchantFields = ['SECRET_KEY', 'DEPOSIT_METHOD', 'PAYOUT_METHOD', 'MERCHANT_API_KEY', 'MERCHANT_CODE'];
@@ -67,6 +73,8 @@ export const {
 
 export const CALLBACK_URL = "https://webhook.prastowoardi616.workers.dev/webhook";
 
+export { envConfig };
+
 // Pengecekan Bersyarat: Hanya lakukan throw error jika BUKAN environment PayBO
 const isPayBO = process.env.NODE_ENV && process.env.NODE_ENV.startsWith('PayBO_');
 
@@ -77,8 +85,8 @@ if (!isPayBO) {
         throw new Error(`Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
     }
 } else {
-    if (!BASE_URL) throw new Error("BASE_URL is required for PayBO environment.");
-    const currentCurrency = process.env.CURRENCY; 
+    if (!getEnvVar("BASE_URL")) throw new Error("BASE_URL is required for PayBO environment.");
+    const currentCurrency = getEnvVar("CURRENCY");
 
     if (currentCurrency === 'IDR') {
         if (!MERCHANT_API_KEY_IDR || !SECRET_TOKEN) {
