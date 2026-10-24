@@ -45,10 +45,30 @@ export const payoutConfigMap = Object.fromEntries(
 );
 
 export function getPayoutConfig(currency) {
-    const config = payoutConfigMap[currency];
-    if (!config) {
+    if (!currency) {
+        throw new Error("Currency parameter is required.");
+    }
+    const curr = currency.toUpperCase();
+    const flags = currencyFlags[curr];
+    if (!flags) {
         console.error(`Config untuk currency '${currency}' tidak ditemukan.`);
         throw new Error(`❌ Config untuk currency '${currency}' tidak ditemukan.`);
     }
-    return { ...config };
+
+    const merchantCode = process.env[`MERCHANT_CODE_${curr}`] || process.env.MERCHANT_CODE || Config[`MERCHANT_CODE_${curr}`];
+    const payoutMethod = process.env[`PAYOUT_METHOD_${curr}`] || process.env.PAYOUT_METHOD || Config[`PAYOUT_METHOD_${curr}`];
+    const secretKey = process.env[`SECRET_KEY_${curr}`] || process.env.SECRET_KEY || Config[`SECRET_KEY_${curr}`];
+    const merchantAPI = process.env[`MERCHANT_API_KEY_${curr}`] || process.env.MERCHANT_API_KEY || Config[`MERCHANT_API_KEY_${curr}`];
+
+    return {
+        BASE_URL: process.env.BASE_URL || Config.BASE_URL,
+        callbackURL: process.env.CALLBACK_URL || Config.CALLBACK_URL,
+        merchantCode,
+        payoutMethod,
+        secretKey,
+        merchantAPI,
+        apiKey: merchantAPI,
+        ...flags,
+        currency: curr,
+    };
 }

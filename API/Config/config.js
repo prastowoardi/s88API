@@ -6,22 +6,26 @@ import { validateEnvironment, getEnvConfig, getEnvVar } from './env.js';
 // Load environment
 const envFiles = {
     staging: '.env_staging',
-    singhapay: '.env_singhapay',
-    singhapay_staging: '.env_singhaStag',
     production: '.env_production',
-    apexpay_production: '.apexpay_prod',
+    singhapay_staging: '.env_singhaStag',
+    singhapay: '.env_singhapay',
     apexpay_staging: '.apexpay_staging',
+    apexpay_production: '.apexpay_prod',
     PayBO_staging: '.paybo_staging',
+    gempita_staging: '.staging_gempita',
+    staging_swftx: '.staging_swftx',
+    PayBO_production: '.paybo_production',
     PayBO_wandpay: '.paybo_wandpay',
     PayBO_swftx: '.paybo_swftx',
     PayBO_rangoon: '.paybo_rangoon',
     PayBO_demo: '.paybo_demo',
     PayBO_commspay: '.paybo_commspay',
     PayBO_erfolgpay: '.paybo_erfolgpay',
-    PayBO_production: '.paybo_production',
     PayBO_next8: '.paybo_next8',
     PayBO_snappay: '.paybo_snappay',
-    PayBO_flexipay: '.paybo_flexipay'
+    PayBO_mcpay: '.paybo_mcpay',
+    PayBO_flexipay: '.paybo_flexipay',
+    shadow: '.env_shadow'
 };
 
 const envFile = envFiles[process.env.NODE_ENV] || '.env_staging';
@@ -71,30 +75,55 @@ export const {
     SECRET_KEY_USDT, DEPOSIT_METHOD_USDT, PAYOUT_METHOD_USDT, MERCHANT_API_KEY_USDT, MERCHANT_CODE_USDT
 } = process.env;
 
-export const CALLBACK_URL = "https://webhook.prastowoardi616.workers.dev/webhook";
+export const CALLBACK_URL = process.env.CALLBACK_URL || "https://webhook.prastowoardi616.workers.dev/webhook";
 
 export { envConfig };
 
-// Pengecekan Bersyarat: Hanya lakukan throw error jika BUKAN environment PayBO
-const isPayBO = process.env.NODE_ENV && process.env.NODE_ENV.startsWith('PayBO_');
+/**
+ * Lazy validation per currency:
+ * Hanya memeriksa variabel yang diperlukan untuk currency yang sedang dipakai.
+ */
+export function validateCurrencyConfig(currency) {
+    if (!currency) return true;
+    const curr = currency.toUpperCase();
+    const isPayBO = process.env.NODE_ENV && process.env.NODE_ENV.startsWith('PayBO_');
+    const missing = [];
 
-if (!isPayBO) {
-    const missingKeys = currencies.filter(curr => !process.env[`SECRET_KEY_${curr}`]);
-    if (missingKeys.length > 0) {
-        console.error(`❌ Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
-        throw new Error(`Missing SECRET_KEY(s): ${missingKeys.map(k => `SECRET_KEY_${k}`).join(', ')}`);
+    const hasBaseUrl = process.env.BASE_URL || BASE_URL;
+    if (!hasBaseUrl) {
+        missing.push("BASE_URL");
     }
-} else {
-    if (!getEnvVar("BASE_URL")) throw new Error("BASE_URL is required for PayBO environment.");
-    const currentCurrency = getEnvVar("CURRENCY");
 
-    if (currentCurrency === 'IDR') {
-        if (!MERCHANT_API_KEY_IDR || !SECRET_TOKEN) {
-            throw new Error("MERCHANT_API_KEY_IDR and SECRET_TOKEN are required for IDR transactions.");
+    const isGempitaOrGptPay =
+        process.env.NODE_ENV === 'gempita_staging' ||
+        process.env.NODE_ENV === 'PayBO_snappay' ||
+        process.env.IS_GEMPITA === 'true' ||
+        process.env.IS_GPTPAY === 'true';
+
+    if (isGempitaOrGptPay) {
+        if (!process.env.SECRET_TOKEN && !SECRET_TOKEN) {
+            missing.push("SECRET_TOKEN");
+        }
+    } else {
+        const hasSecret = process.env[`SECRET_KEY_${curr}`] || process.env.SECRET_KEY || process.env[`SECRET_KEY_${curr.toLowerCase()}`];
+        if (!hasSecret) {
+            missing.push(`SECRET_KEY_${curr}`);
         }
     }
+
+    if (missing.length > 0) {
+        const msg = `❌ Konfigurasi belum lengkap untuk currency ${curr}: ${missing.join(', ')}`;
+        console.error(msg);
+        throw new Error(msg);
+    }
+    return true;
 }
 
-if (!API_NINJAS_KEY) {
-    throw new Error("API Key for get user is empty.");
+// Validasi hanya jika CURRENCY sudah diset di environment
+if (process.env.CURRENCY) {
+    try {
+        validateCurrencyConfig(process.env.CURRENCY);
+    } catch (e) {
+        console.warn(`⚠️ [Config Warning] ${e.message}`);
+    }
 }

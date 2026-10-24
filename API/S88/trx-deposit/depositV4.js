@@ -1,10 +1,10 @@
 import fetch from "node-fetch";
-import readline from "readline";
 import logger from "../../logger.js";
 import open from "open";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { ask, askYesNo } from "../../helpers/cli.js";
 import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProofMMK, generateEmail } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
@@ -18,25 +18,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RECEIPT_DIR = path.join(__dirname, "../../resources/public");
 
 class DepositService {
-    constructor() {
-        this.rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        });
-    }
+    constructor() {}
 
     ask(question) {
-        return new Promise((resolve) => this.rl.question(question, resolve));
+        return ask(question);
     }
 
     async askYesNo(question) {
-        const answer = (await this.ask(`${question} (YES/NO): `)).trim().toUpperCase();
-        return answer === "YES";
+        return askYesNo(question);
     }
 
-    close() {
-        this.rl.close();
-    }
+    close() {}
 
     validateCurrency(currency) {
         if (!SUPPORTED_CURRENCIES.includes(currency)) {

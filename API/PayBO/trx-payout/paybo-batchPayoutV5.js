@@ -1,10 +1,11 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
-import { randomInt } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+import { randomAmount } from "../../helpers/common.js";
 import { fileURLToPath } from 'url';
 
 const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK"];
@@ -228,7 +229,7 @@ async function batchPayoutWithConcurrency(payoutRequests, maxConcurrent = MAX_CO
 }
 
 // Generate batch requests
-async function generateBatchRequests(currency, bankCode, amount, count) {
+async function generateBatchRequests(currency, bankCode, amounts, count) {
   logger.info(`\n⏳ Generating ${count} requests...`);
   
   const baseTimestamp = Math.floor(Date.now() / 1000);
@@ -239,10 +240,11 @@ async function generateBatchRequests(currency, bankCode, amount, count) {
   );
 
   for (let i = 0; i < count; i++) {
+    const currentAmount = Array.isArray(amounts) ? (amounts[i] !== undefined ? amounts[i] : amounts[0]) : amounts;
     requests.push({
-      userID: crypto.randomUUID(),
+      userID: randomUUID(),
       currency,
-      amount,
+      amount: currentAmount,
       transactionCode: `TEST-WD-${baseTimestamp}-${String(i).padStart(4, '0')}`,
       name: names[i],
       bankCode,
@@ -255,17 +257,29 @@ async function generateBatchRequests(currency, bankCode, amount, count) {
 }
 
 async function collectBatchInputs(currency) {
-  
   let bankCode = "";
   if (BANK_CODE_REQUIRED.includes(currency)) {
     bankCode = readlineSync.question(`\nBank Code for ${currency}: `);
     validateBankCode(bankCode, currency);
   }
 
-  const amount = validateAmount(readlineSync.questionInt("Amount: "));
   const count = validateCount(readlineSync.questionInt(`Berapa Transaksi (1-${MAX_BATCH_SIZE}): `));
+  let amounts = [];
+  if (count === 1) {
+    const fixedAmount = validateAmount(readlineSync.questionInt("Amount: "));
+    amounts = [fixedAmount];
+  } else {
+    let min = validateAmount(readlineSync.questionInt("Masukkan minimum amount: "));
+    let max = validateAmount(readlineSync.questionInt("Masukkan maximum amount: "));
+    if (max < min) {
+      console.warn("⚠️ Maximum amount lebih kecil dari minimum amount, otomatis ditukar.");
+      [min, max] = [max, min];
+    }
+    amounts = Array.from({ length: count }, () => randomAmount(min, max));
+    logger.info(`🎲 Menggunakan range amount acak antara ${min} s/d ${max}`);
+  }
 
-  return { bankCode, amount, count };
+  return { bankCode, amounts, count };
 }
 
 async function getCurrency() {
@@ -301,9 +315,9 @@ async function sendBatchPayout(currency = null) {
     }
     
     logger.info("🚀 BATCH WITHDRAW V5");    
-    const { bankCode, amount, count } = await collectBatchInputs(upperCurrency);
+    const { bankCode, amounts, count } = await collectBatchInputs(upperCurrency);
     
-    const requests = await generateBatchRequests(upperCurrency, bankCode, amount, count);
+    const requests = await generateBatchRequests(upperCurrency, bankCode, amounts, count);
     const results = await batchPayoutWithConcurrency(requests);
     
     const totalTime = Math.round((Date.now() - startTime) / 1000);

@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
-import { randomInt } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 import http from "http";
 import https from "https";
 import { pathToFileURL } from "url";
@@ -9,7 +9,7 @@ import { payoutConfigMap, getPayoutConfig } from "../../helpers/payoutConfigMap.
 import { encryptDecrypt, getRandomName, getAccountNumber, getRandomIP } from "../../helpers/utils.js";
 import * as AllConfigs from "../../Config/config.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
-import { retryOperation, sleep } from "../../helpers/common.js";
+import { retryOperation, sleep, randomAmount } from "../../helpers/common.js";
 import { fakerJA } from "@faker-js/faker";
 
 const SUPPORTED_CURRENCIES = Object.keys(payoutConfigMap);
@@ -242,12 +242,30 @@ async function batchPayout() {
     }
 
     const jumlah = readlineSync.questionInt(`Berapa Transaksi (${currencies.join(',')}): `);
-    const amount = readlineSync.questionInt("Amount per Transaksi: ");
+    let amounts = [];
+    if (jumlah === 1) {
+      const fixedAmount = readlineSync.questionInt("Amount per Transaksi: ");
+      amounts = [fixedAmount];
+    } else {
+      let min = readlineSync.questionInt("Masukkan minimum amount: ");
+      let max = readlineSync.questionInt("Masukkan maximum amount: ");
+      if (max < min) {
+        console.warn("⚠️ Maximum amount lebih kecil dari minimum amount, otomatis ditukar.");
+        [min, max] = [max, min];
+      }
+      amounts = Array.from({ length: jumlah }, () => randomAmount(min, max));
+      logger.info(`🎲 Menggunakan range amount acak antara ${min} s/d ${max}`);
+    }
 
     const allRequests = [];
 
     for (const cur of currencies) {
       const config = CURRENCY_CONFIG.get(cur);
+      if (!config || !config.secretKey) {
+        logger.error(`❌ Konfigurasi belum lengkap untuk currency ${cur}: SECRET_KEY_${cur} tidak ditemukan.`);
+        if (currencies.length === 1) return;
+        continue;
+      }
       logger.info(`--- Preparing ${jumlah} transactions for ${cur} ---`);
 
       const [ifsc, names] = await Promise.all([
@@ -277,10 +295,12 @@ async function batchPayout() {
           options.accountType = randomInt(1, 3);
         }
 
+        const currentAmount = amounts[i] !== undefined ? amounts[i] : amounts[0];
+
         allRequests.push({
-          userID: crypto.randomUUID(),
+          userID: randomUUID(),
           currency: cur,
-          amount,
+          amount: currentAmount,
           transactionCode: `TEST-BATCH-WD-${cur}-${lastWithdrawTimestamp}-${String(i).padStart(4, '0')}`,
           name: names[i],
           options

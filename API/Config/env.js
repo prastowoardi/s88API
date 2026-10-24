@@ -9,26 +9,53 @@ const REQUIRED_VARS = {
   development: ["NODE_ENV"],
 };
 
-const CURRENCY_VARS = ["MERCHANT_API_KEY", "SECRET_TOKEN", "MERCHANT_CODE"];
+const CURRENCY_VARS = ["MERCHANT_CODE", "MERCHANT_API_KEY"];
 
-export function validateEnvironment() {
+export function validateEnvironment(strict = false) {
   const nodeEnv = process.env.NODE_ENV || "development";
   const required = REQUIRED_VARS[nodeEnv] || REQUIRED_VARS.development;
 
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+    const msg = `Missing required environment variables: ${missing.join(", ")}`;
+    if (strict) {
+      throw new Error(msg);
+    } else {
+      console.warn(`⚠️ [Config Warning] ${msg}`);
+    }
+  }
+
+  // SECRET_TOKEN hanya untuk environment Gempita atau GPTPay (API-Ex)
+  const isGempitaOrGptPay =
+    nodeEnv === "gempita_staging" ||
+    nodeEnv === "PayBO_snappay" ||
+    process.env.IS_GEMPITA === "true" ||
+    process.env.IS_GPTPAY === "true";
+
+  if (isGempitaOrGptPay && !process.env.SECRET_TOKEN) {
+    console.warn("⚠️ [Config Warning] SECRET_TOKEN diperlukan untuk environment Gempita / GPTPay.");
   }
 
   // Validate currency-specific variables if currency is set
   if (process.env.CURRENCY) {
     const currency = process.env.CURRENCY.toUpperCase();
-    const currencyRequired = CURRENCY_VARS.map((key) => `${key}_${currency}`);
-    const currencyMissing = currencyRequired.filter((key) => !process.env[key]);
+    const currencyMissing = [];
+
+    const hasMerchantCode = process.env[`MERCHANT_CODE_${currency}`] || process.env.MERCHANT_CODE;
+    if (!hasMerchantCode) {
+      currencyMissing.push(`MERCHANT_CODE_${currency}`);
+    }
+
+    if (!isGempitaOrGptPay) {
+      const hasSecretKey = process.env[`SECRET_KEY_${currency}`] || process.env.SECRET_KEY;
+      if (!hasSecretKey) {
+        currencyMissing.push(`SECRET_KEY_${currency}`);
+      }
+    }
 
     if (currencyMissing.length > 0) {
-      console.warn(`Missing currency-specific variables: ${currencyMissing.join(", ")}`);
+      console.warn(`⚠️ [Config Warning] Missing currency-specific variables: ${currencyMissing.join(", ")}`);
     }
   }
 

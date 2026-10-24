@@ -11,37 +11,49 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ifscDataPath = path.resolve(__dirname, '../src/banks.json');
 
-export async function getRandomIFSC() {
+// In-memory cache for bank list to prevent repeated disk I/O
+let cachedBankList = null;
+
+export async function getBankList() {
+  if (cachedBankList) return cachedBankList;
+
   try {
     await fs.access(ifscDataPath);
     const data = await fs.readFile(ifscDataPath, 'utf8');
     const ifscData = JSON.parse(data);
 
     if (!ifscData.NTDRESP || !Array.isArray(ifscData.NTDRESP.BANKLIST)) {
-        throw new Error("Format data banks.json tidak valid!");
+      throw new Error("Format data banks.json tidak valid!");
     }
 
-    const bankList = ifscData.NTDRESP.BANKLIST;
-    if (bankList.length === 0) {
-        throw new Error("Data bank kosong!");
+    const validList = ifscData.NTDRESP.BANKLIST.filter(
+      (b) => b && typeof b.MIFSCCODE === 'string' && b.MIFSCCODE.trim() !== ""
+    );
+
+    if (validList.length === 0) {
+      throw new Error("Data bank kosong atau tidak ada MIFSCCODE valid!");
     }
 
-    let validBank = null;
-
-    while (!validBank) {
-      const randomBank = bankList[Math.floor(Math.random() * bankList.length)];
-      
-      if (randomBank.MIFSCCODE && randomBank.MIFSCCODE.trim() !== "") {
-        validBank = randomBank;
-        // console.log(`✅ Bank: ${validBank.BANKNAME} (${validBank.BANKCODE})`);
-        // console.log(`✅ IFSC Code: ${validBank.MIFSCCODE}`);
-      }
-    }
-
-    return validBank.MIFSCCODE;
+    cachedBankList = validList;
+    return cachedBankList;
   } catch (error) {
     logger.error(`❌ Error saat membaca IFSC data: ${error.message}`);
     return null;
+  }
+}
+
+export async function getRandomIFSC(currency) {
+  try {
+    const bankList = await getBankList();
+    if (!bankList || bankList.length === 0) {
+      return "HDFC0000001";
+    }
+
+    const randomBank = bankList[Math.floor(Math.random() * bankList.length)];
+    return randomBank.MIFSCCODE;
+  } catch (error) {
+    logger.error(`❌ Error saat mengambil random IFSC: ${error.message}`);
+    return "HDFC0000001";
   }
 }
 
@@ -62,7 +74,9 @@ export async function getValidIFSC(currency, maxRetries = 3) {
 
 export async function validateIFSC(ifscCode) {
   try {
-    const response = await fetch(`https://ifsc.razorpay.com/${ifscCode}`);
+    const response = await fetch(`https://ifsc.razorpay.com/${ifscCode}`, {
+      signal: AbortSignal.timeout(5000),
+    });
     
     if (!response.ok) {
       logger.error(`❌ Validasi IFSC gagal: ${response.statusText}`);

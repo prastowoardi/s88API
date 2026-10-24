@@ -5,22 +5,19 @@
     "axios": "^1.18.0",
     "coinkey": "^3.0.0",
     "crypto-js": "^4.2.0",
-    "date-fns": "^4.1.0",
     "dotenv": "^16.6.1",
-    "express": "^5.1.0",
     "form-data": "^4.0.6",
     "inquirer": "^12.9.6",
     "node-fetch": "^3.3.2",
     "open": "^8.4.2",
     "readline-sync": "^1.4.10",
-    "strip-ansi": "^7.1.0",
     "uuid": "^14.0.0",
     "winston": "^3.17.0",
-    "winston-transport": "^4.9.0",
-    "ws": "^8.21.0"
+    "winston-transport": "^4.9.0"
   },
   "scripts": {
     "start": "node index.js",
+    "test": "node --test test/",
     "ex-staging": "cross-env NODE_ENV=PayBO_staging node API/PayBO/api-ex/ex-runner.js",
     "ex-production": "cross-env NODE_ENV=PayBO_snappay node API/PayBO/api-ex/ex-runner.js"
   },

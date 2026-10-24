@@ -20,7 +20,7 @@ const CONFIG = {
 
 const BANK_CONFIG = {
   THB: { bank_name: "Siam Commercial Bank" },
-  VND: { bank_account_number: "2206491508" },
+  VND: { bank_account_number: "111111" },
   INR: { bank_account_number: `${getAccountNumber(6)}` },
   PKR: { bank_account_number: `03${getAccountNumber(9)}` },
   // BDT: { bank_account_number: `01981325629` }, // real account from rolezpay, used for testing UTR submission

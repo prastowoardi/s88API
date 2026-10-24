@@ -1,7 +1,7 @@
-import readlineSync from "readline-sync";
 import logger from "../API/logger.js";
 import { generateCustomUTR } from "./helpers/payoutHelper.js";
 import { sendCallback } from "./helpers/callbackHelper.js";
+import { ask, askInt, askFloat } from "./helpers/cli.js";
 
 function getTransactionTypeFromPrefix(transactionNo) {
   const prefix = transactionNo.slice(0, 2).toUpperCase();
@@ -13,13 +13,13 @@ function getTransactionTypeFromPrefix(transactionNo) {
   return 2;
 }
 
-function inputCurrency() {
+async function inputCurrency() {
   const supportedCurrencies = ["INR", "VND"];
-  let currency = readlineSync.question("Currency (INR/VND): ").toUpperCase();
+  let currency = (await ask("Currency (INR/VND): ")).toUpperCase();
 
   while (!supportedCurrencies.includes(currency)) {
     logger.info(`❌ Currency tidak valid. Hanya mendukung: ${supportedCurrencies.join(", ")}`);
-    currency = readlineSync.question("Currency (INR/VND): ").toUpperCase();
+    currency = (await ask("Currency (INR/VND): ")).toUpperCase();
   }
 
   return currency;
@@ -27,8 +27,8 @@ function inputCurrency() {
 
 async function inputAndSendCallbacks() {
   logger.info("======== SEND CALLBACK ========");
-  const currency = inputCurrency();
-  const total = readlineSync.questionInt("Berapa jumlah transaksi yang ingin diinput? ");
+  const currency = await inputCurrency();
+  const total = await askInt("Berapa jumlah transaksi yang ingin diinput? ");
 
   const transactions = [];
 
@@ -36,14 +36,14 @@ async function inputAndSendCallbacks() {
 
     let transactionNo = "";
     while (true) {
-      transactionNo = readlineSync.question(`Transaction No (${i + 1}): `).toUpperCase();
+      transactionNo = (await ask(`Transaction No (${i + 1}): `)).toUpperCase();
       if (/^(DP|WD)\d+$/i.test(transactionNo)) {
         break;
       }
       logger.warn("⚠️ Format Transaction No tidak sesuai. Silakan coba lagi.");
     }
 
-    const amount = readlineSync.questionFloat(`Amount Transaction (${i + 1}): `);
+    const amount = await askFloat(`Amount Transaction (${i + 1}): `);
     const status = Math.random() < 0.8 ? 0 : 1;
     const transactionType = getTransactionTypeFromPrefix(transactionNo);
     const systemOrderId = Math.floor(Math.random() * 100000).toString();
@@ -58,7 +58,7 @@ async function inputAndSendCallbacks() {
     });
   }
 
-  const repeatCount = readlineSync.questionInt("Mau kirim berapa kali callback untuk setiap transaksi? ") || 1;
+  const repeatCount = (await askInt("Mau kirim berapa kali callback untuk setiap transaksi? ", 1)) || 1;
 
   logger.info(`🚀 Mengirim ${transactions.length * repeatCount} callback secara paralel...\n`);
 

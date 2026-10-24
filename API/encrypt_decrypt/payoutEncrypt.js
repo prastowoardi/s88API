@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { randomInt } from "crypto";
-import readlineSync from "readline-sync";
+import { ask } from "../helpers/cli.js";
 import { encryptDecrypt, getRandomName } from "../helpers/utils.js";
 import { getPayoutConfig } from "../helpers/payoutConfigMap.js";
 import { getValidIFSC } from "../helpers/payoutHelper.js";
@@ -10,8 +10,8 @@ async function payoutEncrypt() {
 
     const userID = randomInt(100, 999);
     
-    const currency = readlineSync.question("Masukkan Currency (INR/VND): ").toUpperCase();
-    const amount = readlineSync.question("Masukkan Amount: ");
+    const currency = (await ask("Masukkan Currency (INR/VND): ")).toUpperCase();
+    const amount = await ask("Masukkan Amount: ");
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const transactionCode = `TEST-WD-${timestamp}`;

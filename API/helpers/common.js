@@ -77,7 +77,7 @@ export function randomCardNumber() {
   for (let i = 1; i < 16; i++) {
     cardNumber += randomInt(0, 10).toString();
   }
-  return Number(cardNumber);
+  return cardNumber;
 }
 
 /**

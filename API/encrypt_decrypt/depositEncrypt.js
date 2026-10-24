@@ -1,5 +1,5 @@
 import { randomInt } from "crypto";
-import readlineSync from "readline-sync";
+import { ask } from "../helpers/cli.js";
 import { encryptDecrypt } from "../helpers/utils.js";
 import { getCurrencyConfig } from "../helpers/depositConfigMap.js";
 
@@ -7,8 +7,8 @@ async function depositEncrypt() {
     console.log("\n=== DEPOSIT ENCRYPTION/DECRYPTION ===");
 
     const userID = randomInt(100, 999);
-    const currency = readlineSync.question("Masukkan Currency (INR/VND/BDT): ").toUpperCase();
-    const amount = readlineSync.question("Masukkan Amount: ");
+    const currency = (await ask("Masukkan Currency (INR/VND/BDT): ")).toUpperCase();
+    const amount = await ask("Masukkan Amount: ");
 
     const config = getCurrencyConfig(currency);
 
@@ -22,7 +22,7 @@ async function depositEncrypt() {
 
     let bankCode = "";
     if (currency === "VND" || currency === "BDT") {
-        bankCode = readlineSync.question("Masukkan Bank Code: ").trim();
+        bankCode = (await ask("Masukkan Bank Code: ")).trim();
         if (!bankCode) {
             console.error("❌ Bank code wajib diisi untuk currency VND/BDT.");
             return;

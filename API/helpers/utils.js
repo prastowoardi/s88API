@@ -135,7 +135,7 @@ export async function getRandomName(locale = "en", forceLocal = false) {
     const normalizedLocale = locale.toLowerCase();
     const hasLocalData = !!localNames[normalizedLocale];
 
-    if (!hasLocalData || !forceLocal) {
+    if ((!hasLocalData || !forceLocal) && API_NINJAS_KEY) {
         try {
             const response = await fetch("https://api.api-ninjas.com/v1/randomuser", {
                 headers: { "X-Api-Key": API_NINJAS_KEY }

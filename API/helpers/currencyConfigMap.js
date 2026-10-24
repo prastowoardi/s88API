@@ -2,11 +2,12 @@ export const localCurrency = {
     INR: "in",
     VND: "vn",
     BDT: "bd",
-    MMK: "my",
+    MMK: "mm",
     THB: "th",
     KRW: "kr",
     IDR: "id",
     CNY: "cn",
     JPY: "jp",
-    KHR: "kh"
+    KHR: "kh",
+    MYR: "my"
 };
