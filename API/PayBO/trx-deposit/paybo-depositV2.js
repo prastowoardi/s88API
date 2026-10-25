@@ -97,6 +97,9 @@ async function applyCurrencySpecifics(currency, payloadObj, bankCode, cardNumber
       payloadObj.cust_phone = await randomPhoneNumber("pkr"),
       payloadObj.cust_email = user.email
       break;
+    case "TWD":
+      payloadObj.bank_account_number = await getAccountNumber(5);
+      payloadObj.cust_phone = "0912345678";
   }
   return payloadObj;
 }
