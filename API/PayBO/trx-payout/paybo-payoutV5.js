@@ -175,6 +175,8 @@ async function executePayoutRequest(payload, config) {
   const isValid = signVerify("verify", { payload: cleanedPayload, signature }, config.secretKey);
   if (!isValid) throw new Error("Signature verification failed before sending");
 
+  logger.info(`Request URL: ${apiUrl}`);
+  logger.info(`Signature: ${signature}`);
   const response = await fetch(apiUrl, {
     method: "POST",
     headers: { 

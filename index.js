@@ -48,6 +48,8 @@ const SCRIPT_ACTIONS = {
   batchWithdraw:   { path: "API/S88/trx-payout/batchWithdraw.js",      label: "Batch Withdraw",       type: "S88/Singhapay/Apex", kind: "payout"   },
   manualINR:       { path: "API/S88/trx-payout/manualINR.js",          label: "Manual Withdraw INR",  type: "S88/Singhapay/Apex", kind: "payout"   },
   manualVND:       { path: "API/S88/trx-payout/manualVND.js",          label: "Manual Withdraw VND",  type: "S88/Singhapay/Apex", kind: "payout"   },
+  CheckStatus:     { path: "API/S88/additional/check-status.js",       label: "Check Transaction Status", type: "S88/Singhapay/Apex", kind: "status"   },
+  GetBalance:      { path: "API/S88/additional/get-balance.js",        label: "Get Balance",             type: "S88/Singhapay/Apex", kind: "balance"  },
 
   // PayBO
   payboDepositV2:       { path: "API/PayBO/trx-deposit/paybo-depositV2.js",     label: "PayBO Deposit V2",        type: "PayBO", kind: "deposit" },
