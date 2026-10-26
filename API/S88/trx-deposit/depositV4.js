@@ -197,8 +197,12 @@ class DepositService {
 
         const urls = Object.keys(process.env)
             .filter(key => key.startsWith('BASE_URL'))
-            .map(key => process.env[key])
+            .map(key => process.env[key]?.trim())
             .filter(Boolean);
+
+        if (!urls.length && config.BASE_URL) {
+            urls.push(config.BASE_URL.trim());
+        }
 
         logger.info(`Payload: ${payload}\n`);
         logger.info(`Encrypted: ${encrypted}\n`);

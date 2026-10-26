@@ -164,8 +164,12 @@ class DepositV2Service {
 
             const urls = Object.keys(process.env)
                 .filter(key => key.startsWith('BASE_URL'))
-                .map(key => process.env[key])
-                .filter(Boolean); // Otomatis dapet URL dari .env
+                .map(key => process.env[key]?.trim())
+                .filter(Boolean);
+
+            if (!urls.length && config.BASE_URL) {
+                urls.push(config.BASE_URL.trim());
+            }
 
             logger.info(`Request Payload: ${payload}\n`);
             logger.info(`Encrypted Payload: ${encrypted}\n`);

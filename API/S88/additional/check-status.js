@@ -27,6 +27,13 @@ async function main() {
       console.log("\n------------------ HASIL ------------------");
       logger.info(`HTTP Status: ${result.status}`);
 
+      if (result.payloadBeforeEncrypt) {
+        console.log(`Payload (Before Encrypt) : ${result.payloadBeforeEncrypt}`);
+      }
+      if (result.payloadAfterEncrypt) {
+        console.log(`Payload (After Encrypt)  : ${result.payloadAfterEncrypt}`);
+      }
+
       const resData = result.data;
 
       if (resData && resData.success) {

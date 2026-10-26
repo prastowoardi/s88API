@@ -19,7 +19,7 @@ const ENV_CONFIGS = {
   apexpay_staging:     { file: ".apexpay_staging",   label: "Apexpay Staging"      },
   apexpay_production:  { file: ".apexpay_prod",      label: "Apexpay Production"   },
   PayBO_staging:       { file: ".paybo_staging",     label: "PayBO Staging"        },
-  gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging",     actions: ["payboApiEx"] },
+  gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging",     actions: ["payboApiEx", "getBalance"] },
   staging_swftx:       { file: ".staging_swftx",     label: "Swftx Staging"        },
   PayBO_production:    { file: ".paybo_production",  label: "PayBO Production"     },
   PayBO_wandpay:       { file: ".paybo_wandpay",     label: "Wandpay"              },
@@ -29,7 +29,7 @@ const ENV_CONFIGS = {
   PayBO_commspay:      { file: ".paybo_commspay",    label: "Commspay"             },
   PayBO_demo:          { file: ".paybo_demo",        label: "PayBO Demo"           },
   PayBO_next8:         { file: ".paybo_next8",       label: "Next8"                },
-  PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx"] },
+  PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx", "getBalance"] },
   PayBO_mcpay :        { file: ".paybo_mcpay",       label: "MCPay"                }, 
   shadow:              { file: ".env_shadow",        label: "Shadow"               },
 };
@@ -49,7 +49,7 @@ const SCRIPT_ACTIONS = {
   manualINR:       { path: "API/S88/trx-payout/manualINR.js",          label: "Manual Withdraw INR",  type: "S88/Singhapay/Apex", kind: "payout"   },
   manualVND:       { path: "API/S88/trx-payout/manualVND.js",          label: "Manual Withdraw VND",  type: "S88/Singhapay/Apex", kind: "payout"   },
   CheckStatus:     { path: "API/S88/additional/check-status.js",       label: "Check Transaction Status", type: "S88/Singhapay/Apex", kind: "status"   },
-  GetBalance:      { path: "API/S88/additional/get-balance.js",        label: "Get Balance",             type: "S88/Singhapay/Apex", kind: "balance"  },
+  TransactionList: { path: "API/S88/additional/get-transaction-list.js", label: "Get Transaction List", type: "S88/Singhapay/Apex", kind: "list" },
 
   // PayBO
   payboDepositV2:       { path: "API/PayBO/trx-deposit/paybo-depositV2.js",     label: "PayBO Deposit V2",        type: "PayBO", kind: "deposit" },
@@ -70,6 +70,8 @@ const SCRIPT_ACTIONS = {
   checkStatus:     { path: "API/PayBO/additional/check-wd-status-v5.js",     label: "Check WD Status V5",     type: "PayBO", kind: null },
   depositEncrypt:  { path: "API/encrypt_decrypt/depositEncrypt.js",          label: "Deposit Encrypt",        type: "Other", kind: null },
   payoutEncrypt:   { path: "API/encrypt_decrypt/payoutEncrypt.js",           label: "Withdraw Encrypt",       type: "Other", kind: null },
+  bankList:        { path: "API/additional/get-bank-list.js",                label: "Get Bank Codes (Bank List)", type: "Other", kind: null },
+  getBalance:      { path: "API/additional/get-balance.js",                  label: "Get Balance",             type: "Other", kind: null },
 };
 
 // Actions that need currency + merchant selection
@@ -131,6 +133,24 @@ function parseMerchantsFromEnv(envFilePath, currency) {
 }
 
 function loadEnv(envPath, environment) {
+  // Bersihkan semua variabel lingkungan dari env sebelumnya agar tidak merembet antar environment
+  for (const key of Object.keys(process.env)) {
+    if (
+      key.startsWith("BASE_URL") ||
+      key.startsWith("MERCHANT_CODE") ||
+      key.startsWith("SECRET_KEY") ||
+      key.startsWith("MERCHANT_API_KEY") ||
+      key.startsWith("DEPOSIT_METHOD") ||
+      key.startsWith("PAYOUT_METHOD") ||
+      key.startsWith("SECRET_TOKEN") ||
+      key.startsWith("PMI_") ||
+      key === "CURRENT_MERCHANT" ||
+      key === "CURRENCY"
+    ) {
+      delete process.env[key];
+    }
+  }
+
   const vars = dotenv.parse(fs.readFileSync(envPath));
   for (const [k, v] of Object.entries(vars)) process.env[k] = v;
   process.env.NODE_ENV = environment;

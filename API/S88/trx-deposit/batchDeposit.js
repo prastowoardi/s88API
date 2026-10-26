@@ -214,11 +214,11 @@ class BatchDepositV3Service {
     async makeDepositRequest(config, encrypted, transactionCode, currency) {
         const urls = Object.keys(process.env)
             .filter(key => key.startsWith('BASE_URL'))
-            .map(key => process.env[key])
+            .map(key => process.env[key]?.trim())
             .filter(Boolean);
 
         if (!urls.length && config.BASE_URL) {
-            urls.push(config.BASE_URL);
+            urls.push(config.BASE_URL.trim());
         }
 
         const endpoint = currency === "KRW"

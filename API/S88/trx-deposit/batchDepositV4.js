@@ -108,8 +108,12 @@ class BatchDepositV4Service {
     async makeDepositRequest(config, encrypted, transactionCode) {
         const urls = Object.keys(process.env)
             .filter(key => key.startsWith('BASE_URL'))
-            .map(key => process.env[key])
+            .map(key => process.env[key]?.trim())
             .filter(Boolean);
+
+        if (!urls.length && config.BASE_URL) {
+            urls.push(config.BASE_URL.trim());
+        }
 
         for (const base of urls) {
             const url = `${base}/api/${config.merchantCode}/v4/dopayment`;
