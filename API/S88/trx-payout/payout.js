@@ -8,9 +8,9 @@ import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { ValidationError } from "../../errors/CustomErrors.js";
 import { retryOperation, sleep, randomPhoneNumber } from "../../helpers/common.js";
 import { fakerJA } from "@faker-js/faker";
+import { getSupportedCurrencies, validateCurrency as validateCurrencyHelper } from "../../helpers/currencyHelper.js";
 
 const CONFIG = {
-  SUPPORTED_CURRENCIES: ["INR", "VND", "BDT", "MMK", "THB", "BRL", "IDR", "MXN", "MYR", "PHP", "JPY", "KRW", "NPR", "PKR", "USDT"],
   REQUEST_TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
@@ -28,11 +28,11 @@ const BANK_CONFIG = {
 
 const validators = {
   currency: (currency) => {
-    const upperCurrency = currency?.toUpperCase();
-    if (!CONFIG.SUPPORTED_CURRENCIES.includes(upperCurrency)) {
-      throw new ValidationError(`❌ Currency '${currency}' tidak didukung. Supported: ${CONFIG.SUPPORTED_CURRENCIES.join(', ')}`);
+    try {
+      return validateCurrencyHelper(currency);
+    } catch (err) {
+      throw new ValidationError(err.message);
     }
-    return upperCurrency;
   },
 
   amount: (amount) => {
@@ -283,12 +283,12 @@ class PayoutOrchestrator {
       let amount;
       amount = await this.inputHandler.ask("Masukkan Amount: ", validators.amount);
 
-      if (envCurrency && CONFIG.SUPPORTED_CURRENCIES.includes(envCurrency.toUpperCase())) {
-        currency = envCurrency.toUpperCase();
-        // logger.info(`Currency: ${currency}`);
+      const supported = getSupportedCurrencies();
+      if (envCurrency) {
+        currency = validators.currency(envCurrency);
       } else {
         currency = await this.inputHandler.ask(
-          `Masukkan Currency (${CONFIG.SUPPORTED_CURRENCIES.join(", ")}): `,
+          `Masukkan Currency (${supported.join(", ")}): `,
           validators.currency
         );
       }

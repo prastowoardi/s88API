@@ -7,9 +7,9 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, getAccountNumber, getRandomIP, getRandomName, generateEmail, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { getSupportedCurrencies, validateCurrency } from "../../helpers/currencyHelper.js";
 
 dotenv.config();
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR", "MYR", "PKR"];
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -115,9 +115,15 @@ async function depositV2() {
 
   try {
     const envCurrency = process.env.CURRENCY;
-    let currency = SUPPORTED_CURRENCIES.includes(envCurrency) ? envCurrency : await ask("Masukkan Currency: ");
-    currency = currency.trim().toUpperCase();
-    if (!SUPPORTED_CURRENCIES.includes(currency)) throw new Error(`Currency ${currency} tidak support.`);
+    const supported = getSupportedCurrencies();
+    let currency;
+    if (envCurrency) {
+      currency = validateCurrency(envCurrency);
+    } else {
+      const promptMsg = supported.length > 0 ? `Masukkan Currency (${supported.join(", ")}): ` : "Masukkan Currency: ";
+      const input = await ask(promptMsg);
+      currency = validateCurrency(input);
+    }
 
     let userID;
     if (currency === "JPY") {

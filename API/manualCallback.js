@@ -2,6 +2,7 @@ import logger from "../API/logger.js";
 import { generateCustomUTR } from "./helpers/payoutHelper.js";
 import { sendCallback } from "./helpers/callbackHelper.js";
 import { ask, askInt, askFloat } from "./helpers/cli.js";
+import { getSupportedCurrencies } from "./helpers/currencyHelper.js";
 
 function getTransactionTypeFromPrefix(transactionNo) {
   const prefix = transactionNo.slice(0, 2).toUpperCase();
@@ -14,12 +15,13 @@ function getTransactionTypeFromPrefix(transactionNo) {
 }
 
 async function inputCurrency() {
-  const supportedCurrencies = ["INR", "VND"];
-  let currency = (await ask("Currency (INR/VND): ")).toUpperCase();
+  const supportedCurrencies = getSupportedCurrencies();
+  const promptText = supportedCurrencies.length > 0 ? `Currency (${supportedCurrencies.join("/")}): ` : "Currency: ";
+  let currency = (await ask(promptText)).toUpperCase();
 
-  while (!supportedCurrencies.includes(currency)) {
+  while (supportedCurrencies.length > 0 && !supportedCurrencies.includes(currency)) {
     logger.info(`❌ Currency tidak valid. Hanya mendukung: ${supportedCurrencies.join(", ")}`);
-    currency = (await ask("Currency (INR/VND): ")).toUpperCase();
+    currency = (await ask(promptText)).toUpperCase();
   }
 
   return currency;

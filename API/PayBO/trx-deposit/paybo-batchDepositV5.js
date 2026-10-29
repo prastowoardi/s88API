@@ -20,10 +20,10 @@ import {
     randomAmount 
 } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { getSupportedCurrencies, validateCurrency } from "../../helpers/currencyHelper.js";
 
 import { BASE_URL, CALLBACK_URL } from "../../Config/config.js";
 
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR"];
 const UTR_CURRENCIES = ["INR", "BDT", "MMK"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
 const MAX_CONCURRENT_REQUESTS = 10;
@@ -219,7 +219,15 @@ class BatchDepositV5Service {
             this.stats.startTime = Date.now();
 
             const envCurrency = process.env.CURRENCY;
-            let currency = SUPPORTED_CURRENCIES.includes(envCurrency) ? envCurrency : readlineSync.question("Masukkan Currency: ").trim().toUpperCase();
+            const supported = getSupportedCurrencies();
+            let currency;
+            if (envCurrency) {
+                currency = validateCurrency(envCurrency);
+            } else {
+                const promptMsg = supported.length > 0 ? `Masukkan Currency (${supported.join(", ")}): ` : "Masukkan Currency: ";
+                const input = readlineSync.question(promptMsg).trim().toUpperCase();
+                currency = validateCurrency(input);
+            }
             
             const jumlah = readlineSync.questionInt("Berapa Transaksi: ");
             const min = readlineSync.questionInt("Masukkan minimum amount: ");

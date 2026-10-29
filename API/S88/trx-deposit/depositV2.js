@@ -5,10 +5,10 @@ import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, generateEma
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
 import { localCurrency } from "../../helpers/currencyConfigMap.js";
+import { getSupportedCurrencies, validateCurrency as validateCurrencyHelper } from "../../helpers/currencyHelper.js";
 import open from "open";
 import { register } from 'module';
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "KHR", "MYR", "PHP", "JPY", "MYR", "PHP"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR"];
 
 class DepositV2Service {
@@ -28,11 +28,7 @@ class DepositV2Service {
     }
 
     validateCurrency(currency) {
-        const upper = currency?.toUpperCase();
-        if (!SUPPORTED_CURRENCIES.includes(upper)) {
-            throw new Error(`"${currency}" not supported yet! Supported: ${SUPPORTED_CURRENCIES.join(", ")}`);
-        }
-        return upper;
+        return validateCurrencyHelper(currency);
     }
 
     validateAmount(amount) {
@@ -134,7 +130,7 @@ class DepositV2Service {
             logger.info("======== DEPOSIT V2 REQUEST ========");
 
             const currencyEnv = process.env.CURRENCY;
-            const currency = this.validateCurrency(currencyEnv);
+            const currency = this.validateCurrency(currencyEnv || await this.ask("Masukkan Currency: "));
             const config = getCurrencyConfig(currency);
 
             const amount = this.validateAmount(await this.ask("Masukkan Amount: "));

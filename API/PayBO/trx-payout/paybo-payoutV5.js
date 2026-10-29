@@ -5,11 +5,11 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber, getCryptoRate, jpyBankList } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+import { getSupportedCurrencies, validateCurrency as validateCurrencyHelper } from "../../helpers/currencyHelper.js";
 import { fileURLToPath } from 'url';
 import CoinKey from 'coinkey';
 import { read } from "fs";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
 
@@ -22,11 +22,7 @@ rl.input.setEncoding('utf8'); // Windows terminal
 const ask = (question) => new Promise(resolve => rl.question(question, resolve));
 
 const validateCurrency = (currency) => {
-  const upperCurrency = currency?.toUpperCase();
-  if (!SUPPORTED_CURRENCIES.includes(upperCurrency)) {
-    throw new Error(`Currency "${currency}" is not supported for payout`);
-  }
-  return upperCurrency;
+  return validateCurrencyHelper(currency);
 };
 
 const validateAmount = (amount) => {

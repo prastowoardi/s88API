@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
 import { CALLBACK_URL } from "./API/Config/config.js";
+import { getCurrenciesFromEnvFile } from "./API/helpers/currencyHelper.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,7 @@ const ENV_CONFIGS = {
   apexpay_staging:     { file: ".apexpay_staging",   label: "Apexpay Staging"      },
   apexpay_production:  { file: ".apexpay_prod",      label: "Apexpay Production"   },
   PayBO_staging:       { file: ".paybo_staging",     label: "PayBO Staging"        },
-  gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging",     actions: ["payboApiEx", "getBalance"] },
+  gempita_staging:     { file: ".staging_gempita",   label: "Gempita Staging",     actions: ["payboApiEx"] },
   staging_swftx:       { file: ".staging_swftx",     label: "Swftx Staging"        },
   PayBO_production:    { file: ".paybo_production",  label: "PayBO Production"     },
   PayBO_wandpay:       { file: ".paybo_wandpay",     label: "Wandpay"              },
@@ -29,7 +30,7 @@ const ENV_CONFIGS = {
   PayBO_commspay:      { file: ".paybo_commspay",    label: "Commspay"             },
   PayBO_demo:          { file: ".paybo_demo",        label: "PayBO Demo"           },
   PayBO_next8:         { file: ".paybo_next8",       label: "Next8"                },
-  PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx", "getBalance"] },
+  PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx"] },
   PayBO_mcpay :        { file: ".paybo_mcpay",       label: "MCPay"                }, 
   shadow:              { file: ".env_shadow",        label: "Shadow"               },
 };
@@ -102,7 +103,7 @@ async function prompt(type, name, message, choices, extra = {}) {
 
 function parseMerchantsFromEnv(envFilePath, currency) {
   const lines = fs.readFileSync(envFilePath, "utf-8").split(/\r?\n/);
-  let currentMerchant = null;
+  let currentMerchant = "Default Merchant";
   const merchants = {};
 
   for (const line of lines) {
@@ -110,14 +111,17 @@ function parseMerchantsFromEnv(envFilePath, currency) {
     if (!trimmed) continue;
 
     if (trimmed.startsWith("#") || trimmed.startsWith(";")) {
-      currentMerchant = trimmed.replace(/^[#;]\s*/, "").replace(/\s+Merchant$/i, "").trim();
+      const header = trimmed.replace(/^[#;]\s*/, "").replace(/\s+Merchant$/i, "").trim();
+      if (header && !header.startsWith("====") && !header.toLowerCase().startsWith("file:")) {
+        currentMerchant = header;
+      }
       continue;
     }
 
-    if (trimmed.includes("=") && currentMerchant) {
+    if (trimmed.includes("=")) {
       const [key, ...valParts] = trimmed.split("=");
       const cleanKey = key.trim();
-      if (cleanKey.toUpperCase().includes(`_${currency}`)) {
+      if (cleanKey.toUpperCase().includes(`_${currency}`) || cleanKey === "SECRET_TOKEN") {
         merchants[currentMerchant] ??= {};
         merchants[currentMerchant][cleanKey] = valParts.join("=").trim();
       }
@@ -126,8 +130,7 @@ function parseMerchantsFromEnv(envFilePath, currency) {
 
   return Object.fromEntries(
     Object.entries(merchants).filter(([, vars]) =>
-      Object.keys(vars).some(k => k.includes(`MERCHANT_CODE_${currency}`)) &&
-      Object.keys(vars).some(k => k.includes(`SECRET_KEY_${currency}`))
+      Object.keys(vars).some(k => k.includes(`MERCHANT_CODE_${currency}`))
     )
   );
 }
@@ -238,7 +241,7 @@ async function selectCurrency() {
     validate: (val) => {
       if (!val) return "Currency tidak boleh kosong";
       if (val.toLowerCase() === "back") return true;
-      if (!/^[A-Za-z]+$/.test(val)) return "Gunakan huruf saja, misal: INR";
+      if (!/^[A-Za-z0-9]+$/.test(val)) return "Gunakan huruf/angka saja, misal: INR, USDT";
       return true;
     },
   }]);
@@ -282,11 +285,18 @@ async function main() {
         let selectedMerchant = null;
 
         if (NEEDS_CURRENCY.has(action)) {
+          const supportedCurrencies = getCurrenciesFromEnvFile(envPath);
           // Currency + merchant loop
           let resolved = false;
           while (!resolved) {
             currency = await selectCurrency();
             if (currency === "BACK") break;
+
+            if (supportedCurrencies.length > 0 && !supportedCurrencies.includes(currency)) {
+              console.error(`❌ Currency '${currency}' tidak didukung di ${envConfig.label}`);
+              console.error(`   Currency yang didukung: ${supportedCurrencies.join(", ")}\n`);
+              continue;
+            }
 
             const merchants = parseMerchantsFromEnv(envPath, currency);
             const merchantNames = Object.keys(merchants);

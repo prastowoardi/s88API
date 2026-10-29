@@ -16,13 +16,17 @@ const SUPPORTED_CURRENCIES = Object.keys(payoutConfigMap);
 
 const CURRENCY_CONFIG = new Map(
   SUPPORTED_CURRENCIES.map(cur => {
-    const config = getPayoutConfig(cur);
-    return [cur, {
-      ...config,
-      apiKey: config.merchantAPI,
-      bankAccount: cur === 'JPY' ? getAccountNumber(7) : cur === 'PKR' ? `03${getAccountNumber(9)}` : getAccountNumber(8),
-    }];
-  })
+    try {
+      const config = getPayoutConfig(cur);
+      return [cur, {
+        ...config,
+        apiKey: config.merchantAPI,
+        bankAccount: cur === 'JPY' ? getAccountNumber(7) : cur === 'PKR' ? `03${getAccountNumber(9)}` : getAccountNumber(8),
+      }];
+    } catch {
+      return null;
+    }
+  }).filter(Boolean)
 );
 
 const CONFIG = {

@@ -6,8 +6,8 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName, generateEmail, getAccountNumber,registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { getSupportedCurrencies, validateCurrency } from "../../helpers/currencyHelper.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB", "IDR", "BRL", "MXN", "PHP", "HKD", "JPY", "USDT", "KHR", "MYR", "PKR", "TWD"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT"];
 const xxx = await generateEmail();
@@ -138,12 +138,14 @@ async function sendDeposit() {
 
     try {
         const envCurrency = process.env.CURRENCY?.trim().toUpperCase();
-        let currency = SUPPORTED_CURRENCIES.includes(envCurrency)
-            ? envCurrency
-            : readlineSync.question("Masukkan Currency: ").trim().toUpperCase();
-
-        if (!SUPPORTED_CURRENCIES.includes(currency)) {
-            throw new Error(`Invalid currency. Supported: ${SUPPORTED_CURRENCIES.join(", ")}`);
+        const supported = getSupportedCurrencies();
+        let currency;
+        if (envCurrency) {
+            currency = validateCurrency(envCurrency);
+        } else {
+            const promptMsg = supported.length > 0 ? `Masukkan Currency (${supported.join(", ")}): ` : "Masukkan Currency: ";
+            const input = readlineSync.question(promptMsg).trim().toUpperCase();
+            currency = validateCurrency(input);
         }
 
         const amountInput = readlineSync.question("Masukkan Amount: ");

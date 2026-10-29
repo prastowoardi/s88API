@@ -13,15 +13,19 @@ const SUPPORTED_CURRENCIES = Object.keys(payoutConfigMap);
 
 const CURRENCY_CONFIG = new Map(
   SUPPORTED_CURRENCIES.map(cur => {
-    const config = getPayoutConfig(cur);
-    return [cur, {
-      ...config,
-      apiKey: config.merchantAPI, 
-      // Default value
-      bankAccount: cur === 'VND' ? "2206491508" : `${getAccountNumber(cur === 'JPY' ? 7 : 6)}`,
-      bankCodes: cur === 'VND' ? ["970436", "970407", "970416", "970422", "970418"] : []
-    }];
-  })
+    try {
+      const config = getPayoutConfig(cur);
+      return [cur, {
+        ...config,
+        apiKey: config.merchantAPI, 
+        // Default value
+        bankAccount: cur === 'VND' ? "2206491508" : `${getAccountNumber(cur === 'JPY' ? 7 : 6)}`,
+        bankCodes: cur === 'VND' ? ["970436", "970407", "970416", "970422", "970418"] : []
+      }];
+    } catch {
+      return null;
+    }
+  }).filter(Boolean)
 );
 
 const CONFIG = {

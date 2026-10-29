@@ -7,8 +7,7 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, signVerify, getRandomIP, getRandomName, generateEmail, getAccountNumber, registerCustomerJPY, pollKYCStatus } from "../../helpers/utils.js";
 import { randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber, generateUTR } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
-
-const SUPPORTED_CURRENCIES = ["INR","VND","BDT","MMK","KRW","THB","IDR","BRL","MXN","PHP","HKD","JPY","USDT", "KHR", "MYR", "PKR", "TWD"];
+import { getSupportedCurrencies, validateCurrency } from "../../helpers/currencyHelper.js";
 
 async function submitUTR(currency, transactionCode) {
     if (!["INR", "BDT"].includes(currency)) {
@@ -146,8 +145,15 @@ async function sendDeposit() {
 
     try {
         const envCurrency = process.env.CURRENCY;
-        let currency = SUPPORTED_CURRENCIES.includes(envCurrency) ? envCurrency : readlineSync.question("Masukkan Currency: ").trim().toUpperCase();
-        if (!SUPPORTED_CURRENCIES.includes(currency)) throw new Error(`Currency ${currency} tidak support`);
+        const supported = getSupportedCurrencies();
+        let currency;
+        if (envCurrency) {
+            currency = validateCurrency(envCurrency);
+        } else {
+            const promptMsg = supported.length > 0 ? `Masukkan Currency (${supported.join(", ")}): ` : "Masukkan Currency: ";
+            const input = readlineSync.question(promptMsg).trim().toUpperCase();
+            currency = validateCurrency(input);
+        }
 
         let userID;
         if (currency === "JPY") {

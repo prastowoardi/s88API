@@ -1,13 +1,16 @@
 import logger from "../logger.js";
 import { ask, select, askYesNo } from "../helpers/cli.js";
 import { getBankList } from "../helpers/bankListHelper.js";
+import { getSupportedCurrencies } from "../helpers/currencyHelper.js";
 
 async function main() {
   logger.info("======== GET BANK CODES (BANK LIST) ========");
 
   let currency = process.env.CURRENCY;
   if (!currency) {
-    currency = (await ask("Masukkan Currency (misal: VND, INR, BDT, IDR, dll): ")).toUpperCase();
+    const supported = getSupportedCurrencies();
+    const promptMsg = supported.length > 0 ? `Masukkan Currency (${supported.join(", ")}): ` : "Masukkan Currency (misal: VND, INR, BDT, IDR, dll): ";
+    currency = (await ask(promptMsg)).toUpperCase();
   }
 
   while (true) {

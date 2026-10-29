@@ -8,8 +8,8 @@ import { ask, askYesNo } from "../../helpers/cli.js";
 import { encryptDecrypt, getRandomIP, getRandomName, registeredDate, submitProofMMK, generateEmail } from "../../helpers/utils.js";
 import { generateUTR, randomPhoneNumber, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { getSupportedCurrencies, validateCurrency as validateCurrencyHelper } from "../../helpers/currencyHelper.js";
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BDT", "MMK", "KRW", "THB","PHP", "JPY", "MYR", "NPR", "PKR", "PHP", "USDT"];
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_CURRENCIES = ["INR", "BDT", "MYR", "NPR", "PKR"];
 
@@ -31,10 +31,7 @@ class DepositService {
     close() {}
 
     validateCurrency(currency) {
-        if (!SUPPORTED_CURRENCIES.includes(currency)) {
-            throw new Error(`Invalid currency. Supported: ${SUPPORTED_CURRENCIES.join(", ")}`);
-        }
-        return currency;
+        return validateCurrencyHelper(currency);
     }
 
     validateAmount(amount) {
@@ -363,13 +360,14 @@ class DepositService {
 
     async getUserInput() {
         const envCurrency = process.env.CURRENCY?.trim().toUpperCase();
+        const supported = getSupportedCurrencies();
 
-        let currency = SUPPORTED_CURRENCIES.includes(envCurrency)
-            ? envCurrency
+        let currency = envCurrency
+            ? this.validateCurrency(envCurrency)
             : null;
 
         if (!currency) {
-            const input = await this.ask("Masukkan Currency (INR/VND/BDT/MMK/THB/KRW): ");
+            const input = await this.ask(`Masukkan Currency (${supported.join(", ")}): `);
             currency = this.validateCurrency(input.trim().toUpperCase());
         }
 

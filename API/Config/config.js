@@ -38,7 +38,21 @@ validateEnvironment();
 
 const envConfig = getEnvConfig();
 
-const currencies = ['INR', 'VND', 'BDT', 'MMK', 'BRL', 'IDR', 'THB', 'MXN', 'KRW', 'PHP', 'HKD', "KHR", "MYR", 'JPY'];
+/**
+ * Deteksi currency secara dinamis dari process.env (semua key yang mengandung format *_CURRENCY)
+ */
+export function getCurrencies() {
+    const list = new Set(['INR', 'VND', 'BDT', 'MMK', 'BRL', 'IDR', 'THB', 'MXN', 'KRW', 'PHP', 'HKD', 'KHR', 'MYR', 'JPY', 'PKR', 'NPR', 'USDT', 'TWD']);
+    for (const key of Object.keys(process.env)) {
+        const match = key.match(/^(?:MERCHANT_CODE|SECRET_KEY|DEPOSIT_METHOD|PAYOUT_METHOD|MERCHANT_API_KEY)_([A-Za-z0-9]+)$/i);
+        if (match) {
+            list.add(match[1].toUpperCase());
+        }
+    }
+    return Array.from(list);
+}
+
+const currencies = getCurrencies();
 const merchantFields = ['SECRET_KEY', 'DEPOSIT_METHOD', 'PAYOUT_METHOD', 'MERCHANT_API_KEY', 'MERCHANT_CODE'];
 const staticFields = ['BASE_URL', 'API_NINJAS_KEY', 'MERCHANT_API_KEY_IDR', 'SECRET_TOKEN'];
 
@@ -127,3 +141,18 @@ if (process.env.CURRENCY) {
         console.warn(`⚠️ [Config Warning] ${e.message}`);
     }
 }
+
+/**
+ * Dynamic Proxy Config untuk mengakses variabel environment apa pun secara langsung
+ */
+const dynamicConfig = new Proxy({}, {
+    get(target, prop) {
+        if (typeof prop === 'string') {
+            return process.env[prop] ?? exports[prop];
+        }
+        return target[prop];
+    }
+});
+
+export default dynamicConfig;
+

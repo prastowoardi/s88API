@@ -5,9 +5,9 @@ import { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName, getAccountNumber, getCryptoRate, jpyBankList } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+import { getSupportedCurrencies, validateCurrency as validateCurrencyHelper } from "../../helpers/currencyHelper.js";
 import CoinKey from 'coinkey';
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK", "USDT", "MYR"];
 const CURRENCIES_REQUIRING_BANK_CODE = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK", "USDT"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CNPJ", "EMAIL", "PHONE", "EVP"];
 const BANK_ACCOUNT_NUMBER = getAccountNumber(6) || "11133322";
@@ -31,11 +31,7 @@ class PayoutService {
   }
 
   validateCurrency(currency) {
-    const upperCurrency = currency.toUpperCase();
-    if (!SUPPORTED_CURRENCIES.includes(upperCurrency)) {
-      throw new Error(`Currency "${currency}" belum didukung untuk payout.`);
-    }
-    return upperCurrency;
+    return validateCurrencyHelper(currency);
   }
 
   validateAmount(amount) {
@@ -313,10 +309,12 @@ class PayoutService {
       const envCurrency = process.env.CURRENCY;
           
       let currency;
-      if (envCurrency && SUPPORTED_CURRENCIES.includes(envCurrency)) {
-          currency = envCurrency;
+      if (envCurrency) {
+          currency = this.validateCurrency(envCurrency);
       } else {
-          const inputCurrency = await this.ask("Masukkan Currency: ");
+          const supported = getSupportedCurrencies();
+          const promptMsg = supported.length > 0 ? `Masukkan Currency (${supported.join(", ")}): ` : "Masukkan Currency: ";
+          const inputCurrency = await this.ask(promptMsg);
           currency = this.validateCurrency(inputCurrency);
       }
 

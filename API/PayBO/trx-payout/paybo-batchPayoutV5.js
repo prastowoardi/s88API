@@ -5,10 +5,10 @@ import { randomInt, randomUUID } from "crypto";
 import { encryptDecrypt, signVerify, stableStringify, getRandomIP, getRandomName, getAccountNumber } from "../../helpers/utils.js";
 import { getValidIFSC } from "../../helpers/payoutHelper.js";
 import { getPayoutConfig } from "../../helpers/payoutConfigMap.js";
+import { getSupportedCurrencies, validateCurrency } from "../../helpers/currencyHelper.js";
 import { randomAmount } from "../../helpers/common.js";
 import { fileURLToPath } from 'url';
 
-const SUPPORTED_CURRENCIES = ["INR", "VND", "BRL", "THB", "IDR", "MXN", "BDT", "KRW", "PHP", "JPY", "MMK"];
 const BANK_CODE_REQUIRED = ["IDR", "VND", "BDT", "THB", "BRL", "MXN", "KRW", "PHP", "JPY", "MMK"];
 const PIX_ACCOUNT_TYPES = ["CPF", "CPNJ", "EMAIL", "PHONE", "EVP"];
 const MAX_BATCH_SIZE = 1000;
@@ -283,16 +283,10 @@ async function collectBatchInputs(currency) {
 }
 
 async function getCurrency() {
-  const currencyInput = readlineSync.question("Masukkan Currency (INR/VND/BRL/etc): ");
-  const upperCurrency = currencyInput.toUpperCase();
-  
-  if (!SUPPORTED_CURRENCIES.includes(upperCurrency)) {
-    logger.error(`❌ Currency ${upperCurrency} is not supported.`);
-    logger.error(`   Supported: ${SUPPORTED_CURRENCIES.join(', ')}`);
-    process.exit(1);
-  }
-  
-  return upperCurrency;
+  const supported = getSupportedCurrencies();
+  const promptMsg = supported.length > 0 ? `Masukkan Currency (${supported.join("/")}): ` : "Masukkan Currency: ";
+  const currencyInput = readlineSync.question(promptMsg);
+  return validateCurrency(currencyInput);
 }
 
 async function sendBatchPayout(currency = null) {
@@ -306,13 +300,7 @@ async function sendBatchPayout(currency = null) {
       selectedCurrency = await getCurrency();
     }
     
-    const upperCurrency = selectedCurrency.toUpperCase();
-    
-    if (!SUPPORTED_CURRENCIES.includes(upperCurrency)) {
-      logger.error(`❌ Currency ${upperCurrency} is not supported.`);
-      logger.error(`   Supported: ${SUPPORTED_CURRENCIES.join(', ')}`);
-      process.exit(1);
-    }
+    const upperCurrency = validateCurrency(selectedCurrency);
     
     logger.info("🚀 BATCH WITHDRAW V5");    
     const { bankCode, amounts, count } = await collectBatchInputs(upperCurrency);
