@@ -89,7 +89,7 @@ export const {
     SECRET_KEY_USDT, DEPOSIT_METHOD_USDT, PAYOUT_METHOD_USDT, MERCHANT_API_KEY_USDT, MERCHANT_CODE_USDT
 } = process.env;
 
-export const CALLBACK_URL = process.env.CALLBACK_URL || "https://webhook.prastowoardi616.workers.dev/webhook";
+export const CALLBACK_URL = process.env.CALLBACK_URL || "https://webhook.supermen.workers.dev/webhook";
 
 export { envConfig };
 
