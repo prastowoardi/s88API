@@ -1,17 +1,18 @@
 import fetch from "node-fetch";
 import readlineSync from "readline-sync";
 import logger from "../../logger.js";
-import { randomInt } from "crypto";
+import crypto, { randomInt } from "crypto";
 import { encryptDecrypt, getRandomIP, getRandomName, generateEmail } from "../../helpers/utils.js";
 import { CALLBACK_URL } from "../../Config/config.js";
 import { getCurrencyConfig } from "../../helpers/depositConfigMap.js";
+import { getSupportedCurrencies, validateCurrency } from "../../helpers/currencyHelper.js";
 
 import { randomPhoneNumber } from "../../helpers/payoutHelper.js";
 import { generateUTR, randomAmount, randomMyanmarPhoneNumber, randomCardNumber } from "../../helpers/depositHelper.js";
 
 const UTR_CURRENCIES = ["INR", "BDT"];
 const PHONE_REQUIRED_CURRENCIES = ["BDT"];
-const REQUEST_TIMEOUT = 30000; // 30 seconds
+const REQUEST_TIMEOUT = 45000; // 45 seconds
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 1000; // 1 second base delay
 
@@ -92,12 +93,13 @@ class BatchDepositV3Service {
         }
     }
 
-    async submitUTR(currency, transactionCode, utr, retries = RETRY_ATTEMPTS) {
+    async submitUTR(currency, transactionCode, utr, baseURL = null, retries = RETRY_ATTEMPTS) {
         if (!UTR_CURRENCIES.includes(currency)) {
             return { success: true, skipped: true };
         }
 
         const config = getCurrencyConfig(currency);
+        const targetBaseURL = baseURL || config.BASE_URL;
 
         const payloadString = `transaction_code=${transactionCode}&utr=${utr}`;
         const encryptedPayload = encryptDecrypt("encrypt", payloadString, config.merchantAPI, config.secretKey);
@@ -105,7 +107,7 @@ class BatchDepositV3Service {
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
                 const response = await this.fetchWithTimeout(
-                    `${config.BASE_URL}/api/${config.merchantCode}/v3/submit-utr`,
+                    `${targetBaseURL}/api/${config.merchantCode}/v3/submit-utr`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -138,38 +140,33 @@ class BatchDepositV3Service {
     }
 
     buildPayload(config, transactionData) {
-        const {
-            transactionCode,
-            timestamp,
-            amount,
-            currency,
-            bankCode,
-            phone
-        } = transactionData;
+        const payload = {
+            merchant_api_key: config.merchantAPI,
+            merchant_code: config.merchantCode,
+            transaction_code: transactionData.transactionCode,
+            transaction_timestamp: transactionData.timestamp,
+            transaction_amount: transactionData.amount,
+            user_id: transactionData.userID,
+            currency_code: transactionData.currency,
+            payment_code: config.depositMethod,
+            ip_address: transactionData.ip,
+            ...(transactionData.bankCode && { bank_code: transactionData.bankCode }),
+            ...(transactionData.bank_code && !transactionData.bankCode && { bank_code: transactionData.bank_code }),
+            ...(transactionData.phone && { phone: transactionData.phone }),
+            ...(transactionData.depositor_name && { depositor_name: transactionData.depositor_name }),
+            ...(transactionData.depositor_bank && { depositor_bank: transactionData.depositor_bank }),
+            ...(transactionData.depositor_bank_code && { depositor_bank_code: transactionData.depositor_bank_code }),
+            ...(transactionData.depositor_account_number && { depositor_account_number: transactionData.depositor_account_number }),
+            ...(transactionData.email && { email: transactionData.email }),
+            callback_url: config.callbackURL || CALLBACK_URL,
+        };
 
-        const payloadParts = [
-            `callback_url=${config.callbackURL || CALLBACK_URL}`,
-            `merchant_api_key=${config.merchantAPI}`,
-            `merchant_code=${config.merchantCode}`,
-            `transaction_code=${transactionCode}`,
-            `transaction_timestamp=${timestamp}`,
-            `transaction_amount=${amount}`,
-            `user_id=${transactionData.userID}`,
-            `currency_code=${currency}`,
-            `payment_code=${config.depositMethod}`,
-            `ip_address=${transactionData.ip}`
-        ];
-
-        if (bankCode) payloadParts.push(`bank_code=${bankCode}`);
-        if (transactionData.bank_code && !bankCode) payloadParts.push(`bank_code=${transactionData.bank_code}`);
-        if (phone) payloadParts.push(`phone=${phone}`);
-        if (transactionData.depositor_name) payloadParts.push(`depositor_name=${transactionData.depositor_name}`);
-        if (transactionData.depositor_bank) payloadParts.push(`depositor_bank=${transactionData.depositor_bank}`);
-        if (transactionData.depositor_bank_code) payloadParts.push(`depositor_bank_code=${transactionData.depositor_bank_code}`);
-        if (transactionData.depositor_account_number) payloadParts.push(`depositor_account_number=${transactionData.depositor_account_number}`);
-        if (transactionData.email) payloadParts.push(`email=${transactionData.email}`);
-
-        return payloadParts.join('&');
+        return Object.entries(payload)
+            .map(([k, v]) => {
+                if (k === "depositor_name" || k === "callback_url" || k === "ip_address" || k === "email" || k === "depositor_merchant_url") return `${k}=${v}`;
+                return `${k}=${encodeURIComponent(v)}`;
+            })
+            .join("&");
     }
 
     async applyCurrencySpecificFields(tx, userInfo) {
@@ -250,6 +247,9 @@ class BatchDepositV3Service {
                         logger.warn(`⚠️ Unauthorized at ${base}, trying next...`);
                         continue;
                     }
+                    if (resultDP?.status === "failed") {
+                        return { result: resultDP, url: base };
+                    }
                     throw new Error(`HTTP ${response.status}: ${responseBody}`);
                 }
 
@@ -275,84 +275,100 @@ class BatchDepositV3Service {
             return { success: false, error: err.message };
         }
 
-        try {
-            const timestamp = this.lastTransactionNumber;
-            
-            let bankCode = "";
-            const bankOptions = config.bankCodeOptions || this.userBankCodes[currency];
-            if (currency !== "NPR" && bankOptions && bankOptions.length) {
-                bankCode = bankOptions[Math.floor(Math.random() * bankOptions.length)];
-            }
-
-            const userInfo = {
-                accountNumber: randomCardNumber(),
-                data: await generateEmail()
-            };
-
-            let phone = "";
-            if (PHONE_REQUIRED_CURRENCIES.includes(currency)) {
-                phone = randomPhoneNumber(currency.toLowerCase());
-            }
-            if (currency === "MMK" && bankCode === "wavepay") {
-                phone = randomMyanmarPhoneNumber();
-            }
-            if (["INR", "MYR", "NPR", "PKR"].includes(currency)) {
-                phone = randomPhoneNumber(currency.toLowerCase());
-            }
-
-            const transactionData = {
-                transactionCode,
-                timestamp,
-                amount,
-                currency,
-                userID: randomInt(100, 999),
-                ip: getRandomIP(),
-                bankCode,
-                phone
-            };
-
-            await this.applyCurrencySpecificFields(transactionData, userInfo);
-
-            const payload = this.buildPayload(config, transactionData);
-            const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
-
-            const { result: resultDP } = await this.makeDepositRequest(config, encrypted, transactionCode, currency);
-
-            if (resultDP.status === "success") {
-                const transactionNo = resultDP.transaction_no;
-                const remark = resultDP?.data?.additional?.remark || "-";
-
-                let utr = "-";
-                if (UTR_CURRENCIES.includes(currency)) {
-                    utr = generateUTR(currency); 
-                }
-
-                let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark}`;
-                if (currency === "INR") logMsg += ` | UTR: ${utr}`;
-                logMsg += ` | Success: ${resultDP.message}`;
-                logger.info(logMsg);                
-
-                this.stats.success++;
-
-                if (UTR_CURRENCIES.includes(currency)) {
-                    await this.submitUTR(currency, transactionCode, utr); 
-                }
-
-                return { success: true, transactionNo, result: resultDP };
-            } else {
-                logger.error(`❌ Deposit failed for ${transactionCode}: ${resultDP.message}`);
+        for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+            const currentTxCode = attempt === 1 ? transactionCode : `${transactionCode}-${attempt}`;
+            try {
+                const timestamp = Math.floor(Date.now() / 1000);
                 
+                let bankCode = "";
+                const bankOptions = config.bankCodeOptions || this.userBankCodes[currency];
+                if (currency !== "NPR" && bankOptions && bankOptions.length) {
+                    bankCode = bankOptions[Math.floor(Math.random() * bankOptions.length)];
+                }
+
+                const userInfo = {
+                    accountNumber: randomCardNumber(),
+                    data: await generateEmail()
+                };
+
+                let phone = "";
+                if (PHONE_REQUIRED_CURRENCIES.includes(currency)) {
+                    phone = randomPhoneNumber(currency.toLowerCase());
+                }
+                if (currency === "MMK" && bankCode === "wavepay") {
+                    phone = randomMyanmarPhoneNumber();
+                }
+                if (["INR", "MYR", "NPR", "PKR"].includes(currency)) {
+                    phone = randomPhoneNumber(currency.toLowerCase());
+                }
+
+                const transactionData = {
+                    transactionCode: currentTxCode,
+                    timestamp,
+                    amount,
+                    currency,
+                    userID: crypto.randomUUID(),
+                    ip: getRandomIP(),
+                    bankCode,
+                    phone
+                };
+
+                await this.applyCurrencySpecificFields(transactionData, userInfo);
+
+                const payload = this.buildPayload(config, transactionData);
+                const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
+
+                const { result: resultDP, url: workingBaseURL } = await this.makeDepositRequest(config, encrypted, currentTxCode, currency);
+
+                if (resultDP && resultDP.status === "success") {
+                    const transactionNo = resultDP.transaction_no;
+                    const remark = resultDP?.data?.additional?.remark || "-";
+
+                    let utr = "-";
+                    if (UTR_CURRENCIES.includes(currency)) {
+                        utr = generateUTR(currency); 
+                    }
+
+                    let logMsg = `✅ ${transactionNo} | Amount: ${amount} (${currency}) | Remark: ${remark}`;
+                    if (UTR_CURRENCIES.includes(currency)) logMsg += ` | UTR: ${utr}`;
+                    logMsg += ` | Success: ${resultDP.message}`;
+                    logger.info(logMsg);                
+
+                    this.stats.success++;
+
+                    if (UTR_CURRENCIES.includes(currency)) {
+                        await this.submitUTR(currency, currentTxCode, utr, workingBaseURL); 
+                    }
+
+                    return { success: true, transactionNo, result: resultDP };
+                } else {
+                    const errorMsg = resultDP?.message || JSON.stringify(resultDP);
+                    const isUnauthorized = errorMsg.toLowerCase().includes("unauthoriz");
+                    if (isUnauthorized && attempt < RETRY_ATTEMPTS) {
+                        logger.warn(`⚠️ [Attempt ${attempt}/${RETRY_ATTEMPTS}] Unauthorized for ${currentTxCode}, retrying...`);
+                        await this.delay(500);
+                        continue;
+                    }
+
+                    logger.error(`❌ Deposit failed for ${currentTxCode}: ${errorMsg}`);
+                    this.stats.failed++;
+                    this.stats.errors.push({ transactionCode: currentTxCode, error: resultDP });
+                    return { success: false, error: resultDP };
+                }
+            } catch (err) {
+                const isUnauthorized = err.message.toLowerCase().includes("unauthoriz");
+                if (isUnauthorized && attempt < RETRY_ATTEMPTS) {
+                    logger.warn(`⚠️ [Attempt ${attempt}/${RETRY_ATTEMPTS}] Unauthorized for ${currentTxCode}, retrying...`);
+                    await this.delay(500);
+                    continue;
+                }
+
+                const error = `Deposit Error: ${err.message}`;
+                logger.error(`❌ ${error} (${currentTxCode})`);
                 this.stats.failed++;
-                this.stats.errors.push({ transactionCode, error: resultDP });
-                return { success: false, error: resultDP };
+                this.stats.errors.push({ transactionCode: currentTxCode, error: err.message });
+                return { success: false, error: err.message };
             }
-        } catch (err) {
-            const error = `Deposit Error: ${err.message}`;
-            logger.error(`❌ ${error} (${transactionCode})`);
-            
-            this.stats.failed++;
-            this.stats.errors.push({ transactionCode, error: err.message });
-            return { success: false, error: err.message };
         }
     }
 
@@ -378,10 +394,6 @@ class BatchDepositV3Service {
             results.push(...batchResults);
             
             this.updateProgress(Math.min(i + dynamicConcurrency, tasks.length), tasks.length);
-            
-            if (i + dynamicConcurrency < tasks.length) {
-                await this.delay(500);
-            }
         }
         
         return results;
