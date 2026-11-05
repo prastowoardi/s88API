@@ -38,6 +38,9 @@ async function main() {
         const hold = resData.hold_balance ?? null;
 
         console.log(`\nAccount Details:`);
+        if (process.env.CURRENT_MERCHANT) {
+          console.log(`Merchant Name     : ${process.env.CURRENT_MERCHANT}`);
+        }
         console.log(`Merchant Code     : ${result.merchantCode}`);
         console.log(`Currency Name     : ${currencyName}`);
         console.log(`Currency Code     : ${currencyCode}`);

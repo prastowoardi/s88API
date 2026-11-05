@@ -127,13 +127,16 @@ export function formatToUTC8(date = new Date()) {
 
 /**
  * Mendapatkan rentang tanggal default UTC+8:
- * - startDate: waktu saat request dijalankan (MM/DD/YYYY HH:mm)
+ * - startDate: 4 jam sebelum waktu request dijalankan (MM/DD/YYYY HH:mm)
  * - endDate: akhir hari saat request pada jam 23:59 (MM/DD/YYYY 23:59)
  * @param {Date|string|number} [date=new Date()]
+ * @param {number} [hoursBefore=4]
  * @returns {{ startDate: string, endDate: string }}
  */
-export function getDefaultDateRangeUTC8(date = new Date()) {
+export function getDefaultDateRangeUTC8(date = new Date(), hoursBefore = 4) {
   const d = new Date(date);
+  const startObj = new Date(d.getTime() - hoursBefore * 60 * 60 * 1000);
+
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Singapore", // UTC+8
     year: "numeric",
@@ -143,11 +146,15 @@ export function getDefaultDateRangeUTC8(date = new Date()) {
     minute: "2-digit",
     hour12: false,
   });
-  const parts = formatter.formatToParts(d);
-  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
 
-  const startDate = `${map.month}/${map.day}/${map.year} ${map.hour}:${map.minute}`;
-  const endDate = `${map.month}/${map.day}/${map.year} 23:59`;
+  const partsStart = formatter.formatToParts(startObj);
+  const mapStart = Object.fromEntries(partsStart.map((p) => [p.type, p.value]));
+
+  const partsEnd = formatter.formatToParts(d);
+  const mapEnd = Object.fromEntries(partsEnd.map((p) => [p.type, p.value]));
+
+  const startDate = `${mapStart.month}/${mapStart.day}/${mapStart.year} ${mapStart.hour}:${mapStart.minute}`;
+  const endDate = `${mapEnd.month}/${mapEnd.day}/${mapEnd.year} 23:59`;
 
   return { startDate, endDate };
 }
@@ -217,52 +224,72 @@ export async function checkTransactionStatus({ transactionCode, currency = null,
  * @param {Object} params
  * @param {string} [params.currency]
  * @param {Object} [params.config]
+ * @param {string} [params.startDate]
+ * @param {string} [params.endDate]
  * @returns {Promise<{status: number, data: any}>}
  */
-export async function getBalance({ currency = null, config = null } = {}) {
+export async function getBalance({ currency = null, config = null, startDate = null, endDate = null } = {}) {
   const cfg = resolveConfig(currency, config);
-  const url = `${cfg.BASE_URL}/api/v1/balance/${cfg.merchantCode}`;
+  const defaultDates = getDefaultDateRangeUTC8();
+  const effectiveStartDate = startDate || defaultDates.startDate;
+  const effectiveEndDate = endDate || defaultDates.endDate;
 
   logger.info(`💰 Fetching Account Balance`);
-  logger.info(`   URL           : ${url}`);
   logger.info(`   Merchant Code : ${cfg.merchantCode}`);
   logger.info(`   Currency      : ${cfg.currency}`);
 
   // Format yang didukung:
-  // 1. `merchant_code=${cfg.merchantCode}` (form-urlencoded style)
-  // 2. `${cfg.merchantCode}` (plain string)
+  // 1. `merchant_code=${cfg.merchantCode}&start_date=${effectiveStartDate}&end_date=${effectiveEndDate}`
+  // 2. `merchant_code=${cfg.merchantCode}` (form-urlencoded style)
+  // 3. `${cfg.merchantCode}` (plain string)
   const formats = [
+    `merchant_code=${cfg.merchantCode}&start_date=${effectiveStartDate}&end_date=${effectiveEndDate}`,
     `merchant_code=${cfg.merchantCode}`,
     cfg.merchantCode,
   ];
 
+  const baseUrls = getAvailableBaseUrls(cfg);
   let lastResponse = null;
 
-  for (const raw of formats) {
-    const encrypted = encryptDecrypt("encrypt", raw, cfg.merchantAPI, cfg.secretKey);
+  for (const baseUrl of baseUrls) {
+    const url = `${baseUrl}/api/v1/balance/${cfg.merchantCode}`;
 
-    logger.info(`   Payload (Before Encrypt) : ${raw}`);
-    logger.info(`   Payload (After Encrypt)  : ${encrypted}`);
+    for (const raw of formats) {
+      const encrypted = encryptDecrypt("encrypt", raw, cfg.merchantAPI, cfg.secretKey);
 
-    const response = await axios({
-      method: "GET",
-      url,
-      params: { key: encrypted },
-      validateStatus: () => true,
-    });
+      logger.info(`   URL                      : ${url}`);
+      logger.info(`   Payload (Before Encrypt) : ${raw}`);
+      logger.info(`   Payload (After Encrypt)  : ${encrypted}`);
 
-    lastResponse = {
-      status: response.status,
-      data: response.data,
-      url,
-      merchantCode: cfg.merchantCode,
-      payloadBeforeEncrypt: raw,
-      payloadAfterEncrypt: encrypted,
-    };
+      try {
+        const response = await axios({
+          method: "GET",
+          url,
+          params: { key: encrypted },
+          validateStatus: () => true,
+        });
 
-    // Jika response sukses (200), return hasil
-    if (response.status === 200 && response.data) {
-      return lastResponse;
+        lastResponse = {
+          status: response.status,
+          data: response.data,
+          url,
+          merchantCode: cfg.merchantCode,
+          payloadBeforeEncrypt: raw,
+          payloadAfterEncrypt: encrypted,
+        };
+
+        // Jika response sukses (200), return hasil
+        if (response.status === 200 && response.data) {
+          return lastResponse;
+        }
+
+        if (isUnauthorizedResponse(response.status, response.data)) {
+          logger.warn(`⚠️ [${baseUrl}] Domain/kredensial belum diizinkan, mencoba opsi lain...`);
+          break;
+        }
+      } catch (err) {
+        logger.warn(`⚠️ [${baseUrl}] Gagal request (${err.message}), mencoba opsi lain...`);
+      }
     }
   }
 

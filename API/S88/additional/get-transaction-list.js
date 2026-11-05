@@ -10,12 +10,12 @@ async function main() {
     currency = await ask("Masukkan Currency (misal: INR, VND, IDR, dll): ");
   }
 
-  // Default start_date: waktu saat request (MM/DD/YYYY HH:mm UTC+8)
+  // Default start_date: 4 jam sebelum waktu request (MM/DD/YYYY HH:mm UTC+8)
   // Default end_date: akhir hari saat request (MM/DD/YYYY 23:59 UTC+8)
   const { startDate: defaultStart, endDate: defaultEnd } = getDefaultDateRangeUTC8();
 
   console.log(`\nℹ️ Rentang tanggal maksimal 3 hari dalam format MM/DD/YYYY HH:mm (UTC+8)`);
-  const startDate = await ask(`Masukkan start_date (default saat ini: ${defaultStart}): `, defaultStart);
+  const startDate = await ask(`Masukkan start_date (default: ${defaultStart}): `, defaultStart);
   const endDate = await ask(`Masukkan end_date (default akhir hari: ${defaultEnd}): `, defaultEnd);
 
   const statusChoices = [

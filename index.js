@@ -51,6 +51,7 @@ const SCRIPT_ACTIONS = {
   manualVND:       { path: "API/S88/trx-payout/manualVND.js",          label: "Manual Withdraw VND",  type: "S88/Singhapay/Apex", kind: "payout"   },
   CheckStatus:     { path: "API/S88/additional/check-status.js",       label: "Check Transaction Status", type: "S88/Singhapay/Apex", kind: "status"   },
   TransactionList: { path: "API/S88/additional/get-transaction-list.js", label: "Get Transaction List", type: "S88/Singhapay/Apex", kind: "list" },
+  getBalance:      { path: "API/additional/get-balance.js",            label: "Get Balance",             type: "S88/Singhapay/Apex", kind: "balance" },
 
   // PayBO
   payboDepositV2:       { path: "API/PayBO/trx-deposit/paybo-depositV2.js",     label: "PayBO Deposit V2",        type: "PayBO", kind: "deposit" },
@@ -72,7 +73,6 @@ const SCRIPT_ACTIONS = {
   depositEncrypt:  { path: "API/encrypt_decrypt/depositEncrypt.js",          label: "Deposit Encrypt",        type: "Other", kind: null },
   payoutEncrypt:   { path: "API/encrypt_decrypt/payoutEncrypt.js",           label: "Withdraw Encrypt",       type: "Other", kind: null },
   bankList:        { path: "API/additional/get-bank-list.js",                label: "Get Bank Codes (Bank List)", type: "Other", kind: null },
-  getBalance:      { path: "API/additional/get-balance.js",                  label: "Get Balance",             type: "Other", kind: null },
 };
 
 // Actions that need currency + merchant selection
