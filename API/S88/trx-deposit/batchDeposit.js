@@ -118,7 +118,8 @@ class BatchDepositV3Service {
                 const responseText = await response.text();
                 
                 try {
-                    JSON.parse(responseText);
+                    const parsed = JSON.parse(responseText);
+                    // logger.info(`Submit UTR Response (${transactionCode}):\n${JSON.stringify(parsed, null, 2)}`);
                     this.stats.utrSubmitted++;
                     return { success: true, utr, response: responseText };
                 } catch (e) {
@@ -319,6 +320,9 @@ class BatchDepositV3Service {
                 const encrypted = encryptDecrypt("encrypt", payload, config.merchantAPI, config.secretKey);
 
                 const { result: resultDP, url: workingBaseURL } = await this.makeDepositRequest(config, encrypted, currentTxCode, currency);
+
+                const responseLog = typeof resultDP === "object" && resultDP !== null ? JSON.stringify(resultDP, null, 2) : resultDP;
+                // logger.info(`Deposit Response (${currentTxCode}):\n${responseLog}`);
 
                 if (resultDP && resultDP.status === "success") {
                     const transactionNo = resultDP.transaction_no;

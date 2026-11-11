@@ -342,6 +342,9 @@ class BatchDepositV4Service {
 
                 const { result: resultDP, url: workingBaseURL } = await this.makeDepositRequest(config, encrypted, currentTxCode);
 
+                const responseLog = typeof resultDP === "object" && resultDP !== null ? JSON.stringify(resultDP, null, 2) : resultDP;
+                // logger.info(`Deposit Response (${currentTxCode}):\n${responseLog}`);
+
                 if (resultDP && resultDP.status === "success") {
                     const transactionNo = resultDP.transaction_no;
                     const actualAmount = resultDP.amount;
