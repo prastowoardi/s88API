@@ -100,6 +100,12 @@ class DepositV2Service {
             payload.email = user.data.email;
         }
 
+        if (tx.currency === "IDR") {
+            payload.depositor_name = user.data.name;
+            payload.phone = await randomPhoneNumber('idr');
+            payload.email = user.data.email;
+        }
+
         // Only for Erfolg provider
         // if (tx.currency === "INR") {
         //     Object.assign(payload, {

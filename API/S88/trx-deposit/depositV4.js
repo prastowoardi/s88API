@@ -112,6 +112,10 @@ class DepositService {
             basePayload.depositor_name = await getRandomName('jp', true);
         }
 
+        if (tx.currency === "VND") {
+            basePayload.random_bank_code = "OBT";
+        }
+
         if (tx.currency === "NPR") {
             const depositorBank = await this.ask("Masukkan Depositor Bank: ");
             if (!/^[a-z0-9A-Z]+$/.test(depositorBank))
@@ -126,6 +130,12 @@ class DepositService {
         if (tx.currency === "KRW") {
             basePayload.depositor_name = await getRandomName('kr', true);
             basePayload.depositor_account_number = userInfo.accountNumber
+        }
+
+        if (tx.currency === "IDR") {
+            basePayload.depositor_name = userInfo.data.name;
+            basePayload.phone = await randomPhoneNumber('idr');
+            basePayload.email = userInfo.data.email;
         }
 
         if (tx.currency === "MYR") {

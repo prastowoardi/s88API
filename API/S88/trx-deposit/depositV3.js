@@ -117,6 +117,12 @@ class DepositService {
             payload.email = user.data.email;
         }
 
+        if (tx.currency === "IDR") {
+            payload.depositor_name = user.data.name;
+            payload.phone = await randomPhoneNumber('idr');
+            payload.email = user.data.email;
+        }
+
         if (tx.currency === "KRW") {
             payload.depositor_name = user.data.name;
             payload.depositor_account_number = user.accountNumber;
