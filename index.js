@@ -28,6 +28,7 @@ const ENV_CONFIGS = {
   PayBO_rangoon:       { file: ".paybo_rangoon",     label: "Rangoon"              },
   PayBO_erfolgpay:     { file: ".paybo_erfolgpay",   label: "Erfolgpay"            },
   PayBO_commspay:      { file: ".paybo_commspay",    label: "Commspay"             },
+  PayBO_paykassma:     { file: ".paybo_paykassma",   label: "Paykassma"            },
   PayBO_demo:          { file: ".paybo_demo",        label: "PayBO Demo"           },
   PayBO_next8:         { file: ".paybo_next8",       label: "Next8"                },
   PayBO_snappay:       { file: ".paybo_snappay",     label: "Gempita Production",  actions: ["payboApiEx"] },
