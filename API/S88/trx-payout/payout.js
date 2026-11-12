@@ -148,7 +148,7 @@ class regularPayout {
         if (!ifsc) throw new Error("IFSC tidak tersedia");
         return ifsc;
       });
-      
+
       enhancedPayload.ifsc_code = ifscCode;
       enhancedPayload.bank_account_number = BANK_CONFIG.INR.bank_account_number;
       logger.info(`IFSC Code: ${ifscCode}`);
@@ -159,7 +159,7 @@ class regularPayout {
         `Masukkan Bank Code untuk ${currency}: `,
         (code) => validators.bankCode(code, currency)
       );
-      
+
       enhancedPayload.bank_code = bankCode;
       enhancedPayload.bank_name = bankCode; // Assuming bank name is same as bank code for simplicity
       enhancedPayload.bank_account_number = BANK_CONFIG[currency]?.bank_account_number || "2206491508";
@@ -167,6 +167,10 @@ class regularPayout {
 
     if (currency === "PKR") {
       enhancedPayload.phone_number = BANK_CONFIG.PKR.bank_account_number;
+    }
+
+    if (currency === "IDR") {
+      enhancedPayload.phone_number = randomPhoneNumber("idr");
     }
 
     if (currency === "THB") {
@@ -186,7 +190,7 @@ class regularPayout {
 
       enhancedPayload.bank_account_number = getAccountNumber(5);
       enhancedPayload.account_type = fakerJA.helpers.arrayElement([1, 2]);
-      
+
       logger.info(`🇯🇵  JPY Branch: ${enhancedPayload.branch_name} (${enhancedPayload.branch_code})`);
     }
 
@@ -219,7 +223,7 @@ class regularPayout {
       const result = await utils.retryWithBackoff(async () => {
         const response = await fetch(url, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             "User-Agent": "PayoutSystem/2.0"
           },
@@ -256,11 +260,11 @@ class regularPayout {
 
     } catch (error) {
       // logger.error(`❌ Regular Payout Error: ${error.message}`);
-      const readableError = error.resultText 
+      const readableError = error.resultText
         ? error.resultText.replace(/\\u[\dA-F]{4}/gi, match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)))
         : error.message;
 
-      return { success: false, error: error.message, readableError : readableError, resultText: error.resultText };
+      return { success: false, error: error.message, readableError: readableError, resultText: error.resultText };
     }
   }
 }
@@ -272,7 +276,7 @@ class PayoutOrchestrator {
 
   async execute() {
     const startTime = Date.now();
-    
+
     try {
       logger.info("======== PAYOUT REQUEST ========");
 
@@ -307,11 +311,11 @@ class PayoutOrchestrator {
       );
 
       const duration = (Date.now() - startTime) / 1000;
-      
+
       logger.info("======== PAYOUT COMPLETED ========");
       logger.info(`Status: ${result.success ? '✅ SUCCESS' : '❌ FAILED'}`);
       logger.info(`Duration: ${duration.toFixed(2)}s`);
-      
+
       if (!result.success) {
         if (result.error) {
           logger.error(`❌ Error: ${result.error}`);
@@ -319,13 +323,13 @@ class PayoutOrchestrator {
         if (result.readableError) {
           logger.error(`❌ Detail: ${result.readableError}`);
         }
-        if(result.resultText) {
-            try {
-                const errObj = JSON.parse(result.resultText);
-                logger.error(`Error Detail: ${JSON.stringify(errObj, null, 2)}`);
-            } catch (e) {
-                logger.error(`Error: ${result.resultText}`);
-            }
+        if (result.resultText) {
+          try {
+            const errObj = JSON.parse(result.resultText);
+            logger.error(`Error Detail: ${JSON.stringify(errObj, null, 2)}`);
+          } catch (e) {
+            logger.error(`Error: ${result.resultText}`);
+          }
         }
       }
 
@@ -356,9 +360,9 @@ async function sendPayout() {
   return orchestrator.execute();
 }
 
-export { 
-  PayoutOrchestrator, 
-  regularPayout, 
+export {
+  PayoutOrchestrator,
+  regularPayout,
   sendPayout,
   CONFIG,
   validators

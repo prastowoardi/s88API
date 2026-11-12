@@ -23,7 +23,7 @@ export function randomPhoneNumber(currency = "default") {
     },
     vnd: { prefixes: ['090', '091', '092', '093'], digits: 7, pad: 7 },
     thb: { prefixes: ['08'], digits: 8, pad: 7 },
-    idr: { prefixes: ['081', '085', '088'], digits: 9, pad: 9 },
+    idr: { prefixes: ['081', '085', '088'], digits: 8, pad: 8 },
     inr: { prefixes: ['919', '918', '917'], digits: 7, pad: 6 },
     pkr: { prefixes: ['0300', '0312', '0333', '0345'], digits: 7, pad: 7 },
     myr: { prefixes: ['01'], digits: 8, pad: 8 },
