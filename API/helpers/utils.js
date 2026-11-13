@@ -1,5 +1,5 @@
 import { API_NINJAS_KEY } from "../Config/config.js";
-import { localNames } from "./local-names.js";
+import { localNames, japaneseSurnamesKana, japaneseGivenNamesKana } from "./local-names.js";
 import { v4 as uuidv4 } from 'uuid';
 import { fakerJA as faker } from '@faker-js/faker';
 import fetch from "node-fetch";
@@ -234,18 +234,14 @@ export async function getCryptoRate(amount, fromCurrency, config, toCurrency = "
 }
 
 export const generateRandomJPYData = async (customerID) => {
-    const lastNameKanji = faker.person.lastName();
-    const firstNameKanji = faker.person.firstName();
-    
-    const lastNameKana = faker.person.lastName({ variant: 'katakana' });
-    const firstNameKana = faker.person.firstName({ variant: 'katakana' });
+    const lastNameKana = japaneseSurnamesKana[randomInt(0, japaneseSurnamesKana.length)];
+    const firstNameKana = japaneseGivenNamesKana[randomInt(0, japaneseGivenNamesKana.length)];
 
     return {
         customer_id: customerID || `CUST-JP-${faker.string.numeric(5)}`,
-        username_kanji: `${lastNameKanji} ${firstNameKanji}`,
-        username_katakana: `${lastNameKana}${firstNameKana}`.replace(/\s/g, ''), // Biasanya tanpa spasi untuk sistem bank
+        username_katakana: `${lastNameKana}${firstNameKana}`,
     };
-}
+};
 
 export async function registerCustomerJPY(config, customerId) {
     const { merchantCode, BASE_URL, secretKey, merchantAPI } = config;
@@ -264,13 +260,21 @@ export async function registerCustomerJPY(config, customerId) {
 
     const payload = await generateRandomJPYData(customerId);
     const encryptedId = encryptDecrypt("encrypt", payload.customer_id, merchantAPI, secretKey);
+    const idempotencyKey = uuidv4();
 
     const form = new FormData();
     form.append('currency', 'JPY');
     form.append('username_katakana', payload.username_katakana);
 
+    const curlCommand = `curl --location '${url}' \\\n` +
+        `--header 'X-Encrypted-Customer-Id: ${encryptedId}' \\\n` +
+        `--header 'Idempotency-Key: ${idempotencyKey}' \\\n` +
+        `--form 'currency="JPY"' \\\n` +
+        `--form 'username_katakana="${payload.username_katakana}"'`;
+
     try {
         logger.info(`📤 Sending KYC for: ${payload.customer_id}`);
+        logger.info(`📋 cURL Register KYC:\n${curlCommand}`);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -278,7 +282,7 @@ export async function registerCustomerJPY(config, customerId) {
             headers: {
                 ...form.getHeaders(),
                 'X-Encrypted-Customer-Id': encryptedId,
-                'Idempotency-Key': uuidv4()
+                'Idempotency-Key': idempotencyKey
             }
         });
 
