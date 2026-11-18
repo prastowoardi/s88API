@@ -169,7 +169,6 @@ function runScript(scriptPath, envOverride = {}) {
     const child = spawn("node", [scriptPath], {
       stdio: "inherit",
       env: { ...process.env, ...envOverride },
-      shell: true,
     });
     child.on("error", (err) => { console.error(`❌ Error: ${err.message}`); resolve(); });
     child.on("close", (code) => {
