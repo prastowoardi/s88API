@@ -215,18 +215,16 @@ export async function checkTransactionStatus({ transactionCode, currency = null,
 }
 
 /**
- * Get Balance (S88 / Singhapay / Apexpay)
- * GET /api/v1/balance/{{merchant_code}}?key={{encrypted_key}}
- *
- * Query Params: ?key=YOUR_ENCRYPTED_KEY
- * Key contents: merchant_code
+ * Get Balance (S88 / Singhapay / Apexpay / PayBO / Rubik / Octopay)
+ * - Singhapay / PayBO : POST /api/v1/balance/{{merchant_code}} dengan Body JSON { key: encrypted }
+ * - S88 / Rubik / Octopay : GET /api/v1/balance/{{merchant_code}}?key={{encrypted_key}} (Query Params, bukan body raw)
  *
  * @param {Object} params
  * @param {string} [params.currency]
  * @param {Object} [params.config]
  * @param {string} [params.startDate]
  * @param {string} [params.endDate]
- * @returns {Promise<{status: number, data: any}>}
+ * @returns {Promise<{status: number, data: any, url: string, method: string, merchantCode: string, payloadBeforeEncrypt: string, payloadAfterEncrypt: string}>}
  */
 export async function getBalance({ currency = null, config = null, startDate = null, endDate = null } = {}) {
   const cfg = resolveConfig(currency, config);
@@ -253,26 +251,57 @@ export async function getBalance({ currency = null, config = null, startDate = n
 
   for (const baseUrl of baseUrls) {
     const url = `${baseUrl}/api/v1/balance/${cfg.merchantCode}`;
+    const lowerUrl = baseUrl.toLowerCase();
+
+    // Deteksi method berdasarkan URL:
+    // - singha, paybo (dan mirror xyz) menggunakan POST
+    // - s88, rubik, octopay (dan default lainnya) menggunakan GET via query params (bukan body raw)
+    const isPostDomain = ["singha", "paybo", "xyz"].some((keyword) => lowerUrl.includes(keyword));
+    const preferredMethod = isPostDomain ? "POST" : "GET";
 
     for (const raw of formats) {
       const encrypted = encryptDecrypt("encrypt", raw, cfg.merchantAPI, cfg.secretKey);
 
       logger.info(`   URL                      : ${url}`);
+      logger.info(`   Method                   : ${preferredMethod}`);
       logger.info(`   Payload (Before Encrypt) : ${raw}`);
       logger.info(`   Payload (After Encrypt)  : ${encrypted}`);
 
-      try {
-        const response = await axios({
-          method: "GET",
+      const sendBalanceRequest = async (method) => {
+        const reqConfig = {
+          method,
           url,
-          params: { key: encrypted },
           validateStatus: () => true,
-        });
+        };
+
+        if (method === "POST") {
+          reqConfig.headers = { "Content-Type": "application/json" };
+          reqConfig.data = { key: encrypted };
+        } else {
+          // GET: dikirim via query params (?key=...), bukan body raw
+          reqConfig.params = { key: encrypted };
+        }
+
+        return await axios(reqConfig);
+      };
+
+      try {
+        let usedMethod = preferredMethod;
+        let response = await sendBalanceRequest(usedMethod);
+
+        // Fallback jika terkena HTTP 405 Method Not Allowed pada domain tertentu
+        if (response.status === 405) {
+          const fallbackMethod = preferredMethod === "POST" ? "GET" : "POST";
+          logger.warn(`⚠️ [${baseUrl}] Method ${preferredMethod} 405 Not Allowed, mencoba fallback ke ${fallbackMethod}...`);
+          response = await sendBalanceRequest(fallbackMethod);
+          usedMethod = fallbackMethod;
+        }
 
         lastResponse = {
           status: response.status,
           data: response.data,
           url,
+          method: usedMethod,
           merchantCode: cfg.merchantCode,
           payloadBeforeEncrypt: raw,
           payloadAfterEncrypt: encrypted,

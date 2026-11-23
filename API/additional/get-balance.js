@@ -19,6 +19,9 @@ async function main() {
 
       console.log("\n------------------ HASIL ------------------");
       logger.info(`HTTP Status: ${result.status}`);
+      if (result.method) {
+        console.log(`Method                   : ${result.method}`);
+      }
 
       if (result.payloadBeforeEncrypt) {
         console.log(`Payload (Before Encrypt) : ${result.payloadBeforeEncrypt}`);
