@@ -127,6 +127,11 @@ async function applyCurrencySpecificPayload(payload, currency, bankCode, cardNum
         case "TWD":
             payload.bank_account_number = await getAccountNumber(5);
             payload.cust_phone = "0912345678";
+        case "IDR":
+            payload.cust_name=user.name,
+            payload.cust_email=user.email,
+            payload.cust_phone=await randomPhoneNumber("idr")
+            break;
     }
     return payload;
 }

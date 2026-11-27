@@ -79,6 +79,11 @@ async function buildPayload(config, tx, userInfo = {}) {
             bank_account_number: await getAccountNumber(5),
             cust_phone: await randomPhoneNumber('twd')
         }),
+        ...(tx.currency === "IDR" && {
+            cust_name: xxx.name,
+            cust_email: xxx.email,
+            cust_phone: await randomPhoneNumber("idr")
+        }),
         callback_url: config.callbackURL,
     };
 
